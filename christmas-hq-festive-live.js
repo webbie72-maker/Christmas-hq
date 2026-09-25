@@ -315,10 +315,34 @@
       }
       .hq-wheel-result span{
         background:rgba(10,47,38,.92);color:#fff;border-radius:18px;padding:16px;font-weight:900;max-width:75%
-      }
-      .nav{overflow-x:auto;scrollbar-width:none}
-      .nav::-webkit-scrollbar{display:none}
-      .nav button{min-width:68px}
+      }.nav{
+  grid-template-columns:repeat(7,minmax(0,1fr))!important;
+  gap:2px!important;
+  width:calc(100% - 16px)!important;
+  max-width:564px!important;
+  bottom:8px!important;
+  border:1px solid #e2e8df!important;
+  border-radius:18px!important;
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom))!important;
+  box-shadow:0 -5px 26px rgba(16,59,49,.18)!important;
+  overflow:visible!important;
+}
+
+.nav button{
+  min-width:0!important;
+  min-height:48px!important;
+  padding:5px 1px!important;
+  font-size:9px!important;
+  gap:2px!important;
+}
+
+.nav button i{
+  font-size:20px!important;
+}
+
+.nav::-webkit-scrollbar{
+  display:none;
+}
       @media(max-width:420px){
         .hq-games-grid{grid-template-columns:1fr 1fr}
         .hq-game-card{padding:13px;min-height:137px}
