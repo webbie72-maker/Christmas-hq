@@ -220,7 +220,7 @@
         box-shadow:0 8px 22px rgba(0,0,0,.16);
         backdrop-filter:blur(14px)
       }
-      }
+      
       .hq-music-mini{display:flex;align-items:center;gap:9px}
       .hq-music-icon{font-size:24px}
       .hq-music-info{flex:1;min-width:0}
