@@ -207,13 +207,19 @@
       }
 
       .hq-music-dock{
-        position:fixed;z-index:80;right:10px;bottom:84px;
-        width:min(330px,calc(100vw - 20px));
+        position:relative;
+        z-index:20;
+        width:calc(100% - 32px);
+        max-width:650px;
+        margin:12px auto 18px auto;
         border:1px solid rgba(255,255,255,.18);
-        background:rgba(8,46,37,.95);
-        color:white;border-radius:18px;padding:10px 11px;
-        box-shadow:0 16px 40px rgba(0,0,0,.24);
+        background:rgba(8,46,37,.96);
+        color:white;
+        border-radius:16px;
+        padding:9px 12px;
+        box-shadow:0 8px 22px rgba(0,0,0,.16);
         backdrop-filter:blur(14px)
+      }
       }
       .hq-music-mini{display:flex;align-items:center;gap:9px}
       .hq-music-icon{font-size:24px}
@@ -933,7 +939,7 @@
       dock = document.createElement('div');
       dock.id = 'hqMusicDock';
       dock.className = 'hq-music-dock';
-      document.body.appendChild(dock);
+      mast.insertAdjacentElement('afterend', dock);
     }
 
     const song = selectedSong();
