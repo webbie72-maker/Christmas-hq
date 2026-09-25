@@ -449,8 +449,9 @@ if('serviceWorker' in navigator && location.protocol!=='file:'){
  window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(e=>console.warn('Offline install unavailable',e)));
 }
 window.addEventListener('pageshow',()=>setTimeout(refreshInstallUI,0));
-
 render();
 setTimeout(refreshInstallUI,0);
 </script>
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./family-cloud.js"></script>
 </body></html>
