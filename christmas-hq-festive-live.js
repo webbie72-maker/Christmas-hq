@@ -886,7 +886,16 @@
       }
 
       loadSelectedSong();
-      ensureMusicDock();
+ensureMusicDock();
+
+if (hqMusicEnabled && selectedSong()) {
+  try {
+    await ensureAudio().play();
+  } catch (_) {
+    // Phone/browser may require the first tap before sound can start.
+  }
+  ensureMusicDock();
+}
     } catch (err) {
       console.warn('Music library load failed', err);
     }
@@ -989,11 +998,17 @@
       </div>`;
   }
 
-  async function firstGestureMusic() {
-    document.removeEventListener('pointerdown', firstGestureMusic, true);
-    if (hqMusicEnabled && selectedSong()) {
-      try { await ensureAudio().play(); } catch (_) {}
-      ensureMusicDock();
+  loadSelectedSong();
+ensureMusicDock();
+
+if (hqMusicEnabled && selectedSong()) {
+  try {
+    await ensureAudio().play();
+  } catch (_) {
+    // Phone/browser may require the first tap before sound can start.
+  }
+  ensureMusicDock();
+}
     }
   }
 
