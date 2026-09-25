@@ -1,0 +1,37 @@
+{
+  "id": "./",
+  "name": "Christmas HQ \u2014 Your whole Christmas, sorted",
+  "short_name": "Christmas HQ",
+  "description": "Family Christmas planning, gifts, food, Secret Santa, recipes and festive fun in one app.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "background_color": "#fbfaf6",
+  "theme_color": "#103b31",
+  "orientation": "any",
+  "lang": "en-AU",
+  "categories": [
+    "lifestyle",
+    "food",
+    "family",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
