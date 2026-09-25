@@ -907,9 +907,9 @@
     const song = selectedSong();
 
     if (!song) {
-      go('magic','Music');
-      notice('Add your Christmas song first 🎵');
-      return;
+  notice('No song selected — tap Add song 🎵');
+  return;
+}
     }
 
     const audio = ensureAudio();
@@ -961,7 +961,7 @@
         </select>
         <span>🔈</span>
         <input data-hq-volume type="range" min="0" max="1" step=".05" value="${hqMusicVolume}">
-        ${!hqMusicSongs.length ? '<button class="hq-music-btn" data-hq-music="add" style="font-size:12px">Add</button>' : ''}
+        <button class="hq-music-btn" data-hq-music="add" style="font-size:12px;white-space:nowrap">+ Add song</button>
       </div>`;
   }
 
