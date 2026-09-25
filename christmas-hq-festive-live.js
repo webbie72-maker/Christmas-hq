@@ -998,19 +998,19 @@ if (hqMusicEnabled && selectedSong()) {
       </div>`;
   }
 
-  loadSelectedSong();
-ensureMusicDock();
+  async function firstGestureMusic() {
+  if (!hqMusicEnabled || !selectedSong()) return;
 
-if (hqMusicEnabled && selectedSong()) {
   try {
     await ensureAudio().play();
-  } catch (_) {
-    // Phone/browser may require the first tap before sound can start.
-  }
+    document.removeEventListener('pointerdown', firstGestureMusic, true);
+  } catch (_) {}
+
   ensureMusicDock();
 }
-    }
-  }
+
+    
+  
 
   function renderFestiveAfter() {
     addSnow();
