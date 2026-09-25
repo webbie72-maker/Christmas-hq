@@ -910,7 +910,7 @@
   notice('No song selected — tap Add song 🎵');
   return;
 }
-    }
+    
 
     const audio = ensureAudio();
     hqMusicEnabled = true;
@@ -1117,7 +1117,17 @@
       if (action === 'play') await playMusic();
       if (action === 'pause') pauseMusic();
       if (action === 'expand') dock?.classList.toggle('open');
-      if (action === 'add') go('magic','Music');
+      if (action === 'add') {
+  ui.tab = 'magic';
+  ui.sub.magic = 'Music';
+  render(true);
+  setTimeout(() => {
+    document.getElementById('christmasSongForm')?.scrollIntoView({
+      behavior:'smooth',
+      block:'start'
+    });
+  }, 100);
+}
       return;
     }
   }, true);
