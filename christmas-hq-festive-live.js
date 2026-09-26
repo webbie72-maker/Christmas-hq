@@ -197,46 +197,61 @@ function buildChristmasHeader() {
   };
 
   mast.innerHTML = `
-    <div class="mast-bar">
-      <div class="brand-icon">🎄</div>
-
+    <div class="mast-bar hq-title-bar">
       <div class="hq-brand">
         <div class="mast-name">Christmas HQ</div>
         <div class="hq-catchphrase">Your Christmas, sorted.</div>
       </div>
-
-      <div class="mast-spacer"></div>
-
-      <button class="back-btn"
-        data-action="back"
-        ${navStack.length || ui.tab !== 'home' ? '' : 'disabled'}>
-        ← Back
-      </button>
-
-      <button class="circle-btn"
-        data-action="settings"
-        aria-label="Settings">⚙</button>
     </div>
 
     ${ui.tab === 'home' ? `
-  <div class="hq-hero-main">
-    <div class="hq-christmas-countdown">
-      <div class="hq-days-block">
-        <strong id="hqChristmasDays">--</strong>
-        <span>DAYS UNTIL CHRISTMAS</span>
-      </div>
+      <div class="hq-hero-main hq-home-hero">
+        <div class="hq-bottom-row">
 
-      <div class="hq-clock-block">
-        <small>CHRISTMAS COUNTDOWN</small>
-        <b id="hqChristmasClock">--:--:--</b>
+          <div class="hq-christmas-countdown">
+            <div class="hq-days-block">
+              <strong id="hqChristmasDays">--</strong>
+              <span>DAYS UNTIL CHRISTMAS</span>
+            </div>
+
+            <div class="hq-clock-block">
+              <small>HOURS · MINUTES · SECONDS</small>
+              <b id="hqChristmasClock">--:--:--</b>
+            </div>
+          </div>
+
+          <div class="hq-header-buttons">
+            <button class="circle-btn hq-settings-btn"
+              data-action="settings"
+              aria-label="Settings">⚙</button>
+
+            <button class="back-btn hq-back-btn"
+              data-action="back"
+              ${navStack.length || ui.tab !== 'home' ? '' : 'disabled'}>
+              ← Back
+            </button>
+          </div>
+
+        </div>
       </div>
-    </div>
-  </div>
-` : `
-  <div class="hq-hero-main hq-page-only">
-    <div class="hq-page-name">${pageNames[ui.tab] || 'CHRISTMAS HQ'}</div>
-  </div>
-`}
+    ` : `
+      <div class="hq-hero-main hq-page-only">
+        <div class="hq-page-name">
+          ${pageNames[ui.tab] || 'CHRISTMAS HQ'}
+        </div>
+
+        <div class="hq-header-buttons">
+          <button class="circle-btn hq-settings-btn"
+            data-action="settings"
+            aria-label="Settings">⚙</button>
+
+          <button class="back-btn hq-back-btn"
+            data-action="back">
+            ← Back
+          </button>
+        </div>
+      </div>
+    `}
   `;
 
   addSnow();
