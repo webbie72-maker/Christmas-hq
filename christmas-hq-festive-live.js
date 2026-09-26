@@ -1151,8 +1151,8 @@ function buildChristmasHeader() {
   }
 }
 
-      if (!hqSelectedSongId || !hqMusicSongs.some(s => s.id === hqSelectedSongId)) {
-      
+   
+
 
   function ensureAudio() {
     if (hqAudio) return hqAudio;
