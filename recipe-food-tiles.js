@@ -1,182 +1,193 @@
-/* Christmas HQ — Smart Recipe Food Tiles */
 (() => {
-  'use strict';
-  if (window.__hqRecipeFoodTilesLoaded) return;
-  window.__hqRecipeFoodTilesLoaded = true;
+  const PHOTO_MAP = [
+    { re: /(ham|glazed ham|sticky honey|mustard ham)/i, label: 'Christmas ham', query: 'glazed christmas ham platter' },
+    { re: /(prawn|shrimp|seafood platter|oyster|salmon|lobster)/i, label: 'Seafood platter', query: 'christmas seafood platter' },
+    { re: /(turkey|roast turkey)/i, label: 'Roast turkey', query: 'roast turkey christmas dinner' },
+    { re: /(chicken|roast chicken)/i, label: 'Roast chicken', query: 'roast chicken christmas platter' },
+    { re: /(beef|roast beef|brisket)/i, label: 'Roast beef', query: 'roast beef christmas dinner' },
+    { re: /(pork|porchetta)/i, label: 'Roast pork', query: 'roast pork crackling dinner' },
+    { re: /(potato|roast potato|mash)/i, label: 'Potato side', query: 'crispy roast potatoes christmas' },
+    { re: /(corn)/i, label: 'Corn side', query: 'buttered corn side dish' },
+    { re: /(salad|slaw|coleslaw|greens)/i, label: 'Fresh salad', query: 'christmas salad platter' },
+    { re: /(vegetable|veg|carrot|broccoli|beans|asparagus)/i, label: 'Vegetable side', query: 'roasted vegetables christmas side' },
+    { re: /(pasta|lasagne|lasagna)/i, label: 'Pasta bake', query: 'baked pasta dish' },
+    { re: /(pie|tart|quiche)/i, label: 'Pie or tart', query: 'savory tart christmas table' },
+    { re: /(cake|fruit cake)/i, label: 'Christmas cake', query: 'christmas cake dessert' },
+    { re: /(pudding|sticky date|bread pudding)/i, label: 'Christmas pudding', query: 'christmas pudding dessert' },
+    { re: /(trifle)/i, label: 'Trifle', query: 'christmas trifle dessert' },
+    { re: /(cheesecake)/i, label: 'Cheesecake', query: 'cheesecake dessert christmas' },
+    { re: /(slice|brownie|bar)/i, label: 'Sweet slice', query: 'dessert slice brownies platter' },
+    { re: /(biscuit|cookie|gingerbread)/i, label: 'Christmas biscuits', query: 'christmas cookies gingerbread' },
+    { re: /(pavlova|meringue)/i, label: 'Pavlova', query: 'christmas pavlova dessert' },
+    { re: /(ice cream|gelato|sorbet)/i, label: 'Cold dessert', query: 'ice cream dessert christmas' },
+    { re: /(cocktail|mocktail|drink|punch)/i, label: 'Festive drink', query: 'christmas cocktail drink' },
+    { re: /(breakfast|brunch)/i, label: 'Brunch', query: 'christmas brunch platter' }
+  ];
 
-  function foodTileFor(r){
-    const hay = [
-      r?.name || '',
-      r?.type || '',
-      r?.detail || '',
-      ...(Array.isArray(r?.tags) ? r.tags : []),
-      ...(Array.isArray(r?.ingredients) ? r.ingredients.slice(0,6) : [])
-    ].join(' ').toLowerCase();
-
-    const rules = [
-      [/potato salad/, 'potato-salad', '🥔', '🥗', 'Potato salad'],
-      [/(salad|slaw|coleslaw|rocket|leafy|greens)/, 'salad', '🥗', '🍅', 'Fresh salad'],
-      [/(prawn|shrimp|seafood)/, 'seafood', '🦐', '🍋', 'Seafood platter'],
-      [/(salmon|fish|snapper|barramundi|tuna)/, 'fish', '🐟', '🍋', 'Fish'],
-      [/(ham)/, 'ham', '🍖', '🍍', 'Christmas ham'],
-      [/(turkey)/, 'turkey', '🦃', '🌿', 'Roast turkey'],
-      [/(chicken)/, 'chicken', '🍗', '🍋', 'Chicken'],
-      [/(beef|steak|brisket)/, 'beef', '🥩', '🔥', 'Beef'],
-      [/(lamb)/, 'lamb', '🍖', '🌿', 'Lamb'],
-      [/(pork|crackling)/, 'pork', '🐷', '🍎', 'Pork'],
-      [/(potato|spud)/, 'potato', '🥔', '🌿', 'Potato'],
-      [/(pasta|spaghetti|penne|linguine|macaroni)/, 'pasta', '🍝', '🧀', 'Pasta'],
-      [/(corn)/, 'corn', '🌽', '🧈', 'Corn'],
-      [/(rice|fried rice)/, 'rice', '🍚', '🍍', 'Rice dish'],
-      [/(mango)/, 'mango', '🥭', '🍰', 'Mango'],
-      [/(chocolate|cocoa|truffle)/, 'chocolate', '🍫', '🍓', 'Chocolate'],
-      [/(fruit platter|fruit salad|watermelon|pineapple|berries|strawberry)/, 'fruit', '🍉', '🍍', 'Fruit platter'],
-      [/(cake|cheesecake|pudding|dessert|trifle|pavlova|mousse|ice cream)/, 'dessert', '🍰', '🍓', 'Dessert'],
-      [/(shortbread|cookie|biscuit|baking|brownie|slice|cupcake)/, 'baking', '🍪', '🧁', 'Christmas baking'],
-      [/(mocktail|drink|iced tea|punch|lemonade|smoothie)/, 'drink', '🥤', '🍓', 'Festive drink'],
-      [/(bagel|breakfast|brunch|french toast|toast)/, 'breakfast', '🥯', '🍓', 'Breakfast'],
-      [/(stuffing|bread)/, 'bread', '🍞', '🌿', 'Festive side'],
-      [/(cranberry|sauce|relish|chutney)/, 'sauce', '🍒', '🍊', 'Sauce'],
-      [/(vegetarian|vegan|lentil|mushroom|vegetable|veggie)/, 'veggie', '🥕', '🥬', 'Vegetarian']
-    ];
-
-    for (const [re, cls, a, b, label] of rules) {
-      if (re.test(hay)) return {cls, a, b, label};
-    }
-
-    const type = String(r?.type || '').toLowerCase();
-    if (type.includes('dessert')) return {cls:'dessert',a:'🍰',b:'🍓',label:'Dessert'};
-    if (type.includes('drink')) return {cls:'drink',a:'🥤',b:'🍓',label:'Festive drink'};
-    if (type.includes('baking')) return {cls:'baking',a:'🍪',b:'🧁',label:'Christmas baking'};
-    if (type.includes('breakfast')) return {cls:'breakfast',a:'🥯',b:'🍓',label:'Breakfast'};
-    if (type.includes('side')) return {cls:'salad',a:'🥗',b:'🥕',label:'Christmas side'};
-    if (type.includes('vegetarian')) return {cls:'veggie',a:'🥕',b:'🥬',label:'Vegetarian'};
-    return {cls:'main',a:r?.icon || '🍽️',b:'🌿',label:'Christmas dish'};
-  }
-
-  window.recipeCard = function recipeCard(r){
-    const v = foodTileFor(r);
-    return `<button class="recipe-card hq-food-card" data-action="recipe" data-id="${r.id}">
-      <span class="hq-food-photo food-${v.cls}" aria-hidden="true">
-        <span class="hq-food-plate"></span>
-        <span class="hq-food-main">${v.a}</span>
-        <span class="hq-food-side">${v.b}</span>
-        <span class="hq-food-tag">${esc(v.label)}</span>
-      </span>
-      <span class="recipe-type">${esc(r.type)}</span>
-      <b>${esc(r.name)}</b>
-      <small>⏱ ${esc(r.time)} · ${r.serves} serves</small>
-      <span class="open">Full recipe & method →</span>
-    </button>`;
-  };
-
-  const style = document.createElement('style');
-  style.id = 'hqRecipeFoodTileStyles';
-  style.textContent = `
-    .recipe-grid{align-items:stretch}
-    .recipe-card.hq-food-card{
-      overflow:hidden!important;
-      padding:0 0 15px!important;
-      text-align:left!important;
-      background:#fffefa!important;
-      border:1px solid #e0e6de!important;
-      border-radius:20px!important;
-      box-shadow:0 8px 22px rgba(18,61,47,.07)!important;
-    }
-    .recipe-card.hq-food-card>.recipe-type,
-    .recipe-card.hq-food-card>b,
-    .recipe-card.hq-food-card>small,
-    .recipe-card.hq-food-card>.open{
-      margin-left:14px!important;
-      margin-right:14px!important;
-    }
-    .recipe-card.hq-food-card>.recipe-type{margin-top:12px!important}
-    .hq-food-photo{
+  const CSS = `
+    .hq-recipe-photo{
       position:relative;
-      width:100%;
-      height:132px;
-      display:block;
+      height:190px;
+      border-radius:28px 28px 0 0;
+      background-size:cover;
+      background-position:center;
+      background-repeat:no-repeat;
       overflow:hidden;
-      border-radius:19px 19px 0 0;
-      background:linear-gradient(145deg,#edf5e8,#dcebd8);
-      isolation:isolate;
     }
-    .hq-food-photo:before{
+    .hq-recipe-photo::after{
       content:"";
       position:absolute;
       inset:0;
-      background:
-        radial-gradient(circle at 16% 18%,rgba(255,255,255,.8) 0 2px,transparent 3px),
-        radial-gradient(circle at 82% 25%,rgba(255,255,255,.55) 0 2px,transparent 3px),
-        linear-gradient(180deg,rgba(255,255,255,.2),rgba(0,0,0,.04));
-      z-index:0;
+      background:linear-gradient(180deg, rgba(255,255,255,.10) 0%, rgba(0,0,0,.14) 100%);
     }
-    .hq-food-plate{
+    .hq-recipe-photo-label{
       position:absolute;
-      width:112px;height:82px;
-      left:50%;top:50%;
-      transform:translate(-50%,-43%);
-      border-radius:50%;
-      background:radial-gradient(ellipse at center,#fff 0 48%,#f4f1e8 49% 63%,#d8d5cb 64% 66%,transparent 67%);
-      filter:drop-shadow(0 10px 9px rgba(32,54,42,.18));
-      z-index:1;
-    }
-    .hq-food-main{
-      position:absolute;
-      left:50%;top:50%;
-      transform:translate(-57%,-55%) rotate(-5deg);
-      font-size:54px;
-      line-height:1;
+      left:14px;
+      bottom:14px;
       z-index:2;
-      filter:drop-shadow(0 5px 4px rgba(0,0,0,.12));
-    }
-    .hq-food-side{
-      position:absolute;
-      left:64%;top:54%;
-      transform:translate(-20%,-20%) rotate(8deg);
-      font-size:28px;
-      z-index:3;
-      filter:drop-shadow(0 3px 3px rgba(0,0,0,.12));
-    }
-    .hq-food-tag{
-      position:absolute;
-      left:9px;bottom:8px;
-      z-index:4;
-      padding:4px 8px;
+      display:inline-flex;
+      align-items:center;
+      padding:8px 14px;
       border-radius:999px;
-      background:rgba(8,46,37,.88);
+      background:rgba(10,76,58,.95);
       color:#fff;
-      font-size:9px;
-      font-weight:900;
-      letter-spacing:.2px;
-      box-shadow:0 3px 10px rgba(0,0,0,.14);
-    }
-
-    .food-salad,.food-potato-salad{background:linear-gradient(145deg,#dff3d9,#bfe4c8)}
-    .food-seafood,.food-fish{background:linear-gradient(145deg,#dff4f4,#b9e1e8)}
-    .food-ham,.food-pork{background:linear-gradient(145deg,#f8e0d6,#efc8b8)}
-    .food-turkey,.food-chicken{background:linear-gradient(145deg,#f4ead2,#e8d7ae)}
-    .food-beef,.food-lamb{background:linear-gradient(145deg,#ead8d0,#d8beb4)}
-    .food-potato,.food-corn,.food-rice,.food-bread{background:linear-gradient(145deg,#f5edcf,#e8dba9)}
-    .food-pasta{background:linear-gradient(145deg,#f7e9c7,#eccf8e)}
-    .food-veggie{background:linear-gradient(145deg,#e1f1d2,#c9e5b8)}
-    .food-mango,.food-fruit{background:linear-gradient(145deg,#fff0c8,#f7cf8b)}
-    .food-chocolate{background:linear-gradient(145deg,#ead8c8,#cba98e)}
-    .food-dessert,.food-baking{background:linear-gradient(145deg,#f9dfe6,#efd0dc)}
-    .food-drink{background:linear-gradient(145deg,#dff1ec,#bfe0d7)}
-    .food-breakfast{background:linear-gradient(145deg,#f5e8d1,#e7d1ad)}
-    .food-sauce{background:linear-gradient(145deg,#f7d9d8,#e9b9b8)}
-    .food-main{background:linear-gradient(145deg,#e6f0df,#d0dfc9)}
-
-    @media(max-width:430px){
-      .hq-food-photo{height:118px}
-      .hq-food-main{font-size:48px}
-      .hq-food-side{font-size:25px}
+      font-size:13px;
+      font-weight:800;
+      box-shadow:0 8px 18px rgba(0,0,0,.18);
     }
   `;
-  document.head.appendChild(style);
 
-  try{
-    if(typeof ui!=='undefined' && ui.tab==='kitchen' && typeof render==='function') render(false);
-  }catch(e){}
+  function addCssOnce() {
+    if (document.getElementById('hq-recipe-photo-css')) return;
+    const style = document.createElement('style');
+    style.id = 'hq-recipe-photo-css';
+    style.textContent = CSS;
+    document.head.appendChild(style);
+  }
+
+  function txt(el) {
+    return (el?.textContent || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function findRecipeCards() {
+    let cards = [
+      ...document.querySelectorAll(
+        '.recipe-card, .hq-recipe-card, .kitchen-recipe-card, [data-recipe-card], article, li'
+      )
+    ].filter(card => /Full recipe & method/i.test(txt(card)));
+
+    if (cards.length) return cards;
+
+    const found = new Set();
+    document.querySelectorAll('a, button, div, p, span').forEach(el => {
+      if (!/Full recipe & method/i.test(txt(el))) return;
+      let node = el;
+      while (node && node !== document.body) {
+        const t = txt(node);
+        if (t.length > 40 && t.length < 900 && /(serves|mins?|minutes|hr|hours|recipe)/i.test(t)) {
+          found.add(node);
+          break;
+        }
+        node = node.parentElement;
+      }
+    });
+
+    return [...found];
+  }
+
+  function findTitle(card) {
+    const titleEl =
+      card.querySelector('h1, h2, h3, h4, .recipe-title, [data-recipe-title], strong');
+
+    if (titleEl && txt(titleEl).length > 4) return txt(titleEl);
+
+    const lines = (card.innerText || '')
+      .split('\n')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    for (const line of lines) {
+      if (
+        line.length > 6 &&
+        line.length < 90 &&
+        !/mains|sides|desserts|vegetarian|vegan|full recipe|serves|mins?|hours?/i.test(line)
+      ) {
+        return line;
+      }
+    }
+
+    return 'Christmas recipe';
+  }
+
+  function choosePhoto(title, cardText) {
+    const hay = `${title} ${cardText}`.toLowerCase();
+    for (const item of PHOTO_MAP) {
+      if (item.re.test(hay)) return item;
+    }
+    return { label: 'Festive dish', query: 'christmas food platter' };
+  }
+
+  function photoUrl(query, seed) {
+    return `https://source.unsplash.com/featured/1200x900/?${encodeURIComponent(query + ',' + seed)}`;
+  }
+
+  function hideOldArt(card) {
+    const targets = card.querySelectorAll(
+      '.recipe-food-art, .recipe-emoji-art, .recipe-tile-art, .food-art, [data-recipe-art]'
+    );
+    targets.forEach(el => (el.style.display = 'none'));
+
+    const first = card.firstElementChild;
+    if (!first) return;
+    if (first.classList && first.classList.contains('hq-recipe-photo')) return;
+
+    const smallText = txt(first);
+    if (smallText.length < 40 || /🍤|🍖|🥔|🌽|🥗|🍰|🍪|🍽️|🦐/u.test(smallText)) {
+      first.style.display = 'none';
+    }
+  }
+
+  function upgradeCard(card) {
+    const title = findTitle(card);
+    const pick = choosePhoto(title, txt(card));
+
+    let hero = card.querySelector('.hq-recipe-photo');
+    if (!hero) {
+      hero = document.createElement('div');
+      hero.className = 'hq-recipe-photo';
+      card.insertBefore(hero, card.firstElementChild);
+    }
+
+    hero.style.backgroundImage =
+      `linear-gradient(180deg, rgba(255,255,255,.08) 0%, rgba(0,0,0,.10) 100%), url("${photoUrl(pick.query, title)}")`;
+
+    hero.innerHTML = `<span class="hq-recipe-photo-label">${pick.label}</span>`;
+
+    card.style.overflow = 'hidden';
+    hideOldArt(card);
+  }
+
+  function runRecipeFoodTiles() {
+    addCssOnce();
+    const cards = findRecipeCards();
+    cards.forEach(upgradeCard);
+  }
+
+  let timer;
+  function rerunSoon() {
+    clearTimeout(timer);
+    timer = setTimeout(runRecipeFoodTiles, 180);
+  }
+
+  document.addEventListener('DOMContentLoaded', runRecipeFoodTiles);
+  window.addEventListener('load', runRecipeFoodTiles);
+
+  const mo = new MutationObserver(rerunSoon);
+  mo.observe(document.body, { childList: true, subtree: true });
+
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('button, [role="tab"], .chip, .pill')) {
+      setTimeout(runRecipeFoodTiles, 120);
+    }
+  });
 })();
