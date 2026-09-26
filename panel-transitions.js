@@ -1,11 +1,12 @@
-/* Christmas HQ — Directional Panel Transitions */
+/* Christmas HQ — Full Page Slide Transitions v2 */
 (() => {
   'use strict';
-  if (window.__hqPanelTransitionsLoaded) return;
-  window.__hqPanelTransitionsLoaded = true;
+
+  if (window.__hqPanelTransitionsV2Loaded) return;
+  window.__hqPanelTransitionsV2Loaded = true;
 
   let pendingDirection = null;
-  let animating = false;
+  let transitionBusy = false;
 
   const TAB_ORDER = [
     'home','gifts','plan','kitchen','magic','games','chat','explore','settings'
@@ -27,11 +28,13 @@
     );
     const target = buttons.indexOf(button);
 
+    if (current < 0 || target < 0) return 'forward';
     return target < current ? 'back' : 'forward';
   }
 
   function rememberDirection(event){
-    if (event.target.closest('[data-action="back"],[data-hq-chat-back]')){
+    const back = event.target.closest('[data-action="back"],[data-hq-chat-back]');
+    if (back){
       pendingDirection = 'back';
       return;
     }
@@ -42,60 +45,89 @@
       return;
     }
 
-    const bottom = event.target.closest('[data-nav]');
-    if (bottom && typeof ui !== 'undefined'){
+    const navButton = event.target.closest('[data-nav]');
+    if (navButton && typeof ui !== 'undefined'){
       const from = tabIndex(ui.tab);
-      const to = tabIndex(bottom.dataset.nav);
-      if (from !== to) pendingDirection = to < from ? 'back' : 'forward';
+      const to = tabIndex(navButton.dataset.nav);
+      if (from !== to){
+        pendingDirection = to < from ? 'back' : 'forward';
+      }
       return;
     }
 
-    if (event.target.closest(
+    const forward = event.target.closest(
       '[data-action="recipe"],' +
       '[data-action="familyOpen"],' +
       '[data-action="guestOpen"],' +
       '[data-action="settings"],' +
       '[data-hq-chat-category],' +
       '[data-hq-chat-thread]'
-    )){
+    );
+
+    if (forward){
       pendingDirection = 'forward';
     }
   }
 
   document.addEventListener('click', rememberDirection, true);
 
-  function animateScreen(direction){
+  function slideIn(direction){
     const screen = document.getElementById('screen');
-    if (!screen || animating) return;
+    if (!screen) return;
 
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches) return;
+    // Cancel any transition already running.
+    screen.style.transition = 'none';
+    screen.style.willChange = 'transform, opacity';
 
-    animating = true;
+    const start = direction === 'back' ? '-100vw' : '100vw';
 
-    // Forward pages enter from the right. Back pages enter from the left.
-    const startX = direction === 'back' ? '-44px' : '44px';
+    screen.style.transform = `translate3d(${start},0,0)`;
+    screen.style.opacity = '0.35';
 
-    const animation = screen.animate(
-      [
-        { transform:`translate3d(${startX},0,0)`, opacity:.18 },
-        { transform:'translate3d(0,0,0)', opacity:1 }
-      ],
-      {
-        duration:290,
-        easing:'cubic-bezier(.22,.82,.32,1)',
-        fill:'both'
-      }
-    );
+    // Force the browser to apply the starting position first.
+    void screen.offsetWidth;
 
-    animation.onfinish = () => {
-      animating = false;
-      try { animation.cancel(); } catch(e) {}
+    transitionBusy = true;
+
+    requestAnimationFrame(() => {
+      screen.style.transition =
+        'transform 420ms cubic-bezier(.20,.80,.20,1), opacity 260ms ease-out';
+      screen.style.transform = 'translate3d(0,0,0)';
+      screen.style.opacity = '1';
+    });
+
+    const finish = () => {
+      transitionBusy = false;
+      screen.style.transition = '';
+      screen.style.transform = '';
+      screen.style.opacity = '';
+      screen.style.willChange = '';
+      screen.removeEventListener('transitionend', finish);
     };
 
-    animation.oncancel = () => {
-      animating = false;
-    };
+    screen.addEventListener('transitionend', finish);
+
+    // Safety cleanup in case transitionend is missed.
+    setTimeout(() => {
+      if (!transitionBusy) return;
+      finish();
+    }, 650);
   }
+
+  const style = document.createElement('style');
+  style.id = 'hq-panel-slide-v2-css';
+  style.textContent = `
+    html,body{
+      overflow-x:hidden!important;
+    }
+
+    #screen{
+      position:relative;
+      backface-visibility:hidden;
+      transform:translateZ(0);
+    }
+  `;
+  document.head.appendChild(style);
 
   if (typeof render === 'function'){
     const previousRender = render;
@@ -103,17 +135,18 @@
     render = function(top = true){
       previousRender(top);
 
-      if (pendingDirection){
-        const direction = pendingDirection;
-        pendingDirection = null;
+      if (!pendingDirection) return;
 
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => animateScreen(direction));
-        });
-      }
+      const direction = pendingDirection;
+      pendingDirection = null;
+
+      requestAnimationFrame(() => {
+        slideIn(direction);
+      });
     };
   }
 
+  // Other feature files can request a direction before calling render().
   window.hqPanelTransition = function(direction = 'forward'){
     pendingDirection = direction === 'back' ? 'back' : 'forward';
   };
