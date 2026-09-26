@@ -151,6 +151,98 @@
   const hqEsc = value => String(value ?? '').replace(/[&<>"']/g, c => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[c]));
+   function updateChristmasCountdown() {
+  const daysEl = document.getElementById('hqChristmasDays');
+  const clockEl = document.getElementById('hqChristmasClock');
+  if (!daysEl || !clockEl) return;
+
+  const now = new Date();
+
+  if (now.getMonth() === 11 && now.getDate() === 25) {
+    daysEl.textContent = '0';
+    clockEl.textContent = 'MERRY CHRISTMAS 🎄';
+    return;
+  }
+
+  let target = new Date(now.getFullYear(), 11, 25, 0, 0, 0);
+
+  if (target <= now) {
+    target = new Date(now.getFullYear() + 1, 11, 25, 0, 0, 0);
+  }
+
+  const left = target - now;
+
+  const days = Math.floor(left / 86400000);
+  const hours = Math.floor((left % 86400000) / 3600000);
+  const minutes = Math.floor((left % 3600000) / 60000);
+  const seconds = Math.floor((left % 60000) / 1000);
+
+  daysEl.textContent = days;
+  clockEl.textContent =
+    String(hours).padStart(2,'0') + ':' +
+    String(minutes).padStart(2,'0') + ':' +
+    String(seconds).padStart(2,'0');
+}
+
+function buildChristmasHeader() {
+  const pageNames = {
+    home: 'HOME',
+    gifts: 'GIFTS',
+    plan: 'PLANNER',
+    kitchen: 'KITCHEN',
+    magic: 'CHRISTMAS MAGIC',
+    games: 'FAMILY GAMES',
+    explore: 'EXPLORE',
+    settings: 'SETTINGS'
+  };
+
+  mast.innerHTML = `
+    <div class="mast-bar">
+      <div class="brand-icon">🎄</div>
+
+      <div class="hq-brand">
+        <div class="mast-name">Christmas HQ</div>
+        <div class="hq-catchphrase">Your Christmas, sorted.</div>
+      </div>
+
+      <div class="mast-spacer"></div>
+
+      <button class="back-btn"
+        data-action="back"
+        ${navStack.length || ui.tab !== 'home' ? '' : 'disabled'}>
+        ← Back
+      </button>
+
+      <button class="circle-btn"
+        data-action="settings"
+        aria-label="Settings">⚙</button>
+    </div>
+
+    <div class="hq-hero-main">
+      <div class="hq-page-name">${pageNames[ui.tab] || 'CHRISTMAS HQ'}</div>
+
+      <div class="hq-christmas-countdown">
+        <div class="hq-days-block">
+          <strong id="hqChristmasDays">--</strong>
+          <span>DAYS UNTIL CHRISTMAS</span>
+        </div>
+
+        <div class="hq-clock-block">
+          <small>CHRISTMAS COUNTDOWN</small>
+          <b id="hqChristmasClock">--:--:--</b>
+        </div>
+      </div>
+    </div>
+  `;
+
+  addSnow();
+  updateChristmasCountdown();
+
+  if (!window.__hqChristmasCountdownTimer) {
+    window.__hqChristmasCountdownTimer =
+      setInterval(updateChristmasCountdown, 1000);
+  }
+}
 
   function injectStyle() {
     if (document.getElementById('hqFestiveLiveStyle')) return;
