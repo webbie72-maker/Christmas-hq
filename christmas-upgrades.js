@@ -928,44 +928,113 @@ document.addEventListener('click', event => {
   }
 
   function hqGiftItem(gift) {
-    return `
-      <div class="item ${gift.bought ? 'is-done' : ''}">
-        <input
-          type="checkbox"
-          class="tick"
-          data-action="giftToggle"
-          data-id="${esc(gift.id)}"
-          ${gift.bought ? 'checked' : ''}
-          aria-label="Bought ${esc(gift.name)}"
-        >
+  function hqGiftItem(gift) {
+  const hasLink =
+    /^https?:\/\//i.test(
+      String(gift.shoppingUrl || '')
+    );
 
-        <span class="item-icon">🎁</span>
+  return `
+    <div class="hq-person-gift-card ${gift.bought ? 'bought' : ''}">
 
-        <div class="item-info">
-          <b>${esc(gift.name)}</b>
-          <small>
-            ${currency(gift.price)}
-            ${gift.bought ? ' · Bought ✓' : ' · Still shopping'}
-          </small>
-        </div>
+      <div class="hq-gift-card-top">
+
+        <label class="hq-gift-bought">
+          <input
+            type="checkbox"
+            data-action="giftToggle"
+            data-id="${esc(gift.id)}"
+            ${gift.bought ? 'checked' : ''}>
+
+          <span>
+            ${gift.bought ? '✓ Bought' : 'Still shopping'}
+          </span>
+        </label>
 
         <button
-          class="btn small alt"
           type="button"
+          class="hq-gift-edit-main"
           data-hq-gift-edit="${esc(gift.id)}">
-          Edit
+          ✎ Edit
+        </button>
+
+      </div>
+
+      <button
+        type="button"
+        class="hq-gift-main-info"
+        data-hq-gift-edit="${esc(gift.id)}">
+
+        <span class="hq-gift-present">🎁</span>
+
+        <span class="hq-gift-details">
+          <strong>${esc(gift.name)}</strong>
+          <small>${currency(gift.price)}</small>
+        </span>
+
+        <span class="hq-gift-arrow">›</span>
+      </button>
+
+      <div class="hq-gift-tools">
+
+        ${
+          hasLink
+            ? `
+              <a
+                class="hq-gift-tool"
+                href="${esc(gift.shoppingUrl)}"
+                target="_blank"
+                rel="noopener">
+                🔗 Link
+              </a>
+            `
+            : `
+              <button
+                type="button"
+                class="hq-gift-tool"
+                data-hq-gift-edit="${esc(gift.id)}">
+                🔗 Add link
+              </button>
+            `
+        }
+
+        <button
+          type="button"
+          class="hq-gift-tool ${gift.shoppingNotes ? 'has-data' : ''}"
+          data-hq-gift-edit="${esc(gift.id)}">
+          📝 Notes
         </button>
 
         <button
-          class="icon-action"
-          data-action="giftDelete"
-          data-id="${esc(gift.id)}"
-          aria-label="Remove gift">
-          ×
+          type="button"
+          class="hq-gift-tool ${gift.barcode ? 'has-data' : ''}"
+          data-hq-gift-edit="${esc(gift.id)}">
+          📷 Scan
         </button>
+
+        <button
+          type="button"
+          class="hq-gift-tool delete"
+          data-action="giftDelete"
+          data-id="${esc(gift.id)}">
+          🗑
+        </button>
+
       </div>
-    `;
-  }
+
+      ${
+        gift.shoppingNotes
+          ? `
+            <div class="hq-gift-note-preview">
+              📝 ${esc(gift.shoppingNotes)}
+            </div>
+          `
+          : ''
+      }
+
+    </div>
+  `;
+}
 
   function hqAddGiftForm(person = '') {
     return `
