@@ -857,6 +857,61 @@ function buildChristmasHeader() {
 
   box-shadow:0 7px 18px rgba(0,0,0,.25)!important;
 }
+/* iPHONE / DYNAMIC ISLAND SAFE AREA */
+.mast{
+  padding-top:
+    calc(22px + env(safe-area-inset-top))!important;
+
+  padding-left:
+    calc(18px + env(safe-area-inset-left))!important;
+
+  padding-right:
+    calc(18px + env(safe-area-inset-right))!important;
+}
+
+.mast[data-hq-page="home"]{
+  min-height:
+    calc(330px + env(safe-area-inset-top))!important;
+}
+
+.mast:not([data-hq-page="home"]){
+  min-height:
+    calc(292px + env(safe-area-inset-top))!important;
+}
+
+.hq-home-brand,
+.hq-page-brand{
+  max-width:100%!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+}
+
+.hq-home-brand .mast-name,
+.hq-page-title,
+.hq-page-subbrand{
+  text-align:center!important;
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+}
+
+.hq-page-title{
+  padding-left:8px;
+  padding-right:8px;
+}
+
+/* Keep longer titles safely inside iPhone width */
+.mast[data-hq-page="magic"] .hq-page-title,
+.mast[data-hq-page="games"] .hq-page-title{
+  font-size:clamp(40px,12vw,62px)!important;
+}
+
+/* Back stays clear of curved iPhone edges */
+.hq-page-back{
+  right:
+    calc(18px + env(safe-area-inset-right))!important;
+
+  bottom:18px!important;
+}
       @media(max-width:420px){
         .hq-games-grid{grid-template-columns:1fr 1fr}
         .hq-game-card{padding:13px;min-height:137px}
