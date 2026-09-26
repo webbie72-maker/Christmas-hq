@@ -1152,25 +1152,7 @@ function buildChristmasHeader() {
 }
 
       if (!hqSelectedSongId || !hqMusicSongs.some(s => s.id === hqSelectedSongId)) {
-        hqSelectedSongId = hqMusicSongs[0]?.id || '';
-        if (hqSelectedSongId) localStorage.setItem('christmas-hq-music-song',hqSelectedSongId);
-      }
-
-      loadSelectedSong();
-ensureMusicDock();
-
-if (hqMusicEnabled && selectedSong()) {
-  try {
-    await ensureAudio().play();
-  } catch (_) {
-    // Phone/browser may require the first tap before sound can start.
-  }
-  ensureMusicDock();
-}
-    } catch (err) {
-      console.warn('Music library load failed', err);
-    }
-  }
+      
 
   function ensureAudio() {
     if (hqAudio) return hqAudio;
