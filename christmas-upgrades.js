@@ -803,3 +803,64 @@ function familyMusicReady() {
     }
   });
 })();
+/* Christmas HQ — navigation safety net */
+(() => {
+  document.addEventListener('click', event => {
+    const button = event.target.closest('button');
+    if (!button) return;
+
+    if (button.dataset.nav) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      go(button.dataset.nav);
+      return;
+    }
+
+    const action = button.dataset.action;
+
+    if (action === 'sub') {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      const tab = button.dataset.tab;
+      const sub = button.dataset.value;
+
+      go(tab, sub);
+      return;
+    }
+
+    if (action === 'shortcut') {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      go(button.dataset.target);
+      return;
+    }
+
+    if (action === 'familyOpen') {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      ui.editFamilyId = '';
+      go('plan', 'Family');
+      return;
+    }
+
+    if (action === 'secretOpen') {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      go('gifts', 'Secret Santa');
+      return;
+    }
+
+    if (action === 'recipeJump') {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      go('kitchen', 'Recipes');
+
+      requestAnimationFrame(() => {
+        document
+          .getElementById('recipeLibrary')
+          ?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      });
+    }
+  }, true);
+})();
