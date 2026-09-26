@@ -162,7 +162,7 @@
         position:relative !important;
         isolation:isolate;
         overflow:hidden;
-        min-height:330px;
+        min-height:245px;
         background:
           linear-gradient(180deg,rgba(3,34,28,.14),rgba(3,34,28,.72) 70%,rgba(3,34,28,.92)),
           url('./christmas-hero-bg.png') center 46% / cover no-repeat !important;
