@@ -1137,7 +1137,8 @@ if (hqMusicEnabled && selectedSong()) {
     }
 
     previousRender(top);
-    renderFestiveAfter();
+buildChristmasHeader();
+renderFestiveAfter();
   };
 
   document.addEventListener('click', async event => {
