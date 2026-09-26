@@ -1,4 +1,4 @@
-/* Christmas HQ — FESTIVE LIVE upgrade
+7/* Christmas HQ — FESTIVE LIVE upgrade
    - Real Christmas hero background + animated snow
    - Persistent personal Christmas music player
    - Family Games tab
@@ -218,21 +218,25 @@ function buildChristmasHeader() {
         aria-label="Settings">⚙</button>
     </div>
 
-    <div class="hq-hero-main">
-      <div class="hq-page-name">${pageNames[ui.tab] || 'CHRISTMAS HQ'}</div>
+    ${ui.tab === 'home' ? `
+  <div class="hq-hero-main">
+    <div class="hq-christmas-countdown">
+      <div class="hq-days-block">
+        <strong id="hqChristmasDays">--</strong>
+        <span>DAYS UNTIL CHRISTMAS</span>
+      </div>
 
-      <div class="hq-christmas-countdown">
-        <div class="hq-days-block">
-          <strong id="hqChristmasDays">--</strong>
-          <span>DAYS UNTIL CHRISTMAS</span>
-        </div>
-
-        <div class="hq-clock-block">
-          <small>CHRISTMAS COUNTDOWN</small>
-          <b id="hqChristmasClock">--:--:--</b>
-        </div>
+      <div class="hq-clock-block">
+        <small>CHRISTMAS COUNTDOWN</small>
+        <b id="hqChristmasClock">--:--:--</b>
       </div>
     </div>
+  </div>
+` : `
+  <div class="hq-hero-main hq-page-only">
+    <div class="hq-page-name">${pageNames[ui.tab] || 'CHRISTMAS HQ'}</div>
+  </div>
+`}
   `;
 
   addSnow();
