@@ -182,6 +182,10 @@
         text-shadow:0 2px 10px rgba(0,0,0,.66)
       }
       .mast-title{max-width:90%;font-size:clamp(36px,8vw,58px)!important}
+      .mast-tag,
+.mast-desc{
+  display:none!important;
+}
       .brand-icon,.back-btn,.circle-btn{
         backdrop-filter:blur(11px);
         background:rgba(7,46,37,.56)!important;
