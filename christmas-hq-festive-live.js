@@ -677,6 +677,186 @@ function buildChristmasHeader() {
   right:0!important;
   width:70px!important;
 }
+/* MOCKUP MATCH */
+
+.mast{
+  border-radius:0 0 28px 28px!important;
+  padding:22px 18px 20px!important;
+  border-bottom:1px solid rgba(255,255,255,.22)!important;
+}
+
+.mast[data-hq-page="home"]{
+  min-height:330px!important;
+}
+
+.mast:not([data-hq-page="home"]){
+  min-height:292px!important;
+}
+
+/* HOME */
+.hq-home-brand{
+  position:relative;
+  z-index:4;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  width:100%;
+  padding-top:10px;
+}
+
+.hq-home-brand .mast-name{
+  display:block!important;
+  width:100%;
+  font-family:"Brush Script MT","Segoe Script","Snell Roundhand",cursive!important;
+  font-size:clamp(52px,16vw,76px)!important;
+  font-weight:700!important;
+  line-height:.9!important;
+  letter-spacing:-1px!important;
+
+  background:linear-gradient(
+    180deg,
+    #fffce9 0%,
+    #ffe9a7 52%,
+    #e4ad4e 100%
+  );
+
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent!important;
+  -webkit-text-fill-color:transparent;
+
+  filter:
+    drop-shadow(0 4px 2px rgba(0,0,0,.55))
+    drop-shadow(0 0 12px rgba(255,214,107,.28));
+}
+
+.hq-home-brand .hq-catchphrase{
+  display:block!important;
+  margin-top:10px!important;
+  color:#fff7dd!important;
+  font:700 italic 18px/1.1 Georgia,serif!important;
+  text-shadow:0 2px 8px rgba(0,0,0,.8)!important;
+}
+
+.hq-brand-flourish{
+  margin-top:8px;
+  color:#f4d27c;
+  font-size:12px;
+  letter-spacing:8px;
+  text-shadow:0 1px 6px rgba(0,0,0,.7);
+}
+
+/* HOME COUNTDOWN */
+.hq-home-hero{
+  margin-top:54px!important;
+}
+
+.hq-bottom-row{
+  gap:10px!important;
+  padding-right:80px!important;
+}
+
+.hq-bottom-row .hq-christmas-countdown{
+  max-width:none!important;
+  min-height:96px!important;
+  border:1px solid rgba(247,213,132,.55)!important;
+  border-radius:22px!important;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(7,58,45,.96),
+      rgba(4,41,34,.96)
+    )!important;
+
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.28),
+    inset 0 0 0 1px rgba(255,255,255,.04)!important;
+
+  padding:14px!important;
+}
+
+.hq-days-block strong{
+  color:#ffe9a5!important;
+  font:800 44px/.9 Georgia,serif!important;
+}
+
+.hq-clock-block b{
+  font:800 25px/1.05 Georgia,serif!important;
+  color:white!important;
+}
+
+.hq-home-buttons{
+  width:70px!important;
+  gap:8px!important;
+}
+
+/* ALL OTHER PAGE HEADERS */
+.hq-page-brand{
+  position:relative;
+  z-index:4;
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  padding:18px 8px 0;
+}
+
+.hq-page-title{
+  width:100%;
+  font-family:"Brush Script MT","Segoe Script","Snell Roundhand",cursive!important;
+  font-size:clamp(54px,16vw,78px)!important;
+  font-weight:700!important;
+  line-height:.9!important;
+  letter-spacing:-1px!important;
+
+  background:linear-gradient(
+    180deg,
+    #fffce8 0%,
+    #ffe6a0 55%,
+    #dfa342 100%
+  );
+
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent!important;
+  -webkit-text-fill-color:transparent;
+
+  filter:
+    drop-shadow(0 4px 2px rgba(0,0,0,.58))
+    drop-shadow(0 0 12px rgba(255,214,107,.24));
+}
+
+.hq-page-subbrand{
+  margin-top:9px;
+  font-family:"Brush Script MT","Segoe Script","Snell Roundhand",cursive;
+  font-size:27px;
+  color:#fff5d5;
+  text-shadow:0 2px 8px rgba(0,0,0,.8);
+}
+
+/* PROPER BACK BUTTON */
+.hq-page-back{
+  position:absolute!important;
+  right:18px!important;
+  bottom:18px!important;
+  width:116px!important;
+  height:48px!important;
+  min-width:116px!important;
+  min-height:48px!important;
+  padding:0 16px!important;
+  border-radius:16px!important;
+
+  border:1px solid rgba(247,213,132,.48)!important;
+  background:rgba(5,51,41,.94)!important;
+  color:white!important;
+
+  font-size:15px!important;
+  font-weight:900!important;
+
+  box-shadow:0 7px 18px rgba(0,0,0,.25)!important;
+}
       @media(max-width:420px){
         .hq-games-grid{grid-template-columns:1fr 1fr}
         .hq-game-card{padding:13px;min-height:137px}
