@@ -396,19 +396,65 @@ function familyMusicReady() {
   }
 
   async function listSongs() {
+  if (!familyMusicReady()) {
     const db = await openSongDb();
+
     return new Promise((resolve, reject) => {
       const tx = db.transaction(STORE, 'readonly');
       const req = tx.objectStore(STORE).getAll();
+
       req.onsuccess = () => {
         const songs = (req.result || []).sort((a, b) =>
           String(b.createdAt || '').localeCompare(String(a.createdAt || ''))
         );
+
         resolve(songs);
       };
+
       req.onerror = () => reject(req.error);
     });
   }
+
+  const cloud = familyMusicCloud();
+  const client = cloud.client;
+
+  const { data, error } = await client
+    .from('family_music')
+    .select('*')
+    .eq('family_id', cloud.familyId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+
+  const songs = await Promise.all(
+    (data || []).map(async row => {
+      let signedUrl = '';
+
+      if (row.storage_path) {
+        const { data: signed, error: signedError } =
+          await client.storage
+            .from('family-music')
+            .createSignedUrl(row.storage_path, 3600);
+
+        if (!signedError) {
+          signedUrl = signed?.signedUrl || '';
+        }
+      }
+
+      return {
+        id: row.id,
+        title: row.title,
+        artist: row.artist,
+        url: row.external_url || signedUrl,
+        cloudAudio: !!row.storage_path,
+        storagePath: row.storage_path,
+        createdAt: row.created_at
+      };
+    })
+  );
+
+  return songs;
+}
 
   async function saveSong(song) {
   if (!familyMusicReady()) {
