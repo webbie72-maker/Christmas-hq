@@ -278,6 +278,102 @@ function buildChristmasHeader() {
 .mast-desc{
   display:none!important;
 }
+.hq-brand{
+  position:relative;
+  z-index:3;
+  display:flex;
+  flex-direction:column;
+  gap:1px;
+}
+
+.mast-name{
+  font-size:24px!important;
+  font-weight:950!important;
+  letter-spacing:.2px;
+  line-height:1.05;
+}
+
+.hq-catchphrase{
+  color:#fff7df;
+  font-family:Georgia,serif;
+  font-size:14px;
+  font-style:italic;
+  font-weight:700;
+  text-shadow:0 2px 8px rgba(0,0,0,.65);
+}
+
+.hq-hero-main{
+  position:relative;
+  z-index:3;
+  margin-top:30px;
+}
+
+.hq-page-name{
+  color:#fff;
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:2.4px;
+  text-shadow:0 2px 8px rgba(0,0,0,.7);
+  margin-bottom:8px;
+}
+
+.hq-christmas-countdown{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  width:max-content;
+  max-width:100%;
+  padding:10px 12px;
+  border:1px solid rgba(255,255,255,.25);
+  border-radius:16px;
+  background:rgba(5,38,31,.64);
+  backdrop-filter:blur(10px);
+  box-shadow:0 8px 24px rgba(0,0,0,.18);
+}
+
+.hq-days-block{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding-right:12px;
+  border-right:1px solid rgba(255,255,255,.22);
+}
+
+.hq-days-block strong{
+  color:#fff;
+  font-size:34px;
+  line-height:1;
+  font-weight:950;
+}
+
+.hq-days-block span{
+  color:#fff7df;
+  max-width:72px;
+  font-size:9px;
+  line-height:1.2;
+  font-weight:900;
+  letter-spacing:1px;
+}
+
+.hq-clock-block{
+  display:flex;
+  flex-direction:column;
+  gap:1px;
+}
+
+.hq-clock-block small{
+  color:#fff7df;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:1px;
+}
+
+.hq-clock-block b{
+  color:#fff;
+  font-size:20px;
+  letter-spacing:1px;
+  text-shadow:0 2px 8px rgba(0,0,0,.65);
+}
       .brand-icon,.back-btn,.circle-btn{
         backdrop-filter:blur(11px);
         background:rgba(7,46,37,.56)!important;
