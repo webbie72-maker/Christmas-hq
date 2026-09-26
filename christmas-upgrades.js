@@ -909,3 +909,341 @@ document.addEventListener('click', event => {
     });
   }
 }, true);
+/* Christmas HQ — PERSON GIFT LISTS */
+(() => {
+  if (window.__hqPersonGiftLists) return;
+  window.__hqPersonGiftLists = true;
+
+  const previousGiftsScreen = gifts;
+
+  ui.hqGiftPerson = ui.hqGiftPerson || '';
+
+  function hqGiftRecipient(gift) {
+    if (gift.recipientId) {
+      const member = familyById(gift.recipientId);
+      if (member) return member.name;
+    }
+
+    return String(gift.recipient || 'Unassigned').trim() || 'Unassigned';
+  }
+
+  function hqGiftItem(gift) {
+    return `
+      <div class="item ${gift.bought ? 'is-done' : ''}">
+        <input
+          type="checkbox"
+          class="tick"
+          data-action="giftToggle"
+          data-id="${esc(gift.id)}"
+          ${gift.bought ? 'checked' : ''}
+          aria-label="Bought ${esc(gift.name)}"
+        >
+
+        <span class="item-icon">🎁</span>
+
+        <div class="item-info">
+          <b>${esc(gift.name)}</b>
+          <small>
+            ${currency(gift.price)}
+            ${gift.bought ? ' · Bought ✓' : ' · Still shopping'}
+          </small>
+        </div>
+
+        <button
+          class="btn small alt"
+          type="button"
+          data-hq-gift-edit="${esc(gift.id)}">
+          Edit
+        </button>
+
+        <button
+          class="icon-action"
+          data-action="giftDelete"
+          data-id="${esc(gift.id)}"
+          aria-label="Remove gift">
+          ×
+        </button>
+      </div>
+    `;
+  }
+
+  function hqAddGiftForm(person = '') {
+    return `
+      <form class="card form" data-form="gift">
+
+        ${
+          person
+            ? `
+              <div class="callout">
+                Adding a gift for <b>${esc(person)}</b>
+              </div>
+
+              <input
+                type="hidden"
+                name="recipient"
+                value="${esc(person)}">
+            `
+            : `
+              <label>
+                Who is it for?
+                <input
+                  class="field"
+                  name="recipient"
+                  list="familyRecipientChoices"
+                  placeholder="Choose family or enter a name"
+                  required
+                  maxlength="80">
+
+                <datalist id="familyRecipientChoices">
+                  ${state.family.map(member => `
+                    <option value="${esc(member.name)}">
+                      ${esc(member.relation || 'Family')}
+                    </option>
+                  `).join('')}
+                </datalist>
+              </label>
+            `
+        }
+
+        <label>
+          Gift idea / item
+          <input
+            class="field"
+            name="name"
+            placeholder="e.g. A day spa voucher"
+            required
+            maxlength="100">
+        </label>
+
+        <div class="two">
+          <label>
+            Budget (AUD)
+            <input
+              class="field"
+              name="price"
+              type="number"
+              min="0"
+              step="0.01"
+              value="0"
+              required>
+          </label>
+
+          <label>
+            Status
+            <select class="field" name="bought">
+              <option value="false">Still shopping</option>
+              <option value="true">Already bought</option>
+            </select>
+          </label>
+        </div>
+
+        <button type="submit" class="btn full">
+          + Save gift
+        </button>
+      </form>
+    `;
+  }
+
+  gifts = function () {
+    if (ui.sub.gifts !== 'My gifts') {
+      return previousGiftsScreen();
+    }
+
+    const spent = state.gifts
+      .filter(g => g.bought)
+      .reduce((total, g) => total + Number(g.price || 0), 0);
+
+    const planned = state.gifts
+      .reduce((total, g) => total + Number(g.price || 0), 0);
+
+    let content = `
+      <div class="summary" style="margin-top:0">
+        <div class="metric">
+          <strong>${state.gifts.length}</strong>
+          <span>Gifts planned</span>
+        </div>
+
+        <div class="metric gold">
+          <strong>${currency(planned)}</strong>
+          <span>Estimated cost</span>
+        </div>
+
+        <div class="metric red">
+          <strong>${currency(spent)}</strong>
+          <span>Already bought</span>
+        </div>
+      </div>
+    `;
+
+    /* INSIDE ONE PERSON */
+    if (ui.hqGiftPerson) {
+      const person = ui.hqGiftPerson;
+
+      const personGifts = state.gifts.filter(
+        gift =>
+          hqGiftRecipient(gift).toLowerCase() ===
+          person.toLowerCase()
+      );
+
+      content += `
+        <button
+          type="button"
+          class="btn alt"
+          data-hq-gifts-back
+          style="margin:16px 0">
+          ← All gift lists
+        </button>
+
+        ${line(
+          `${esc(person)}'s gift list`,
+          `<span class="pill green">${personGifts.length} gifts</span>`
+        )}
+
+        ${hqAddGiftForm(person)}
+
+        <div class="list">
+          ${
+            personGifts.length
+              ? personGifts.map(hqGiftItem).join('')
+              : empty(
+                  '🎁',
+                  'No gifts yet',
+                  `Add the first present for ${esc(person)}.`
+                )
+          }
+        </div>
+      `;
+
+    /* MAIN GIFTS PAGE */
+    } else {
+      const people = new Map();
+
+      state.gifts.forEach(gift => {
+        const name = hqGiftRecipient(gift);
+        const key = name.toLowerCase();
+
+        if (!people.has(key)) {
+          people.set(key, {
+            name,
+            gifts: []
+          });
+        }
+
+        people.get(key).gifts.push(gift);
+      });
+
+      content += `
+        ${line('Add a gift')}
+        ${hqAddGiftForm()}
+
+        ${line('Your gift list')}
+
+        ${
+          people.size
+            ? `
+              <div class="list">
+                ${[...people.values()].map(person => {
+                  const total = person.gifts.reduce(
+                    (sum, gift) =>
+                      sum + Number(gift.price || 0),
+                    0
+                  );
+
+                  const bought = person.gifts.filter(
+                    gift => gift.bought
+                  ).length;
+
+                  return `
+                    <button
+                      type="button"
+                      class="family-card"
+                      data-hq-gift-person="${esc(person.name)}"
+                      style="
+                        width:100%;
+                        text-align:left;
+                        cursor:pointer;
+                      ">
+
+                      <div class="family-head">
+                        <span class="family-initial">🎁</span>
+
+                        <div class="item-info">
+                          <div class="family-name">
+                            ${esc(person.name)}
+                          </div>
+
+                          <div class="family-meta">
+                            ${person.gifts.length} gifts ·
+                            ${bought} bought ·
+                            ${currency(total)}
+                          </div>
+                        </div>
+
+                        <span
+                          style="
+                            font-size:28px;
+                            color:#154f3d;
+                            font-weight:900;
+                          ">
+                          ›
+                        </span>
+                      </div>
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+            `
+            : empty(
+                '🎁',
+                'Your list starts here',
+                'Add the first present or browse the gift idea library.'
+              )
+        }
+
+        <div style="margin-top:14px">
+          <button
+            class="btn alt full"
+            data-action="sub"
+            data-tab="gifts"
+            data-value="Gift ideas">
+            Browse 200 gift ideas →
+          </button>
+        </div>
+      `;
+    }
+
+    return (
+      bigheading(
+        'SANTA’S GIFT WORKSHOP',
+        'Gifts without the guesswork',
+        'Get organised, find inspiration and keep track of every present.'
+      ) +
+      subnav(
+        'gifts',
+        ['My gifts', 'Gift ideas', 'Secret Santa']
+      ) +
+      content
+    );
+  };
+
+  document.addEventListener('click', event => {
+    const personButton =
+      event.target.closest('[data-hq-gift-person]');
+
+    if (personButton) {
+      ui.hqGiftPerson =
+        personButton.dataset.hqGiftPerson || '';
+
+      render(true);
+      return;
+    }
+
+    const backButton =
+      event.target.closest('[data-hq-gifts-back]');
+
+    if (backButton) {
+      ui.hqGiftPerson = '';
+      render(true);
+    }
+  });
+})();
