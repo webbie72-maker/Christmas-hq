@@ -241,7 +241,61 @@
     }catch(e){chat.error=e.message||'Could not load this topic.';}
     finally{chat.loading=false;draw(true);}
   }
+/* LIVE CHRISTMAS CHAT */
+let hqChatLiveChannel = null;
 
+function startLiveChat() {
+  const client = db();
+  if (!client || hqChatLiveChannel) return;
+
+  const refreshChat = async () => {
+    if (ui.tab !== 'chat') return;
+
+    if (chat.threadId) {
+      await loadThread(chat.threadId);
+    } else {
+      chat.loadedKey = '';
+      await loadHub(true);
+    }
+  };
+
+  hqChatLiveChannel = client
+    .channel('christmas-hq-chat-live')
+
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'chat_categories'
+      },
+      refreshChat
+    )
+
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'chat_threads'
+      },
+      refreshChat
+    )
+
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'chat_messages'
+      },
+      refreshChat
+    )
+
+    .subscribe();
+}
+
+startLiveChat();
   document.addEventListener('click',async e=>{
     const mode=e.target.closest('[data-hq-chat-mode]');
     if(mode){e.preventDefault();chat.mode=mode.dataset.hqChatMode;chat.categoryId='';chat.threadId='';chat.currentThread=null;chat.loadedKey='';await loadHub(true);return;}
