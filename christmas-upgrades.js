@@ -442,8 +442,8 @@
         <button class="btn full" type="submit">🎵 Add to Christmas HQ</button>
 
         <p class="muted-note">
-          Uploaded audio stays on this device. Music links are saved in this browser.
-        </p>
+  Songs added here are shared with your Family Christmas HQ so everyone in your family can see and play them.
+</p>
       </form>
 
       ${line('My Christmas songs')}
