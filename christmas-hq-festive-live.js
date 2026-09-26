@@ -554,6 +554,89 @@ function buildChristmasHeader() {
 .nav::-webkit-scrollbar{
   display:none;
 }
+/* CHRISTMAS HQ HOME HERO LAYOUT */
+.hq-title-bar{
+  justify-content:center!important;
+  text-align:center;
+  width:100%;
+}
+
+.hq-title-bar .hq-brand{
+  align-items:center;
+  width:100%;
+}
+
+.hq-title-bar .mast-name{
+  font-family:"Brush Script MT","Segoe Script","Snell Roundhand",cursive!important;
+  font-size:clamp(42px,11vw,62px)!important;
+  font-weight:700!important;
+  line-height:.95!important;
+  letter-spacing:.5px!important;
+  color:#fff8df!important;
+  text-shadow:
+    0 3px 12px rgba(0,0,0,.75),
+    0 0 18px rgba(255,220,140,.22);
+}
+
+.hq-title-bar .hq-catchphrase{
+  margin-top:7px;
+  font-size:15px!important;
+  text-align:center;
+}
+
+.hq-home-hero{
+  margin-top:92px!important;
+}
+
+.hq-bottom-row{
+  position:relative;
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:stretch;
+}
+
+.hq-bottom-row .hq-christmas-countdown{
+  width:min(340px,calc(100% - 78px));
+  min-height:92px;
+  margin:0 auto;
+  justify-content:center;
+}
+
+.hq-header-buttons{
+  position:absolute;
+  right:0;
+  top:0;
+  bottom:0;
+  width:66px;
+  display:grid;
+  grid-template-rows:1fr 1fr;
+  gap:7px;
+}
+
+.hq-header-buttons .hq-settings-btn,
+.hq-header-buttons .hq-back-btn{
+  width:100%!important;
+  min-width:0!important;
+  height:100%!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:4px!important;
+  border-radius:14px!important;
+}
+
+.hq-header-buttons .hq-settings-btn{
+  font-size:22px!important;
+}
+
+.hq-header-buttons .hq-back-btn{
+  font-size:11px!important;
+}
+
+/* Remove the old large countdown card from the Home page */
+#screen > .hero:first-child{
+  display:none!important;
+}
       @media(max-width:420px){
         .hq-games-grid{grid-template-columns:1fr 1fr}
         .hq-game-card{padding:13px;min-height:137px}
