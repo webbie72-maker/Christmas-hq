@@ -520,7 +520,7 @@ function buildChristmasHeader() {
       .hq-wheel-result span{
         background:rgba(10,47,38,.92);color:#fff;border-radius:18px;padding:16px;font-weight:900;max-width:75%
       }.nav{
-  grid-template-columns:repeat(7,minmax(0,1fr))!important;
+  grid-template-columns:repeat(8,minmax(0,1fr))!important;
   gap:2px!important;
   width:calc(100% - 16px)!important;
   max-width:564px!important;
