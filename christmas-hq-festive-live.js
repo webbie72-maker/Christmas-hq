@@ -1038,6 +1038,7 @@ if (hqMusicEnabled && selectedSong()) {
 
   const previousRender = render;
   render = function(top = true) {
+     mast.dataset.hqPage = ui.tab;
     if (ui.tab === 'games') {
       renderGames(top);
       return;
