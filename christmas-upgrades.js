@@ -363,6 +363,20 @@ if (metric) {
   const DB_NAME = 'christmas-hq-media-v1';
   const STORE = 'songs';
   let songUrls = [];
+  function familyMusicCloud() {
+  return window.ChristmasHQFamilyCloud || null;
+}
+
+function familyMusicReady() {
+  const cloud = familyMusicCloud();
+
+  return !!(
+    cloud &&
+    cloud.client &&
+    cloud.session &&
+    cloud.familyId
+  );
+}
 
   function openSongDb() {
     return new Promise((resolve, reject) => {
