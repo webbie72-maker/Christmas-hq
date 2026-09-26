@@ -819,15 +819,20 @@ function familyMusicReady() {
     const action = button.dataset.action;
 
     if (action === 'sub') {
-      event.preventDefault();
-      event.stopImmediatePropagation();
+  event.preventDefault();
+  event.stopImmediatePropagation();
 
-      const tab = button.dataset.tab;
-      const sub = button.dataset.value;
+  const tab = button.dataset.tab;
+  const sub = button.dataset.value;
 
-      go(tab, sub);
-      return;
-    }
+  rememberNav();
+  ui.tab = tab;
+  ui.recipe = '';
+  ui.sub[tab] = sub;
+
+  render(true);
+  return;
+}
 
     if (action === 'shortcut') {
       event.preventDefault();
