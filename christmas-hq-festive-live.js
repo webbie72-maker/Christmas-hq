@@ -1153,6 +1153,70 @@ textarea.field{
     padding:16px!important;
   }
 }
+/* HOME — FLAGSHIP POLISH */
+
+.mast[data-hq-page="home"]{
+  min-height:360px!important;
+}
+
+.hq-home-brand{
+  padding-top:18px!important;
+}
+
+.hq-home-brand .mast-name{
+  font-size:clamp(58px,17vw,82px)!important;
+  line-height:.86!important;
+}
+
+.hq-home-brand .hq-catchphrase{
+  font-size:19px!important;
+  margin-top:12px!important;
+}
+
+.hq-home-hero{
+  margin-top:48px!important;
+}
+
+.mast[data-hq-page="home"] .hq-christmas-countdown{
+  min-height:102px!important;
+  border-radius:24px!important;
+  padding:15px 16px!important;
+}
+
+.mast[data-hq-page="home"] .hq-days-block strong{
+  font-size:48px!important;
+}
+
+.mast[data-hq-page="home"] .hq-clock-block b{
+  font-size:27px!important;
+}
+
+.mast[data-hq-page="home"] + .container .summary{
+  margin-top:2px!important;
+}
+
+.mast[data-hq-page="home"] + .container .metric{
+  min-height:82px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+.mast[data-hq-page="home"] + .container .quick-grid .tap-card{
+  min-height:155px!important;
+}
+
+.mast[data-hq-page="home"] + .container .quick-grid .tap-card .big{
+  font-size:40px!important;
+}
+
+.mast[data-hq-page="home"] + .container .quick-grid .tap-card strong{
+  font-size:16px!important;
+}
+
+.mast[data-hq-page="home"] + .container .section-line:first-of-type{
+  margin-top:28px!important;
+}
       @media(max-width:420px){
         .hq-games-grid{grid-template-columns:1fr 1fr}
         .hq-game-card{padding:13px;min-height:137px}
