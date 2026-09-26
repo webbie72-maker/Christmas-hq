@@ -411,7 +411,9 @@ function familyMusicReady() {
   }
 
   async function saveSong(song) {
+  if (!familyMusicReady()) {
     const db = await openSongDb();
+
     return new Promise((resolve, reject) => {
       const tx = db.transaction(STORE, 'readwrite');
       tx.objectStore(STORE).put(song);
@@ -419,6 +421,60 @@ function familyMusicReady() {
       tx.onerror = () => reject(tx.error);
     });
   }
+
+  const cloud = familyMusicCloud();
+  const client = cloud.client;
+  const familyId = cloud.familyId;
+  const userId = cloud.session.user.id;
+
+  let storagePath = null;
+
+  if (song.file instanceof Blob) {
+    const extension =
+      String(song.fileName || 'song.mp3')
+        .split('.')
+        .pop()
+        .replace(/[^a-zA-Z0-9]/g, '') || 'mp3';
+
+    storagePath =
+      familyId + '/' +
+      Date.now() + '-' +
+      Math.random().toString(36).slice(2, 9) +
+      '.' + extension;
+
+    const { error: uploadError } = await client.storage
+      .from('family-music')
+      .upload(storagePath, song.file, {
+        contentType: song.file.type || 'audio/mpeg',
+        upsert: false
+      });
+
+    if (uploadError) throw uploadError;
+  }
+
+  const { error } = await client
+    .from('family_music')
+    .insert({
+      family_id: familyId,
+      title: song.title,
+      artist: song.artist || '',
+      storage_path: storagePath,
+      external_url: song.url || null,
+      mime_type: song.file?.type || '',
+      size_bytes: song.file?.size || 0,
+      created_by: userId
+    });
+
+  if (error) {
+    if (storagePath) {
+      await client.storage
+        .from('family-music')
+        .remove([storagePath]);
+    }
+
+    throw error;
+  }
+}
 
   async function deleteSong(id) {
     const db = await openSongDb();
