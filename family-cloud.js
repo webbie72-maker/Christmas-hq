@@ -42,6 +42,20 @@
   let pushTimer = null;
   let cloudReady = false;
   let lastCloudUpdatedAt = null;
+   window.ChristmasHQFamilyCloud = {
+  get client() {
+    return db;
+  },
+  get session() {
+    return session;
+  },
+  get familyId() {
+    return activeFamily?.id || '';
+  },
+  get family() {
+    return activeFamily;
+  }
+};
 
   const clone = value => {
     try {
