@@ -1,12 +1,12 @@
-const CACHE = 'christmas-hq-pwa-v3';
+const CACHE = 'christmas-hq-pwa-v6';
 
 const CORE = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/apple-touch-icon.png'
+  './icon-192.png',
+  './icon-512.png',
+  './apple-touch-icon.png'
 ];
 
 self.addEventListener('install', event => {
