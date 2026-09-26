@@ -637,6 +637,53 @@ function buildChristmasHeader() {
 #screen > .hero:first-child{
   display:none!important;
 }
+/* FINAL HERO POSITIONING */
+
+/* HOME — strong Christmas HQ title */
+.mast[data-hq-page="home"] .hq-title-bar .mast-name{
+  font-size:clamp(44px,10vw,56px)!important;
+  font-weight:700!important;
+  text-shadow:
+    0 4px 14px rgba(0,0,0,.85),
+    0 0 24px rgba(255,221,145,.42)!important;
+}
+
+/* OTHER PAGES — same branding, smaller */
+.mast:not([data-hq-page="home"]) .hq-title-bar{
+  display:flex!important;
+  justify-content:center!important;
+  text-align:center!important;
+}
+
+.mast:not([data-hq-page="home"]) .hq-title-bar .mast-name{
+  display:block!important;
+  font-size:34px!important;
+  line-height:1!important;
+}
+
+.mast:not([data-hq-page="home"]) .hq-title-bar .hq-catchphrase{
+  display:block!important;
+  font-size:12px!important;
+  margin-top:4px!important;
+}
+
+/* Give countdown its own space on the left */
+.hq-bottom-row{
+  justify-content:flex-start!important;
+  padding-right:82px!important;
+}
+
+.hq-bottom-row .hq-christmas-countdown{
+  width:100%!important;
+  max-width:355px!important;
+  margin:0!important;
+}
+
+/* Settings + Back get their own footprint */
+.hq-header-buttons{
+  right:0!important;
+  width:70px!important;
+}
       @media(max-width:420px){
         .hq-games-grid{grid-template-columns:1fr 1fr}
         .hq-game-card{padding:13px;min-height:137px}
