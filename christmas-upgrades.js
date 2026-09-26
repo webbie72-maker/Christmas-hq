@@ -523,7 +523,9 @@ function familyMusicReady() {
 }
 
   async function deleteSong(id) {
+  if (!familyMusicReady()) {
     const db = await openSongDb();
+
     return new Promise((resolve, reject) => {
       const tx = db.transaction(STORE, 'readwrite');
       tx.objectStore(STORE).delete(id);
@@ -531,6 +533,35 @@ function familyMusicReady() {
       tx.onerror = () => reject(tx.error);
     });
   }
+
+  const cloud = familyMusicCloud();
+  const client = cloud.client;
+
+  const { data: song, error: loadError } = await client
+    .from('family_music')
+    .select('storage_path')
+    .eq('id', id)
+    .eq('family_id', cloud.familyId)
+    .single();
+
+  if (loadError) throw loadError;
+
+  if (song?.storage_path) {
+    const { error: storageError } = await client.storage
+      .from('family-music')
+      .remove([song.storage_path]);
+
+    if (storageError) throw storageError;
+  }
+
+  const { error } = await client
+    .from('family_music')
+    .delete()
+    .eq('id', id)
+    .eq('family_id', cloud.familyId);
+
+  if (error) throw error;
+}
 
   function musicScreen() {
     return `
