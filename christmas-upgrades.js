@@ -1838,3 +1838,163 @@ document.addEventListener('click', event => {
 
   document.head.appendChild(style);
 })();
+/* Christmas HQ — polished person gift cards */
+(() => {
+  const style = document.createElement('style');
+
+  style.textContent = `
+    .hq-person-gift-card{
+      background:#fff;
+      border:1px solid #e5e5dc;
+      border-radius:20px;
+      padding:14px;
+      box-shadow:0 8px 22px rgba(28,70,52,.07);
+    }
+
+    .hq-person-gift-card.bought{
+      background:#f5faf4;
+      border-color:#cfe0cf;
+    }
+
+    .hq-gift-card-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+
+    .hq-gift-bought{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size:11px;
+      font-weight:900;
+      color:#526658;
+    }
+
+    .hq-gift-bought input{
+      width:20px;
+      height:20px;
+      accent-color:#2c7554;
+    }
+
+    .hq-gift-edit-main{
+      border:0;
+      border-radius:11px;
+      background:#eef4eb;
+      color:#164f3d;
+      font-size:11px;
+      font-weight:900;
+      padding:8px 11px;
+    }
+
+    .hq-gift-main-info{
+      width:100%;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      border:0;
+      background:transparent;
+      padding:7px 2px 12px;
+      text-align:left;
+      color:#25372e;
+    }
+
+    .hq-gift-present{
+      width:46px;
+      height:46px;
+      min-width:46px;
+      display:grid;
+      place-items:center;
+      border-radius:14px;
+      background:#fff4de;
+      font-size:26px;
+    }
+
+    .hq-gift-details{
+      flex:1;
+      min-width:0;
+    }
+
+    .hq-gift-details strong{
+      display:block;
+      font-size:15px;
+      color:#103b31;
+      line-height:1.3;
+      overflow-wrap:anywhere;
+    }
+
+    .hq-gift-details small{
+      display:block;
+      margin-top:4px;
+      color:#7a817b;
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .hq-gift-arrow{
+      font-size:31px;
+      color:#2c7554;
+      line-height:1;
+    }
+
+    .hq-gift-tools{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:7px;
+      border-top:1px solid #edf0e8;
+      padding-top:11px;
+    }
+
+    .hq-gift-tool{
+      min-width:0;
+      min-height:39px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:4px;
+      border:1px solid #dfe5da;
+      border-radius:11px;
+      background:#fafcf8;
+      color:#315d4a;
+      text-decoration:none;
+      font-size:10px;
+      font-weight:900;
+      padding:6px 4px;
+      text-align:center;
+    }
+
+    .hq-gift-tool.has-data{
+      background:#edf6ea;
+      border-color:#cfe0c9;
+      color:#1e6548;
+    }
+
+    .hq-gift-tool.delete{
+      color:#a43c46;
+      background:#fff4f3;
+      border-color:#f0d8d8;
+      font-size:16px;
+    }
+
+    .hq-gift-note-preview{
+      margin-top:10px;
+      padding:10px 11px;
+      border-radius:11px;
+      background:#fff9eb;
+      border:1px solid #eee0bc;
+      color:#735f3a;
+      font-size:11px;
+      line-height:1.5;
+    }
+
+    @media(max-width:390px){
+      .hq-gift-tools{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+    }
+  `;
+
+  document.head.appendChild(style);
+})();
