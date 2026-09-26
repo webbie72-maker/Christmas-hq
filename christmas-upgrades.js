@@ -928,7 +928,6 @@ document.addEventListener('click', event => {
   }
 
   function hqGiftItem(gift) {
-  function hqGiftItem(gift) {
   const hasLink =
     /^https?:\/\//i.test(
       String(gift.shoppingUrl || '')
