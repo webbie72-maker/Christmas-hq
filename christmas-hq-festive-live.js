@@ -186,72 +186,65 @@
 
 function buildChristmasHeader() {
   const pageNames = {
-    home: 'HOME',
-    gifts: 'GIFTS',
-    plan: 'PLANNER',
-    kitchen: 'KITCHEN',
-    magic: 'CHRISTMAS MAGIC',
-    games: 'FAMILY GAMES',
-    explore: 'EXPLORE',
-    settings: 'SETTINGS'
+    home: 'Christmas HQ',
+    gifts: 'Gifts',
+    plan: 'Planner',
+    kitchen: 'Kitchen',
+    magic: 'Christmas Magic',
+    games: 'Family Games',
+    explore: 'Explore',
+    settings: 'Settings'
   };
 
-  mast.innerHTML = `
-    <div class="mast-bar hq-title-bar">
-      <div class="hq-brand">
-        <div class="mast-name">Christmas HQ</div>
-        <div class="hq-catchphrase">Your Christmas, sorted.</div>
-      </div>
+  const pageTitle = pageNames[ui.tab] || 'Christmas HQ';
+
+  mast.innerHTML = ui.tab === 'home' ? `
+    <div class="hq-home-brand">
+      <div class="mast-name">Christmas HQ</div>
+      <div class="hq-catchphrase">Your Christmas, sorted.</div>
+      <div class="hq-brand-flourish">✦ · ✦</div>
     </div>
 
-    ${ui.tab === 'home' ? `
-      <div class="hq-hero-main hq-home-hero">
-        <div class="hq-bottom-row">
+    <div class="hq-hero-main hq-home-hero">
+      <div class="hq-bottom-row">
 
-          <div class="hq-christmas-countdown">
-            <div class="hq-days-block">
-              <strong id="hqChristmasDays">--</strong>
-              <span>DAYS UNTIL CHRISTMAS</span>
-            </div>
-
-            <div class="hq-clock-block">
-              <small>HOURS · MINUTES · SECONDS</small>
-              <b id="hqChristmasClock">--:--:--</b>
-            </div>
+        <div class="hq-christmas-countdown">
+          <div class="hq-days-block">
+            <strong id="hqChristmasDays">--</strong>
+            <span>DAYS UNTIL CHRISTMAS</span>
           </div>
 
-          <div class="hq-header-buttons">
-            <button class="circle-btn hq-settings-btn"
-              data-action="settings"
-              aria-label="Settings">⚙</button>
-
-            <button class="back-btn hq-back-btn"
-              data-action="back"
-              ${navStack.length || ui.tab !== 'home' ? '' : 'disabled'}>
-              ← Back
-            </button>
+          <div class="hq-clock-block">
+            <small>HOURS · MINUTES · SECONDS</small>
+            <b id="hqChristmasClock">--:--:--</b>
           </div>
-
-        </div>
-      </div>
-    ` : `
-      <div class="hq-hero-main hq-page-only">
-        <div class="hq-page-name">
-          ${pageNames[ui.tab] || 'CHRISTMAS HQ'}
         </div>
 
-        <div class="hq-header-buttons">
+        <div class="hq-header-buttons hq-home-buttons">
           <button class="circle-btn hq-settings-btn"
             data-action="settings"
             aria-label="Settings">⚙</button>
 
           <button class="back-btn hq-back-btn"
-            data-action="back">
+            data-action="back"
+            ${navStack.length ? '' : 'disabled'}>
             ← Back
           </button>
         </div>
+
       </div>
-    `}
+    </div>
+  ` : `
+    <div class="hq-page-brand">
+      <div class="hq-page-title">${pageTitle}</div>
+      <div class="hq-page-subbrand">Christmas HQ</div>
+      <div class="hq-brand-flourish">✦ · ✦</div>
+    </div>
+
+    <button class="back-btn hq-page-back"
+      data-action="back">
+      ← Back
+    </button>
   `;
 
   addSnow();
