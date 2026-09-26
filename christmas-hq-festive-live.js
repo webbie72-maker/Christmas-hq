@@ -966,7 +966,18 @@ if (hqMusicEnabled && selectedSong()) {
   }
 
   function ensureMusicDock() {
-    let dock = document.getElementById('hqMusicDock');
+  let dock = document.getElementById('hqMusicDock');
+
+  const showMusicDock =
+    ui.tab === 'home' ||
+    (ui.tab === 'magic' && ui.sub.magic === 'Music');
+
+  if (!showMusicDock) {
+    if (dock) dock.style.display = 'none';
+    return;
+  }
+
+  if (dock) dock.style.display = '';
 
     if (!dock) {
       dock = document.createElement('div');
