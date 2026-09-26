@@ -610,19 +610,30 @@ function familyMusicReady() {
         let player = '';
 
         if (song.file instanceof Blob) {
-          const objectUrl = URL.createObjectURL(song.file);
-          songUrls.push(objectUrl);
-          player = `
-            <audio controls preload="metadata"
-              style="width:100%;margin-top:10px"
-              src="${objectUrl}"></audio>`;
-        } else if (song.url) {
-          player = `
-            <a class="btn small alt" style="margin-top:10px;text-decoration:none"
-              href="${esc(song.url)}" target="_blank" rel="noopener">
-              ▶ Open song
-            </a>`;
-        }
+  const objectUrl = URL.createObjectURL(song.file);
+  songUrls.push(objectUrl);
+
+  player = `
+    <audio controls preload="metadata"
+      style="width:100%;margin-top:10px"
+      src="${objectUrl}"></audio>`;
+
+} else if (song.cloudAudio && song.url) {
+  player = `
+    <audio controls preload="metadata"
+      style="width:100%;margin-top:10px"
+      src="${esc(song.url)}"></audio>`;
+
+} else if (song.url) {
+  player = `
+    <a class="btn small alt"
+      style="margin-top:10px;text-decoration:none"
+      href="${esc(song.url)}"
+      target="_blank"
+      rel="noopener">
+      ▶ Open song
+    </a>`;
+}
 
         return `
           <div class="card">
