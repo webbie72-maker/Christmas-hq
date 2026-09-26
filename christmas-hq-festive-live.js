@@ -912,6 +912,247 @@ function buildChristmasHeader() {
 
   bottom:18px!important;
 }
+/* CHRISTMAS HQ — PROFESSIONAL UI POLISH */
+
+.container{
+  padding:26px 18px 34px!important;
+  background:
+    linear-gradient(180deg,#fbfaf6 0%,#f8f9f4 100%)!important;
+}
+
+.eyebrow{
+  margin-bottom:8px!important;
+  color:#a47a31!important;
+  font-size:10px!important;
+  font-weight:900!important;
+  letter-spacing:1.7px!important;
+}
+
+.container > h2,
+.section-line h2{
+  color:#133f34!important;
+  font-size:22px!important;
+  font-weight:800!important;
+  letter-spacing:-.35px!important;
+}
+
+.lead{
+  max-width:520px;
+  color:#6b776f!important;
+  font-size:13px!important;
+  line-height:1.65!important;
+}
+
+.card,
+.family-card,
+.catalog-card,
+.activity-card,
+.item,
+.metric{
+  border-color:#e3e8df!important;
+  box-shadow:
+    0 8px 26px rgba(18,61,47,.055),
+    0 1px 2px rgba(18,61,47,.03)!important;
+}
+
+.card{
+  border-radius:20px!important;
+  padding:17px!important;
+}
+
+.item{
+  border-radius:16px!important;
+  padding:13px!important;
+}
+
+.field{
+  min-height:47px!important;
+  border-radius:13px!important;
+  border-color:#d9e0d8!important;
+  background:#fff!important;
+  box-shadow:inset 0 1px 2px rgba(21,62,49,.025)!important;
+}
+
+.field:focus{
+  border-color:#7aaa91!important;
+  outline:3px solid rgba(71,130,101,.12)!important;
+}
+
+textarea.field{
+  line-height:1.55!important;
+}
+
+.btn{
+  min-height:46px!important;
+  border-radius:14px!important;
+  font-size:12px!important;
+  letter-spacing:.1px!important;
+  box-shadow:0 5px 14px rgba(16,59,49,.10)!important;
+}
+
+.btn.alt{
+  background:#fff!important;
+  border-color:#d8e1d8!important;
+}
+
+.btn.warn{
+  box-shadow:none!important;
+}
+
+.subtabs{
+  gap:8px!important;
+  margin:4px 0 9px!important;
+  padding:3px 0 12px!important;
+}
+
+.subtabs button{
+  min-height:42px!important;
+  padding:10px 16px!important;
+  border-radius:999px!important;
+  border-color:#dde4db!important;
+  background:#fff!important;
+  box-shadow:0 3px 10px rgba(18,61,47,.035)!important;
+}
+
+.subtabs button.selected{
+  background:#103f34!important;
+  border-color:#103f34!important;
+  color:#fff!important;
+  box-shadow:0 7px 18px rgba(16,63,52,.18)!important;
+}
+
+.summary{
+  gap:10px!important;
+  margin-bottom:18px!important;
+}
+
+.metric{
+  border-radius:18px!important;
+  padding:14px 12px!important;
+}
+
+.metric strong{
+  font-size:22px!important;
+  letter-spacing:-.4px!important;
+}
+
+.metric span{
+  margin-top:3px!important;
+  font-size:10px!important;
+  font-weight:750!important;
+}
+
+.section-line{
+  margin:25px 1px 13px!important;
+  padding-bottom:7px;
+  border-bottom:1px solid #e8ece5;
+}
+
+.quick-grid{
+  gap:12px!important;
+}
+
+.tap-card{
+  min-height:145px!important;
+  border-radius:20px!important;
+  padding:19px!important;
+  border-color:#e2e7df!important;
+  box-shadow:0 10px 24px rgba(18,61,47,.055)!important;
+}
+
+.tap-card strong{
+  font-size:15px!important;
+}
+
+.tap-card small{
+  font-size:11px!important;
+  line-height:1.5!important;
+}
+
+.family-card{
+  border-radius:18px!important;
+  padding:14px!important;
+  background:#fff!important;
+}
+
+.family-name{
+  font-size:15px!important;
+}
+
+.family-meta{
+  font-size:11px!important;
+  line-height:1.45!important;
+}
+
+.catalog-card{
+  border-radius:18px!important;
+  padding:15px!important;
+}
+
+.callout{
+  border-radius:14px!important;
+  line-height:1.55!important;
+}
+
+.nav{
+  background:rgba(255,254,250,.97)!important;
+  backdrop-filter:blur(15px)!important;
+  border:1px solid rgba(220,228,219,.95)!important;
+  border-radius:23px!important;
+  width:calc(100% - 18px)!important;
+  max-width:562px!important;
+  bottom:8px!important;
+  padding:7px 5px calc(7px + env(safe-area-inset-bottom))!important;
+  box-shadow:0 -5px 26px rgba(16,59,49,.14)!important;
+}
+
+.nav button{
+  min-height:52px!important;
+  border-radius:15px!important;
+  transition:
+    background .16s ease,
+    transform .16s ease!important;
+}
+
+.nav button.current{
+  background:#fdf0ee!important;
+  color:#9a303d!important;
+}
+
+.toast{
+  border-radius:14px!important;
+  box-shadow:0 12px 30px rgba(0,0,0,.22)!important;
+}
+
+/* Breathing room below Christmas header */
+.mast + .container{
+  padding-top:25px!important;
+}
+
+/* Smaller iPhones */
+@media(max-width:390px){
+  .container{
+    padding-left:14px!important;
+    padding-right:14px!important;
+  }
+
+  .summary{
+    gap:7px!important;
+  }
+
+  .metric{
+    padding:12px 8px!important;
+  }
+
+  .metric strong{
+    font-size:19px!important;
+  }
+
+  .tap-card{
+    min-height:136px!important;
+    padding:16px!important;
+  }
+}
       @media(max-width:420px){
         .hq-games-grid{grid-template-columns:1fr 1fr}
         .hq-game-card{padding:13px;min-height:137px}
