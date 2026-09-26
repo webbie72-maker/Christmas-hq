@@ -1179,14 +1179,19 @@ function buildChristmasHeader() {
       hqMusicObjectUrl = '';
     }
 
-    if (!song?.file) {
-      audio.removeAttribute('src');
-      return;
-    }
+    if (song?.file instanceof Blob) {
+  hqMusicObjectUrl = URL.createObjectURL(song.file);
+  audio.src = hqMusicObjectUrl;
 
-    hqMusicObjectUrl = URL.createObjectURL(song.file);
-    audio.src = hqMusicObjectUrl;
-    audio.volume = hqMusicVolume;
+} else if (song?.cloudAudio && song?.url) {
+  audio.src = song.url;
+
+} else {
+  audio.removeAttribute('src');
+  return;
+}
+
+audio.volume = hqMusicVolume;
   }
 
   async function playMusic() {
