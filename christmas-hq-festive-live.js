@@ -1067,14 +1067,89 @@ function buildChristmasHeader() {
   }
 
   async function refreshMusicSongs() {
-    try {
+  try {
+    const cloud = window.ChristmasHQFamilyCloud;
+
+    if (
+      cloud &&
+      cloud.client &&
+      cloud.session &&
+      cloud.familyId
+    ) {
+      const { data, error } = await cloud.client
+        .from('family_music')
+        .select('*')
+        .eq('family_id', cloud.familyId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      hqMusicSongs = await Promise.all(
+        (data || []).map(async row => {
+          let playUrl = row.external_url || '';
+
+          if (row.storage_path) {
+            const { data: signed, error: signedError } =
+              await cloud.client.storage
+                .from('family-music')
+                .createSignedUrl(row.storage_path, 3600);
+
+            if (!signedError) {
+              playUrl = signed?.signedUrl || '';
+            }
+          }
+
+          return {
+            id: row.id,
+            title: row.title,
+            artist: row.artist,
+            url: playUrl,
+            cloudAudio: !!row.storage_path,
+            storagePath: row.storage_path,
+            createdAt: row.created_at
+          };
+        })
+      );
+
+    } else {
       const db = await openMusicDb();
-      hqMusicSongs = await new Promise((resolve,reject) => {
-        const tx = db.transaction(MUSIC_STORE,'readonly');
+
+      hqMusicSongs = await new Promise((resolve, reject) => {
+        const tx = db.transaction(MUSIC_STORE, 'readonly');
         const req = tx.objectStore(MUSIC_STORE).getAll();
-        req.onsuccess = () => resolve((req.result || []).filter(s => s.file instanceof Blob));
+
+        req.onsuccess = () =>
+          resolve(
+            (req.result || []).filter(
+              song => song.file instanceof Blob
+            )
+          );
+
         req.onerror = () => reject(req.error);
       });
+    }
+
+    if (
+      !hqSelectedSongId ||
+      !hqMusicSongs.some(song => song.id === hqSelectedSongId)
+    ) {
+      hqSelectedSongId = hqMusicSongs[0]?.id || '';
+
+      if (hqSelectedSongId) {
+        localStorage.setItem(
+          'christmas-hq-music-song',
+          hqSelectedSongId
+        );
+      }
+    }
+
+    loadSelectedSong();
+    ensureMusicDock();
+
+  } catch (err) {
+    console.warn('Music library load failed', err);
+  }
+}
 
       if (!hqSelectedSongId || !hqMusicSongs.some(s => s.id === hqSelectedSongId)) {
         hqSelectedSongId = hqMusicSongs[0]?.id || '';
