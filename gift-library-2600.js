@@ -2640,10 +2640,10 @@ IDEAS.splice(0, IDEAS.length, ...CLEAN_GIFT_IDEAS);
     const previousGifts = gifts;
     gifts = function(){
       return previousGifts()
-        .replace(/Browse 299 gift ideas/g, 'Browse 2,600 gift ideas')
-        .replace(/299 gift ideas/g, '2,600 gift ideas — 260 in every category')
-        .replace(/Browse 36 gift ideas/g, 'Browse 2,600 gift ideas')
-        .replace(/36 starter ideas/g, '2,600 gift ideas — 260 in every category');
+        .replace(/Browse 299 gift ideas/g, 'Browse 200 gift ideas')
+.replace(/299 gift ideas/g, '200 unique gift ideas')
+.replace(/Browse 36 gift ideas/g, 'Browse 200 gift ideas')
+.replace(/36 starter ideas/g, '200 unique gift ideas');
     };
   }
 })();
