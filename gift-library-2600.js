@@ -2603,8 +2603,26 @@
     ['🏕️','Sleeping bag — compact version','Outdoors','A gift for camping, beach days, road trips or outdoor time.'],
     ['🏕️','Sleeping bag — premium version','Outdoors','A gift for camping, beach days, road trips or outdoor time.'],
     ['🏕️','Sleeping bag — Christmas adventure edition','Outdoors','A gift for camping, beach days, road trips or outdoor time.'],
-  ];
-  IDEAS.splice(0, IDEAS.length, ...MEGA_GIFT_IDEAS);
+  ];const CLEAN_GIFT_IDEAS = [];
+const seenGiftNames = new Set();
+
+for (const gift of MEGA_GIFT_IDEAS) {
+  const cleanName = String(gift[1]).split(' — ')[0].trim();
+  const key = cleanName.toLowerCase();
+
+  if (seenGiftNames.has(key)) continue;
+
+  seenGiftNames.add(key);
+
+  CLEAN_GIFT_IDEAS.push([
+    gift[0],
+    cleanName,
+    gift[2],
+    gift[3]
+  ]);
+}
+
+IDEAS.splice(0, IDEAS.length, ...CLEAN_GIFT_IDEAS);
 
   // Keep mobile rendering sensible: up to 260 visible results at once.
   if (typeof giftResults === 'function' && !window.__megaGiftResultsWrapped) {
