@@ -869,3 +869,43 @@ function familyMusicReady() {
     }
   }, true);
 })();
+/* Gifts summary cards — make them work */
+document.addEventListener('click', event => {
+  if (typeof ui === 'undefined' || ui.tab !== 'gifts') return;
+
+  const metric = event.target.closest('.metric');
+  if (!metric) return;
+
+  const text = metric.textContent || '';
+
+  event.preventDefault();
+
+  if (/Estimated cost/i.test(text)) {
+    go('plan', 'Budget');
+    return;
+  }
+
+  if (/Gifts planned/i.test(text)) {
+    ui.sub.gifts = 'My gifts';
+    render(false);
+
+    requestAnimationFrame(() => {
+      const headings = [...document.querySelectorAll('.section-line h2')];
+      const target = headings.find(h => /Your gift list/i.test(h.textContent));
+      target?.scrollIntoView({ behavior:'smooth', block:'start' });
+    });
+
+    return;
+  }
+
+  if (/Already bought/i.test(text)) {
+    ui.sub.gifts = 'My gifts';
+    render(false);
+
+    requestAnimationFrame(() => {
+      const headings = [...document.querySelectorAll('.section-line h2')];
+      const target = headings.find(h => /Your gift list/i.test(h.textContent));
+      target?.scrollIntoView({ behavior:'smooth', block:'start' });
+    });
+  }
+}, true);
