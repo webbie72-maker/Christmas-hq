@@ -338,9 +338,25 @@
     }
 
     const metric = event.target.closest('.metric');
-    if (metric && /Tasks done/i.test(metric.textContent || '')) {
-      go('plan', 'Checklist');
-    }
+
+if (metric) {
+  const text = metric.textContent || '';
+
+  if (/Tasks done/i.test(text)) {
+    go('plan', 'Checklist');
+    return;
+  }
+
+  if (/Gifts bought/i.test(text)) {
+    go('gifts', 'My gifts');
+    return;
+  }
+
+  if (/Budget left/i.test(text)) {
+    go('plan', 'Budget');
+    return;
+  }
+}
   });
 
   // ---------- My Christmas Music ----------
