@@ -1124,24 +1124,21 @@ function buildChristmasHeader() {
   }
 
   function renderGames(top = true) {
-    mast.innerHTML = `<div class="mast-bar">
-      <div class="brand-icon">🎄</div>
-      <div><div class="mast-name">Christmas HQ</div><div class="mast-tag">One place for all the magic</div></div>
-      <div class="mast-spacer"></div>
-      <button class="back-btn" data-action="back" aria-label="Back to previous page">← Back</button>
-      <button class="circle-btn" data-action="settings" aria-label="Settings">⚙</button>
-    </div>
-    <p class="mast-kicker">GAMES · ${typeof YEAR !== 'undefined' ? YEAR : new Date().getFullYear()}</p>
-    <h1 class="mast-title">Family Christmas Games</h1>
-    <p class="mast-desc">Play together. Laugh louder. Keep the score live.</p>`;
+  buildChristmasHeader();
 
-    screen.innerHTML = gamesPage();
-    ensureGamesNav();
-    addSnow();
-    ensureMusicDock();
+  screen.innerHTML = gamesPage();
 
-    if (top) window.scrollTo({top:0,behavior:'instant'});
+  ensureGamesNav();
+  addSnow();
+  ensureMusicDock();
+
+  if (top) {
+    window.scrollTo({
+      top: 0,
+      behavior: 'instant'
+    });
   }
+}
 
   function isHost(state) {
     return !!hqSession && state?.hostId === hqSession.user.id;
