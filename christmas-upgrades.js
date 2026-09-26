@@ -1247,3 +1247,310 @@ document.addEventListener('click', event => {
     }
   });
 })();
+/* Christmas HQ — ADVANCED GIFT EDITOR */
+(() => {
+  if (window.__hqAdvancedGiftEditor) return;
+  window.__hqAdvancedGiftEditor = true;
+
+  const previousGiftPage = gifts;
+
+  ui.hqEditGiftId = ui.hqEditGiftId || '';
+
+  function hqGiftPersonName(gift) {
+    if (gift?.recipientId) {
+      const member = familyById(gift.recipientId);
+      if (member) return member.name;
+    }
+
+    return String(gift?.recipient || 'Gift list');
+  }
+
+  function hqSafeGiftUrl(value) {
+    let url = String(value || '').trim();
+    if (!url) return '';
+
+    if (!/^https?:\/\//i.test(url)) {
+      url = 'https://' + url;
+    }
+
+    try {
+      const parsed = new URL(url);
+
+      if (
+        parsed.protocol !== 'http:' &&
+        parsed.protocol !== 'https:'
+      ) {
+        return '';
+      }
+
+      return parsed.href;
+    } catch (_) {
+      return '';
+    }
+  }
+
+  gifts = function () {
+    if (!ui.hqEditGiftId) {
+      return previousGiftPage();
+    }
+
+    const gift = state.gifts.find(
+      item => item.id === ui.hqEditGiftId
+    );
+
+    if (!gift) {
+      ui.hqEditGiftId = '';
+      return previousGiftPage();
+    }
+
+    const person = hqGiftPersonName(gift);
+    const shopUrl = hqSafeGiftUrl(gift.shoppingUrl);
+
+    return (
+      bigheading(
+        'SANTA’S GIFT WORKSHOP',
+        'Edit gift',
+        `Update the present for ${person}.`
+      ) +
+
+      subnav(
+        'gifts',
+        ['My gifts', 'Gift ideas', 'Secret Santa']
+      ) +
+
+      `
+      <button
+        type="button"
+        class="btn alt"
+        data-hq-gift-edit-close
+        style="margin-bottom:14px">
+        ← Back to ${esc(person)}'s gifts
+      </button>
+
+      <form
+        class="card form"
+        data-hq-gift-edit-form>
+
+        <h3>🎁 Edit gift details</h3>
+
+        <label>
+          Gift / item
+          <input
+            class="field"
+            name="name"
+            maxlength="120"
+            required
+            value="${esc(gift.name || '')}">
+        </label>
+
+        <div class="two">
+          <label>
+            Budget / price (AUD)
+            <input
+              class="field"
+              name="price"
+              type="number"
+              min="0"
+              step="0.01"
+              value="${Number(gift.price || 0)}">
+          </label>
+
+          <label>
+            Status
+            <select class="field" name="bought">
+              <option
+                value="false"
+                ${gift.bought ? '' : 'selected'}>
+                Still shopping
+              </option>
+
+              <option
+                value="true"
+                ${gift.bought ? 'selected' : ''}>
+                Already bought
+              </option>
+            </select>
+          </label>
+        </div>
+
+        <label>
+          🛒 Product / shop link
+          <input
+            class="field"
+            name="shoppingUrl"
+            type="url"
+            inputmode="url"
+            placeholder="https://..."
+            value="${esc(gift.shoppingUrl || '')}">
+        </label>
+
+        ${
+          shopUrl
+            ? `
+              <a
+                class="btn alt full"
+                href="${esc(shopUrl)}"
+                target="_blank"
+                rel="noopener">
+                🔗 Open saved shopping link
+              </a>
+            `
+            : ''
+        }
+
+        <label>
+          📝 Shopping notes
+          <textarea
+            class="field"
+            name="shoppingNotes"
+            rows="5"
+            maxlength="1000"
+            placeholder="Size, colour, where you saw it, sale price, ideas while shopping...">${esc(gift.shoppingNotes || '')}</textarea>
+        </label>
+
+        <label>
+          🏷️ Barcode
+          <input
+            class="field"
+            name="barcode"
+            inputmode="numeric"
+            maxlength="120"
+            placeholder="Scan or enter barcode"
+            value="${esc(gift.barcode || '')}">
+        </label>
+
+        <button
+          type="button"
+          class="btn alt full"
+          data-hq-scan-barcode>
+          📷 Scan barcode
+        </button>
+
+        <button
+          type="submit"
+          class="btn full">
+          ✓ Save changes
+        </button>
+
+        <button
+          type="button"
+          class="btn warn full"
+          data-hq-gift-editor-delete>
+          🗑 Delete this gift
+        </button>
+
+      </form>
+      `
+    );
+  };
+
+  document.addEventListener('click', event => {
+    const editButton =
+      event.target.closest('[data-hq-gift-edit]');
+
+    if (editButton) {
+      event.preventDefault();
+
+      ui.hqEditGiftId =
+        editButton.dataset.hqGiftEdit || '';
+
+      render(true);
+      return;
+    }
+
+    if (
+      event.target.closest(
+        '[data-hq-gift-edit-close]'
+      )
+    ) {
+      event.preventDefault();
+
+      ui.hqEditGiftId = '';
+      render(true);
+      return;
+    }
+
+    if (
+      event.target.closest(
+        '[data-hq-gift-editor-delete]'
+      )
+    ) {
+      event.preventDefault();
+
+      const gift = state.gifts.find(
+        item => item.id === ui.hqEditGiftId
+      );
+
+      if (
+        gift &&
+        confirm(`Delete "${gift.name}"?`)
+      ) {
+        state.gifts = state.gifts.filter(
+          item => item.id !== gift.id
+        );
+
+        ui.hqEditGiftId = '';
+
+        persist('Gift deleted');
+      }
+    }
+  }, true);
+
+  document.addEventListener(
+    'submit',
+    event => {
+      const form =
+        event.target.closest(
+          '[data-hq-gift-edit-form]'
+        );
+
+      if (!form) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      const gift = state.gifts.find(
+        item => item.id === ui.hqEditGiftId
+      );
+
+      if (!gift) return;
+
+      const data =
+        Object.fromEntries(
+          new FormData(form)
+        );
+
+      gift.name =
+        String(data.name || '').trim();
+
+      gift.price =
+        Math.max(
+          0,
+          Number(data.price) || 0
+        );
+
+      gift.bought =
+        data.bought === 'true';
+
+      gift.shoppingUrl =
+        hqSafeGiftUrl(
+          data.shoppingUrl
+        );
+
+      gift.shoppingNotes =
+        String(
+          data.shoppingNotes || ''
+        ).trim();
+
+      gift.barcode =
+        String(
+          data.barcode || ''
+        ).trim();
+
+      ui.hqEditGiftId = '';
+
+      persist('Gift updated');
+    },
+    true
+  );
+})();
