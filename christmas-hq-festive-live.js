@@ -261,7 +261,7 @@ function buildChristmasHeader() {
         min-height:245px;
         background:
           linear-gradient(180deg,rgba(3,34,28,.14),rgba(3,34,28,.72) 70%,rgba(3,34,28,.92)),
-          url('./christmas-hero-bg.png') center 46% / cover no-repeat !important;
+          url('./christmas-hero-bg.png?v=5') center 46% / cover no-repeat !important;
         box-shadow:inset 0 -1px 0 rgba(255,255,255,.14),0 12px 32px rgba(21,54,40,.16);
       }
       .mast:before{
