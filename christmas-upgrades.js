@@ -1554,3 +1554,219 @@ document.addEventListener('click', event => {
     true
   );
 })();
+/* Christmas HQ — BARCODE SCANNER */
+(() => {
+  if (window.__hqBarcodeScanner) return;
+  window.__hqBarcodeScanner = true;
+
+  let hqBarcodeReader = null;
+  let hqBarcodeTarget = null;
+
+  async function hqCloseBarcodeScanner() {
+    const modal = document.getElementById('hqBarcodeModal');
+
+    if (hqBarcodeReader) {
+      try {
+        await hqBarcodeReader.stop();
+      } catch (_) {}
+
+      try {
+        await hqBarcodeReader.clear();
+      } catch (_) {}
+
+      hqBarcodeReader = null;
+    }
+
+    hqBarcodeTarget = null;
+    modal?.remove();
+  }
+
+  async function hqOpenBarcodeScanner(target) {
+    if (typeof Html5Qrcode === 'undefined') {
+      notice('Barcode scanner is still loading. Try again in a moment.');
+      return;
+    }
+
+    await hqCloseBarcodeScanner();
+
+    hqBarcodeTarget = target;
+
+    const modal = document.createElement('div');
+    modal.id = 'hqBarcodeModal';
+
+    modal.innerHTML = `
+      <div class="hq-barcode-sheet">
+        <div class="hq-barcode-head">
+          <div>
+            <b>📷 Scan product barcode</b>
+            <small>Point the rear camera at the barcode.</small>
+          </div>
+
+          <button
+            type="button"
+            class="icon-action"
+            data-hq-barcode-close
+            aria-label="Close scanner">
+            ×
+          </button>
+        </div>
+
+        <div id="hqBarcodeReader"></div>
+
+        <p class="muted-note">
+          Keep the barcode inside the camera box and hold the phone steady.
+        </p>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    hqBarcodeReader =
+      new Html5Qrcode('hqBarcodeReader');
+
+    try {
+      await hqBarcodeReader.start(
+        { facingMode: 'environment' },
+        {
+          fps: 10,
+          qrbox: (width, height) => ({
+            width: Math.min(width * 0.88, 360),
+            height: Math.min(height * 0.36, 150)
+          })
+        },
+        async decodedText => {
+          if (hqBarcodeTarget) {
+            hqBarcodeTarget.value = decodedText;
+
+            hqBarcodeTarget.dispatchEvent(
+              new Event('input', {
+                bubbles: true
+              })
+            );
+          }
+
+          await hqCloseBarcodeScanner();
+
+          notice('Barcode scanned');
+        },
+        () => {}
+      );
+
+    } catch (error) {
+      await hqCloseBarcodeScanner();
+
+      notice(
+        'Camera could not start. Check camera permission and try again.'
+      );
+    }
+  }
+
+  document.addEventListener('click', event => {
+    const scanButton =
+      event.target.closest('[data-hq-scan-barcode]');
+
+    if (scanButton) {
+      event.preventDefault();
+
+      const form =
+        scanButton.closest(
+          '[data-hq-gift-edit-form]'
+        );
+
+      const input =
+        form?.querySelector(
+          '[name="barcode"]'
+        );
+
+      if (input) {
+        hqOpenBarcodeScanner(input);
+      }
+
+      return;
+    }
+
+    if (
+      event.target.closest(
+        '[data-hq-barcode-close]'
+      ) ||
+      event.target.id === 'hqBarcodeModal'
+    ) {
+      event.preventDefault();
+
+      hqCloseBarcodeScanner();
+    }
+  }, true);
+
+  const style =
+    document.createElement('style');
+
+  style.textContent = `
+    #hqBarcodeModal{
+      position:fixed;
+      inset:0;
+      z-index:9999;
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+
+      padding:
+        20px
+        14px
+        calc(20px + env(safe-area-inset-bottom));
+
+      background:rgba(2,20,16,.76);
+      backdrop-filter:blur(8px);
+    }
+
+    .hq-barcode-sheet{
+      width:min(100%,540px);
+      max-height:88dvh;
+      overflow:auto;
+
+      border-radius:24px;
+      background:#fffefa;
+      padding:17px;
+
+      box-shadow:
+        0 24px 70px rgba(0,0,0,.38);
+    }
+
+    .hq-barcode-head{
+      display:flex;
+      align-items:flex-start;
+      gap:12px;
+      margin-bottom:14px;
+    }
+
+    .hq-barcode-head > div{
+      flex:1;
+      min-width:0;
+    }
+
+    .hq-barcode-head b{
+      display:block;
+      color:#103b31;
+      font-size:18px;
+    }
+
+    .hq-barcode-head small{
+      display:block;
+      color:#6c776e;
+      margin-top:3px;
+    }
+
+    #hqBarcodeReader{
+      overflow:hidden;
+      border:2px solid #c4984d;
+      border-radius:18px;
+      background:#0b1512;
+    }
+
+    #hqBarcodeReader video{
+      width:100%!important;
+      border-radius:15px;
+    }
+  `;
+
+  document.head.appendChild(style);
+})();
