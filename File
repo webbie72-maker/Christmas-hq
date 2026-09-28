@@ -5,7 +5,139 @@
   window.__hqSnowEveryPanel = true;
 
   const style = document.createElement('style');
-  style.id = 'hqSnowEveryPanelStyles';
+(() => {
+  'use strict';
+
+  if (window.__hqPanelFinal) return;
+  window.__hqPanelFinal = true;
+
+  const panelImages = {
+    home: 'https://images.unsplash.com/photo-1543269865-cbdf26861551?auto=format&fit=crop&w=1400&q=80',
+    gifts: 'https://images.unsplash.com/photo-1482510357005-6e4e91ed4518?auto=format&fit=crop&w=1400&q=80',
+    plan: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=1400&q=80',
+    kitchen: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1400&q=80',
+    magic: 'https://images.unsplash.com/photo-1511379938547-c1f69b13d835?auto=format&fit=crop&w=1400&q=80',
+    chat: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1400&q=80',
+    settings: 'https://images.unsplash.com/photo-1576912261538-01139e29856d?auto=format&fit=crop&w=1400&q=80',
+    explore: 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=1400&q=80'
+  };
+
+  const css = document.createElement('style');
+  css.textContent = `
+    @keyframes hqSnowFall {
+      0% {
+        transform: translate3d(0,-12%,0) rotate(0deg);
+        opacity: 0;
+      }
+      12% {
+        opacity: 1;
+      }
+      100% {
+        transform: translate3d(60px,120%,0) rotate(220deg);
+        opacity: 0;
+      }
+    }
+
+    .mast {
+      position: relative !important;
+      overflow: hidden !important;
+      isolation: isolate !important;
+      background-size: cover !important;
+      background-position: center center !important;
+      background-repeat: no-repeat !important;
+    }
+
+    .mast::before {
+      content: "" !important;
+      position: absolute !important;
+      inset: 0 !important;
+      background: linear-gradient(
+        180deg,
+        rgba(0,0,0,0.12) 0%,
+        rgba(0,0,0,0.22) 45%,
+        rgba(0,0,0,0.52) 100%
+      ) !important;
+      z-index: 1 !important;
+      pointer-events: none !important;
+    }
+
+    .mast > * {
+      position: relative !important;
+      z-index: 2 !important;
+    }
+
+    .hq-panel-snow {
+      position: absolute !important;
+      inset: 0 !important;
+      overflow: hidden !important;
+      pointer-events: none !important;
+      z-index: 3 !important;
+    }
+
+    .hq-panel-snowflake {
+      position: absolute !important;
+      top: -14% !important;
+      left: var(--left) !important;
+      font-size: var(--size) !important;
+      color: rgba(255,255,255,0.95) !important;
+      text-shadow: 0 0 8px rgba(255,255,255,0.8) !important;
+      opacity: 0 !important;
+      animation: hqSnowFall var(--duration) linear var(--delay) infinite !important;
+    }
+  `;
+  document.head.appendChild(css);
+
+  function addSnow(mast) {
+    if (!mast || mast.querySelector('.hq-panel-snow')) return;
+
+    const layer = document.createElement('div');
+    layer.className = 'hq-panel-snow';
+    layer.setAttribute('aria-hidden', 'true');
+
+    for (let i = 0; i < 28; i++) {
+      const flake = document.createElement('span');
+      flake.className = 'hq-panel-snowflake';
+      flake.textContent = i % 2 === 0 ? '❄' : '✦';
+      flake.style.setProperty('--left', `${Math.random() * 100}%`);
+      flake.style.setProperty('--size', `${8 + Math.random() * 12}px`);
+      flake.style.setProperty('--duration', `${8 + Math.random() * 10}s`);
+      flake.style.setProperty('--delay', `${-Math.random() * 12}s`);
+      layer.appendChild(flake);
+    }
+
+    mast.appendChild(layer);
+  }
+
+  function applyPanel() {
+    const mast = document.querySelector('.mast');
+    if (!mast) return;
+
+    const tab = (window.ui && window.ui.tab) || 'home';
+    const key = panelImages[tab] ? tab : 'home';
+    const url = panelImages[key];
+
+    mast.style.backgroundImage = `url("${url}")`;
+    mast.dataset.hqPage = key;
+
+    addSnow(mast);
+  }
+
+  const observer = new MutationObserver(() => {
+    setTimeout(applyPanel, 0);
+  });
+
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+    attributes: true
+  });
+
+  document.addEventListener('click', () => {
+    setTimeout(applyPanel, 50);
+  }, true);
+
+  applyPanel();
+})();  style.id = 'hqSnowEveryPanelStyles';
   style.textContent = `
     @keyframes hq-panel-snow-fall{
       0%{transform:translate3d(0,-12%,0) rotate(0deg);opacity:0}
