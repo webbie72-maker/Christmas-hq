@@ -1,1 +1,66 @@
+/* Christmas HQ — snowfall on every page panel */
+(() => {
+  'use strict';
+  if (window.__hqSnowEveryPanel) return;
+  window.__hqSnowEveryPanel = true;
 
+  const style = document.createElement('style');
+  style.id = 'hqSnowEveryPanelStyles';
+  style.textContent = `
+    @keyframes hq-panel-snow-fall{
+      0%{transform:translate3d(0,-12%,0) rotate(0deg);opacity:0}
+      10%{opacity:.9}
+      100%{transform:translate3d(55px,120%,0) rotate(220deg);opacity:.15}
+    }
+    .mast{position:relative!important;overflow:hidden!important;isolation:isolate!important}
+    .mast>*:not(.hq-panel-snow){position:relative;z-index:2}
+    .hq-panel-snow{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}
+    .hq-panel-snowflake{
+      position:absolute;top:-12%;left:var(--left);
+      font-size:var(--size);line-height:1;color:#fff;opacity:0;
+      filter:drop-shadow(0 0 4px rgba(255,255,255,.8));
+      animation:hq-panel-snow-fall var(--duration) linear var(--delay) infinite;
+    }
+    @media(prefers-reduced-motion:reduce){
+      .hq-panel-snowflake{animation-duration:18s}
+    }
+  `;
+  document.head.appendChild(style);
+
+  function addSnow(){
+    const mast = document.querySelector('.mast');
+    if (!mast) return;
+
+    let layer = mast.querySelector('.hq-panel-snow');
+    if (layer) return;
+
+    layer = document.createElement('div');
+    layer.className = 'hq-panel-snow';
+    layer.setAttribute('aria-hidden', 'true');
+
+    for (let i = 0; i < 28; i++) {
+      const flake = document.createElement('span');
+      flake.className = 'hq-panel-snowflake';
+      flake.textContent = i % 3 === 0 ? '✦' : '❄';
+      flake.style.setProperty('--left', `${Math.random() * 105 - 3}%`);
+      flake.style.setProperty('--size', `${7 + Math.random() * 13}px`);
+      flake.style.setProperty('--duration', `${7 + Math.random() * 9}s`);
+      flake.style.setProperty('--delay', `${-Math.random() * 14}s`);
+      layer.appendChild(flake);
+    }
+
+    mast.appendChild(layer);
+  }
+
+  function refresh(){
+    requestAnimationFrame(addSnow);
+  }
+
+  new MutationObserver(refresh).observe(document.documentElement, {
+    subtree: true,
+    childList: true
+  });
+
+  window.addEventListener('load', refresh);
+  refresh();
+})();
