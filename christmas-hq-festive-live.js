@@ -2159,4 +2159,97 @@ renderFestiveAfter();
   initFamilyGames();
 
   window.addEventListener('focus', refreshMusicSongs);
+/* =========================================================
+     APPROVED GIFTS PAGE DESIGN
+     ========================================================= */
+
+  const giftsApprovedStyle = document.createElement('style');
+  giftsApprovedStyle.textContent = `
+    /* Gifts hero only — Home remains untouched */
+    .mast[data-hq-page="gifts"] .hq-page-title{
+      position:relative!important;
+      display:inline-block!important;
+      width:auto!important;
+      padding:0 20px!important;
+    }
+
+    /* Santa hat hanging from GIFTS */
+    .mast[data-hq-page="gifts"] .hq-page-title::after{
+      content:"";
+      position:absolute;
+      width:34px;
+      height:25px;
+      right:-4px;
+      top:-17px;
+      background:#c62828;
+      border-radius:90% 15% 15% 10%;
+      transform:rotate(20deg);
+      filter:drop-shadow(0 3px 3px rgba(0,0,0,.35));
+      z-index:5;
+    }
+
+    .mast[data-hq-page="gifts"] .hq-page-title::before{
+      content:"";
+      position:absolute;
+      width:35px;
+      height:9px;
+      right:-3px;
+      top:3px;
+      background:#fffaf0;
+      border-radius:8px;
+      transform:rotate(20deg);
+      box-shadow:25px -17px 0 -10px #fffaf0;
+      z-index:6;
+    }
+
+    /* Smaller approved Back button */
+    .mast[data-hq-page="gifts"] .hq-page-back{
+      width:94px!important;
+      min-width:94px!important;
+      height:42px!important;
+      min-height:42px!important;
+      padding:0 11px!important;
+      border-radius:14px!important;
+      font-size:13px!important;
+      right:16px!important;
+      bottom:16px!important;
+    }
+
+    /* More Christmas feeling on Gifts page */
+    body:has(.mast[data-hq-page="gifts"]) .eyebrow{
+      color:#a71919!important;
+      letter-spacing:2px!important;
+      font-weight:900!important;
+    }
+  `;
+  document.head.appendChild(giftsApprovedStyle);
+
+  function applyApprovedGiftsCopy(){
+    if(ui.tab !== 'gifts') return;
+
+    const headings = [...document.querySelectorAll('h1,h2,h3')];
+
+    headings.forEach(el => {
+      if(el.textContent.trim() === 'Gifts without the guesswork'){
+        el.textContent = 'A little Christmas magic for every gift';
+      }
+    });
+
+    [...document.querySelectorAll('p')].forEach(el => {
+      if(el.textContent.includes(
+        'Get organised, find inspiration and keep track of every present'
+      )){
+        el.textContent =
+          "Plan the surprises, find the perfect presents and keep Santa's secrets safe.";
+      }
+    });
+  }
+
+  const approvedGiftsRender = render;
+  render = function(...args){
+    approvedGiftsRender.apply(this,args);
+    setTimeout(applyApprovedGiftsCopy,0);
+  };
+
+  applyApprovedGiftsCopy();
 })();
