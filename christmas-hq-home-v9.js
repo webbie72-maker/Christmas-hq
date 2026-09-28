@@ -11,7 +11,9 @@ const css=document.createElement('style');
 css.id='hq-home-v9-style';
 css.textContent=`
 .mast[data-hq-page="home"]{
- min-height:610px!important;
+ height:360px!important;
+min-height:360px!important;
+max-height:360px!important;;
  padding:0!important;
  border-radius:0 0 30px 30px!important;
  background:
