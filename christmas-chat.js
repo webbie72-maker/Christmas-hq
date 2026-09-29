@@ -529,6 +529,8 @@
   const previousRender=render;
   render=function(top=true){
     if(ui.tab==='chat'){
+      document.getElementById('bottomNav')?.classList.remove('nav-open');
+      document.getElementById('navToggle')?.setAttribute('aria-expanded','false');
       draw(top);
       const key=chat.mode+':'+(familyId()||'none');
       if(!chat.loading && chat.loadedKey!==key) loadHub().catch(()=>{});
