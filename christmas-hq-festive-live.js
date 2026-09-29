@@ -360,8 +360,9 @@ linear-gradient(180deg,rgba(3,34,28,.04),rgba(3,34,28,.25) 70%,rgba(3,34,28,.48)
 }
 
 .hq-time-unit{
+.hq-time-unit{
   text-align:center;
-  padding:1px 5px 5px;
+  padding:0 5px 2px;
   border-right:1px solid rgba(225,184,83,.55);
 }
 
@@ -373,7 +374,7 @@ linear-gradient(180deg,rgba(3,34,28,.04),rgba(3,34,28,.25) 70%,rgba(3,34,28,.48)
   display:block;
   color:#ffe6a0;
   font-family:Georgia,serif;
-  font-size:10px;
+  font-size:9px;
   font-weight:900;
   letter-spacing:.7px;
 }
@@ -382,21 +383,22 @@ linear-gradient(180deg,rgba(3,34,28,.04),rgba(3,34,28,.25) 70%,rgba(3,34,28,.48)
   display:block;
   color:#fff2bd;
   font-family:Georgia,serif;
-  font-size:31px;
-  line-height:1.05;
+  font-size:27px;
+  line-height:1;
   text-shadow:0 2px 8px rgba(255,177,47,.35);
 }
 
 .hq-countdown-caption{
   grid-column:1 / -1;
   text-align:center;
-  padding-top:5px;
+  padding-top:2px;
   border-top:1px solid rgba(225,184,83,.5);
   color:#ffe7a1;
   font-family:Georgia,serif;
-  font-size:12px;
+  font-size:10px;
   font-weight:900;
-  letter-spacing:1.5px;
+  letter-spacing:1.3px;
+}
 }
 
 .hq-days-block{
