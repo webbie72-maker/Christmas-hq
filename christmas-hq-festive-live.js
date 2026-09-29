@@ -152,18 +152,15 @@
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[c]));
    function updateChristmasCountdown() {
+  cfunction updateChristmasCountdown() {
   const daysEl = document.getElementById('hqChristmasDays');
-  const clockEl = document.getElementById('hqChristmasClock');
-  if (!daysEl || !clockEl) return;
+  const hoursEl = document.getElementById('hqChristmasHours');
+  const minutesEl = document.getElementById('hqChristmasMinutes');
+  const secondsEl = document.getElementById('hqChristmasSeconds');
+
+  if (!daysEl || !hoursEl || !minutesEl || !secondsEl) return;
 
   const now = new Date();
-
-  if (now.getMonth() === 11 && now.getDate() === 25) {
-    daysEl.textContent = '0';
-    clockEl.textContent = 'MERRY CHRISTMAS 🎄';
-    return;
-  }
-
   let target = new Date(now.getFullYear(), 11, 25, 0, 0, 0);
 
   if (target <= now) {
@@ -178,10 +175,9 @@
   const seconds = Math.floor((left % 60000) / 1000);
 
   daysEl.textContent = days;
-  clockEl.textContent =
-    String(hours).padStart(2,'0') + ':' +
-    String(minutes).padStart(2,'0') + ':' +
-    String(seconds).padStart(2,'0');
+  hoursEl.textContent = String(hours).padStart(2,'0');
+  minutesEl.textContent = String(minutes).padStart(2,'0');
+  secondsEl.textContent = String(seconds).padStart(2,'0');
 }
 
 function buildChristmasHeader() {
