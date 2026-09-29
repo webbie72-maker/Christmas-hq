@@ -707,6 +707,14 @@ let navSlideChoice=null;
  navSlideChoice=e.target.closest('button[data-nav]');
  navSlideChoice.classList.add('nav-slide-hover');
 });
+ document.addEventListener('pointermove',function(e){
+ if(!navSlideActive) return;
+ const btn=document.elementFromPoint(e.clientX,e.clientY)?.closest('#bottomNav button[data-nav]');
+ if(!btn || btn===navSlideChoice) return;
+ navSlideChoice?.classList.remove('nav-slide-hover');
+ navSlideChoice=btn;
+ navSlideChoice.classList.add('nav-slide-hover');
+});
 document.getElementById('navToggle').addEventListener('click',function(){
  const nav=document.getElementById('bottomNav');
  const open=nav.classList.toggle('nav-open');
