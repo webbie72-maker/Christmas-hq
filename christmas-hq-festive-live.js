@@ -1,4 +1,4 @@
-9/* Christmas HQ — FESTIVE LIVE upgrade
+/* Christmas HQ — FESTIVE LIVE upgrade
    - Real Christmas hero background + animated snow
    - Persistent personal Christmas music player
    - Family Games tab
