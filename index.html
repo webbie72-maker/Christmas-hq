@@ -471,6 +471,14 @@ setTimeout(refreshInstallUI,0);
 .nav-toggle span{font-size:11px;line-height:1;color:#ffde92}#bottomNav{display:none}
 #bottomNav.nav-open{display:grid}
 </style>
+ <script>
+document.getElementById('navToggle').addEventListener('click',function(){
+ const nav=document.getElementById('bottomNav');
+ const open=nav.classList.toggle('nav-open');
+ this.setAttribute('aria-expanded',open?'true':'false');
+ this.querySelector('span').textContent=open?'Close':'Menu';
+});
+ </script>
 </body>
 </html>
 
