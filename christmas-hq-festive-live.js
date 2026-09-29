@@ -2058,6 +2058,7 @@ audio.volume = hqMusicVolume;
 buildChristmasHeader();
 renderFestiveAfter();
   };
+   render(false);
 
   document.addEventListener('click', async event => {
     const gameCard = event.target.closest('[data-hq-game]');
