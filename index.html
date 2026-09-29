@@ -700,7 +700,13 @@ backdrop-filter:blur(5px);
 <script>
  let navSlideActive=false;
 let navSlideChoice=null;
- 
+ document.getElementById('bottomNav').addEventListener('pointerdown',function(e){
+ if(!this.classList.contains('nav-open')) return;
+ if(!e.target.closest('button[data-nav]')) return;
+ navSlideActive=true;
+ navSlideChoice=e.target.closest('button[data-nav]');
+ navSlideChoice.classList.add('nav-slide-hover');
+});
 document.getElementById('navToggle').addEventListener('click',function(){
  const nav=document.getElementById('bottomNav');
  const open=nav.classList.toggle('nav-open');
