@@ -699,13 +699,9 @@ document.getElementById('navToggle').addEventListener('click',function(){
  this.setAttribute('aria-expanded',open ? 'true' : 'false');
 });
 
-document.getElementById('bottomNav').addEventListener('click',function(e){
- if(!e.target.closest('budocument.addEventListener('click',function(e){
+document.addEventListener('click',function(e){
  if(!e.target.closest('#bottomNav button[data-nav]')) return;
  document.getElementById('bottomNav')?.classList.remove('nav-open');
  document.getElementById('navToggle')?.setAttribute('aria-expanded','false');
-});tton[data-nav]')) return;
- this.classList.remove('nav-open');
- document.getElementById('navToggle').setAttribute('aria-expanded','false');
 });
 </script>
