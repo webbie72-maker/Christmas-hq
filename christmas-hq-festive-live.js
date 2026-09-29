@@ -331,9 +331,9 @@ linear-gradient(180deg,rgba(3,34,28,.04),rgba(3,34,28,.25) 70%,rgba(3,34,28,.48)
 }
 
 .mast[data-hq-page="home"] .hq-christmas-countdown{
-  margin:0 auto!important;
-  width:92%!important;
-  max-width:620px!important;
+  margin:0!important;
+width:100%!important;
+max-width:none!important;
   min-height:0!important;
   height:auto!important;
   padding:5px 8px!important;
