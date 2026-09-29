@@ -360,7 +360,6 @@ linear-gradient(180deg,rgba(3,34,28,.04),rgba(3,34,28,.25) 70%,rgba(3,34,28,.48)
 }
 
 .hq-time-unit{
-.hq-time-unit{
   text-align:center;
   padding:0 5px 2px;
   border-right:1px solid rgba(225,184,83,.55);
@@ -398,7 +397,6 @@ linear-gradient(180deg,rgba(3,34,28,.04),rgba(3,34,28,.25) 70%,rgba(3,34,28,.48)
   font-size:10px;
   font-weight:900;
   letter-spacing:1.3px;
-}
 }
 
 .hq-days-block{
