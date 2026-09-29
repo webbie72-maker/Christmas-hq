@@ -209,16 +209,24 @@ function buildChristmasHeader() {
       <div class="hq-bottom-row">
 
         <div class="hq-christmas-countdown">
-          <div class="hq-days-block">
-            <strong id="hqChristmasDays">--</strong>
-            <span>DAYS UNTIL CHRISTMAS</span>
-          </div>
-
-          <div class="hq-clock-block">
-            <small>HOURS · MINUTES · SECONDS</small>
-            <b id="hqChristmasClock">--:--:--</b>
-          </div>
-        </div>
+  <div class="hq-time-unit">
+    <small>DAYS</small>
+    <strong id="hqChristmasDays">--</strong>
+  </div>
+  <div class="hq-time-unit">
+    <small>HOURS</small>
+    <strong id="hqChristmasHours">--</strong>
+  </div>
+  <div class="hq-time-unit">
+    <small>MINUTES</small>
+    <strong id="hqChristmasMinutes">--</strong>
+  </div>
+  <div class="hq-time-unit">
+    <small>SECONDS</small>
+    <strong id="hqChristmasSeconds">--</strong>
+  </div>
+  <div class="hq-countdown-caption">✦ DAYS TIL CHRISTMAS ✦</div>
+</div>
 
         <div class="hq-header-buttons hq-home-buttons">
           <button class="circle-btn hq-settings-btn"
