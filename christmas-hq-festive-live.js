@@ -2278,13 +2278,14 @@ renderFestiveAfter();
   const giftsApprovedStyle = document.createElement('style');
   giftsApprovedStyle.textContent = `
     /* Gifts hero only — Home remains untouched */
-    .mast[data-hq-page="gifts"] .hq-page-brand{
-  display:none!important;
-}
-.mast[data-hq-page="kitchen"] .hq-page-brand{
-  display:none!important;
-}
-.mast[data-hq-page="plan"] .hq-page-brand{
+    .mast[data-hq-page="gifts"] .hq-page-brand,
+.mast[data-hq-page="plan"] .hq-page-brand,
+.mast[data-hq-page="kitchen"] .hq-page-brand,
+.mast[data-hq-page="magic"] .hq-page-brand,
+.mast[data-hq-page="games"] .hq-page-brand,
+.mast[data-hq-page="chat"] .hq-page-brand,
+.mast[data-hq-page="explore"] .hq-page-brand,
+.mast[data-hq-page="settings"] .hq-page-brand{
   display:none!important;
 }
     .mast[data-hq-page="gifts"] .hq-page-title{
