@@ -347,7 +347,7 @@ linear-gradient(180deg,rgba(3,34,28,.04),rgba(3,34,28,.25) 70%,rgba(3,34,28,.48)
   display:grid;
   grid-template-columns:repeat(4,1fr);
   width:100%;
-  max-width:760px
+  max-width:760px;
    padding:4px 8px 3px;
   border:2px solid #d9a93d;
   border-radius:14px;
