@@ -50,8 +50,7 @@ async function changeTo(target,dir,fromX=0){
  await anim(old,[{transform:'translate3d('+fromX+'px,0,0)'},{transform:'translate3d('+exit+',0,0)'}],
  {duration:OUT,easing:'cubic-bezier(.32,.72,0,1)',fill:'forwards'});
  clean(old);
- try{if(typeof go==='function')go(target);else document.querySelector('#bottomNav button[data-nav="'+target+'"]')?.click();}
- catch(e){busy=false;return;}
+try{document.querySelector('#bottomNav button[data-nav="'+target+'"]')?.click();} catch(e){busy=false;return;}
  const fresh=screen();
  if(fresh){
   const enter=dir==='back'?'-100vw':'100vw';
