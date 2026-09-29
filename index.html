@@ -238,11 +238,11 @@ function plan(){const subs=['Checklist','Budget','Calendar','Family','Guests'];l
 }else if(ui.sub.plan==='Calendar'){
  const events=[...state.events].sort((a,b)=>a.date.localeCompare(b.date));
  const fixed=[
-  ['1','DEC','🎄','Start of the festive month','Time to get organised and make it magical!'],
-  ['24','DEC','🎅','Christmas Eve','Presents, family time and the magic begins!'],
-  ['25','DEC','🎁','Christmas Day','Family, food, fun and making memories!'],
-  ['26','DEC','🎄','Boxing Day','Relax, enjoy the leftovers and family time.']
- ];
+ {id:'dec1',day:'1',month:'DEC',icon:'🎄',title:'Start of the festive month',note:'Time to get organised and make it magical!'},
+ {id:'dec24',day:'24',month:'DEC',icon:'🎅',title:'Christmas Eve',note:'Presents, family time and the magic begins!'},
+ {id:'dec25',day:'25',month:'DEC',icon:'🎁',title:'Christmas Day',note:'Family, food, fun and making memories!'},
+ {id:'dec26',day:'26',month:'DEC',icon:'🎄',title:'Boxing Day',note:'Relax, enjoy the leftovers and family time.'}
+];
  c=`<div class="card christmas-dates">
    <div class="dates-head">
     <div class="dates-head-icon">📅</div>
