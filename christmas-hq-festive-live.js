@@ -2248,6 +2248,9 @@ renderFestiveAfter();
   const giftsApprovedStyle = document.createElement('style');
   giftsApprovedStyle.textContent = `
     /* Gifts hero only — Home remains untouched */
+    .mast[data-hq-page="gifts"] .hq-page-brand{
+  display:none!important;
+}
     .mast[data-hq-page="gifts"] .hq-page-title{
       position:relative!important;
       display:inline-block!important;
