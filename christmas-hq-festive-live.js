@@ -275,6 +275,26 @@ linear-gradient(180deg,rgba(3,34,28,.04),rgba(3,34,28,.25) 70%,rgba(3,34,28,.48)
     linear-gradient(180deg,rgba(3,34,28,.03),rgba(3,34,28,.18) 70%,rgba(3,34,28,.35)),
     url('./christmas-hq-kitchen.png?v=1') center center / cover no-repeat !important;
 }
+.mast[data-hq-page="magic"]{
+  background:linear-gradient(180deg,rgba(3,34,28,.03),rgba(3,34,28,.18) 70%,rgba(3,34,28,.35)),
+  url('./christmas-hq-magic.png?v=1') center center / cover no-repeat !important;
+}
+.mast[data-hq-page="games"]{
+  background:linear-gradient(180deg,rgba(3,34,28,.03),rgba(3,34,28,.18) 70%,rgba(3,34,28,.35)),
+  url('./christmas-hq-games.png?v=1') center center / cover no-repeat !important;
+}
+.mast[data-hq-page="chat"]{
+  background:linear-gradient(180deg,rgba(3,34,28,.03),rgba(3,34,28,.18) 70%,rgba(3,34,28,.35)),
+  url('./christmas-hq-chat.png?v=1') center center / cover no-repeat !important;
+}
+.mast[data-hq-page="explore"]{
+  background:linear-gradient(180deg,rgba(3,34,28,.03),rgba(3,34,28,.18) 70%,rgba(3,34,28,.35)),
+  url('./christmas-hq-explore.png?v=1') center center / cover no-repeat !important;
+}
+.mast[data-hq-page="settings"]{
+  background:linear-gradient(180deg,rgba(3,34,28,.03),rgba(3,34,28,.18) 70%,rgba(3,34,28,.35)),
+  url('./christmas-hq-settings.png?v=1') center center / cover no-repeat !important;
+}
       .mast:before{
         content:"";
         position:absolute;inset:0;z-index:-1;
