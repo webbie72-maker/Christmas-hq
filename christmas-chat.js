@@ -157,8 +157,7 @@
         '<div class="hq-page-title">Christmas Chat</div>'+
         '<div class="hq-page-subbrand">Christmas HQ</div>'+
         '<div class="hq-brand-flourish">✦ · ✦</div>'+
-      '</div>'+
-      '<button class="back-btn hq-page-back" data-action="back">← Back</button>';
+      '</div>';
   }
 
   function ensureNav(){
