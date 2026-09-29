@@ -254,6 +254,7 @@ ${fixed.map(({id,day,month,icon,title,note})=>`     <div class="date-card">
       <div class="date-block"><strong>${day}</strong><span>${month}</span></div>
       <div class="date-emoji">${icon}</div>
       <div class="date-details"><b>${title}</b><small>${note}</small></div>
+      <button class="date-delete" data-action="fixedEventEdit" data-id="${id}" aria-label="Edit important date">✎</button>
      </div>`).join('')}
 
     ${events.map(e=>{
