@@ -1,4 +1,4 @@
-/* Christmas HQ — FESTIVE LIVE upgrade
+9/* Christmas HQ — FESTIVE LIVE upgrade
    - Real Christmas hero background + animated snow
    - Persistent personal Christmas music player
    - Family Games tab
@@ -263,7 +263,7 @@ linear-gradient(180deg,rgba(3,34,28,.04),rgba(3,34,28,.25) 70%,rgba(3,34,28,.48)
       .mast[data-hq-page="gifts"]{
   background:
     linear-gradient(180deg,rgba(3,34,28,.03),rgba(3,34,28,.18) 70%,rgba(3,34,28,.35)),
-    url('./christmas-hq-gifts.png?v=1') center center / cover no-repeat !important;
+    url('./christmas-hq-gifts.png?v=2') center center / cover no-repeat !important;
 }
       .mast:before{
         content:"";
