@@ -265,6 +265,11 @@ linear-gradient(180deg,rgba(3,34,28,.04),rgba(3,34,28,.25) 70%,rgba(3,34,28,.48)
     linear-gradient(180deg,rgba(3,34,28,.03),rgba(3,34,28,.18) 70%,rgba(3,34,28,.35)),
     url('./christmas-hq-gifts.png?v=2') center center / cover no-repeat !important;
 }
+.mast[data-hq-page="kitchen"]{
+  background:
+    linear-gradient(180deg,rgba(3,34,28,.03),rgba(3,34,28,.18) 70%,rgba(3,34,28,.35)),
+    url('./christmas-hq-kitchen.png?v=1') center center / cover no-repeat !important;
+}
       .mast:before{
         content:"";
         position:absolute;inset:0;z-index:-1;
