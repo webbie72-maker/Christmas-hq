@@ -359,7 +359,6 @@ url('./christmas-hq-home.png?v=1') center 46% / cover no-repeat !important;     
 }
 
 .hq-christmas-countdown{
-.hq-christmas-countdown{
   display:grid;
   grid-template-columns:repeat(4,1fr);
   width:100%;
