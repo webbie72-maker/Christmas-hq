@@ -152,7 +152,7 @@
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[c]));
    function updateChristmasCountdown() {
-  cfunction updateChristmasCountdown() {
+  function updateChristmasCountdown() {
   const daysEl = document.getElementById('hqChristmasDays');
   const hoursEl = document.getElementById('hqChristmasHours');
   const minutesEl = document.getElementById('hqChristmasMinutes');
