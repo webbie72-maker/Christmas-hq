@@ -620,65 +620,14 @@ setTimeout(refreshInstallUI,0);
 .mast[data-hq-page="settings"]{background:url('./christmas-hq-settings.png?v=2') center/cover no-repeat!important}
  </style>
 <style>
+ 
 .mast[data-hq-page="home"]{
 --hq-panel-scene:url("./christmas-hq-home.png?v=5")!important;}
 </style>
  <button id="navToggle" class="nav-toggle" type="button" aria-label="Open Christmas menu" aria-expanded="false">🎄</button>
 
 <style>
-.nav-toggle{
- position:fixed;
- z-index:70;
- left:8px;
-bottom:calc(10px + env(safe-area-inset-bottom)); width:46px; height:46px;
- padding:0;
- border:1px solid rgba(255,255,255,.22);
- background:rgba(10,55,44,.62);
- border-radius:12px;
- box-shadow:0 3px 10px rgba(0,0,0,.16);
- backdrop-filter:blur(5px);
- -webkit-backdrop-filter:blur(5px);
- display:grid;
- place-items:center;
- font-size:32px;
- line-height:1;
-}
 
-#bottomNav{
- display:none;
-}
-
-#bottomNav.nav-open{
- display:flex!important;
- position:fixed!important;
- z-index:65!important;
- flex-direction:column-reverse!important;
- align-items:center!important;
- width:48px!important;
- height:auto!important;
- left:8px!important;
- right:auto!important;
- top:auto!important;
-bottom:calc(66px + env(safe-area-inset-bottom))!important; transform:none!important;
- padding:0!important;
- margin:0!important;
- gap:4px!important;
-background:none!important;
-backdrop-filter:none!important;
--webkit-backdrop-filter:none!important; border:0!important;
- border-radius:0!important;
- box-shadow:none!important;
-}
-
-#bottomNav.nav-open button{
- width:46px!important;
- height:46px!important;
- min-height:46px!important;
- padding:0!important;
- margin:0!important;
- background:rgba(10,55,44,.62)!important;
-border:1px solid rgba(255,255,255,.22)!important;
-border-radius:12px!important;
 <style>
 .nav-toggle{
  position:fixed;
