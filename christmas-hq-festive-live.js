@@ -2264,6 +2264,9 @@ renderFestiveAfter();
 .mast[data-hq-page="kitchen"] .hq-page-brand{
   display:none!important;
 }
+.mast[data-hq-page="plan"] .hq-page-brand{
+  display:none!important;
+}
     .mast[data-hq-page="gifts"] .hq-page-title{
       position:relative!important;
       display:inline-block!important;
