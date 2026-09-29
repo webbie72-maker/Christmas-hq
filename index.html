@@ -471,7 +471,9 @@ setTimeout(refreshInstallUI,0);
 #bottomNav{display:none}
 #bottomNav.nav-open{display:flex!important;flex-direction:column-reverse;align-items:center;width:46px;left:8px;bottom:56px;transform:none;padding:0;gap:4px;background:transparent;border:0;box-shadow:none}#bottomNav.nav-open button{width:44px;height:44px;min-height:44px;padding:0;background:transparent!important;border:0;box-shadow:none;border-radius:0}
 #bottomNav.nav-open{display:flex!important;position:fixed!important;flex-direction:column-reverse!important;align-items:center!important;justify-content:flex-start!important;width:46px!important;height:auto!important;min-height:0!important;left:8px!important;right:auto!important;top:auto!important;bottom:56px!important;transform:none!important;padding:0!important;margin:0!important;gap:4px!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}</style>
-<script>
+#bottomNav.nav-open button{width:44px!important;height:44px!important;min-height:44px!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important}
+#bottomNav.nav-open button span{display:none!important}
+#bottomNav.nav-open button i{font-size:30px!important;line-height:1!important}<script>
 document.getElementById('navToggle').addEventListener('click',function(){
  const nav=document.getElementById('bottomNav');
  const open=nav.classList.toggle('nav-open');
