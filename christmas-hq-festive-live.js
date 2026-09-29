@@ -151,7 +151,6 @@
   const hqEsc = value => String(value ?? '').replace(/[&<>"']/g, c => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[c]));
-   function updateChristmasCountdown() {
   function updateChristmasCountdown() {
   const daysEl = document.getElementById('hqChristmasDays');
   const hoursEl = document.getElementById('hqChristmasHours');
