@@ -321,6 +321,30 @@ url('./christmas-hq-home.png?v=1') center 46% / cover no-repeat !important;     
   margin-top:30px;
 }
 
+.mast[data-hq-page="home"]{
+  min-height:665px!important;
+  background-position:center top!important;
+}
+
+.mast[data-hq-page="home"] .hq-home-hero{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:26px;
+  margin:0!important;
+  padding:0 18px;
+}
+
+.mast[data-hq-page="home"] .hq-bottom-row{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.mast[data-hq-page="home"] .hq-christmas-countdown{
+  margin:0 auto;
+}
+
 .hq-page-name{
   color:#fff;
   font-size:11px;
