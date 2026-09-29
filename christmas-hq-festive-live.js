@@ -1594,6 +1594,8 @@ textarea.field{
   }
 
   function renderGames(top = true) {
+  document.getElementById('bottomNav')?.classList.remove('nav-open');
+  document.getElementById('navToggle')?.setAttribute('aria-expanded','false');
   buildChristmasHeader();
 
   screen.innerHTML = gamesPage();
