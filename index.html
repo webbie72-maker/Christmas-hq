@@ -265,6 +265,7 @@ function plan(){const subs=['Checklist','Budget','Calendar','Family','Guests'];l
        <div class="date-block"><strong>${day}</strong><span>${month}</span></div>
        <div class="date-emoji">✨</div>
        <div class="date-details"><b>${esc(e.name)}</b><small>${esc(e.time||'Family event')}</small></div>
+      <button class="date-delete" data-action="eventEdit" data-id="${esc(e.id)}" aria-label="Edit event">✎</button>
        <button class="date-delete" data-action="eventDelete" data-id="${esc(e.id)}" aria-label="Delete event">×</button>
       </div>`;
     }).join('')}
