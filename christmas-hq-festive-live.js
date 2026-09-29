@@ -359,17 +359,60 @@ url('./christmas-hq-home.png?v=1') center 46% / cover no-repeat !important;     
 }
 
 .hq-christmas-countdown{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  width:max-content;
-  max-width:100%;
-  padding:10px 12px;
-  border:1px solid rgba(255,255,255,.25);
-  border-radius:16px;
-  background:rgba(5,38,31,.64);
-  backdrop-filter:blur(10px);
-  box-shadow:0 8px 24px rgba(0,0,0,.18);
+.hq-christmas-countdown{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  width:100%;
+  max-width:620px;
+  padding:8px 10px 5px;
+  border:2px solid #d9a93d;
+  border-radius:14px;
+  background:rgba(35,12,8,.78);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,235,166,.35),
+    0 5px 18px rgba(0,0,0,.28);
+  backdrop-filter:blur(5px);
+  -webkit-backdrop-filter:blur(5px);
+}
+
+.hq-time-unit{
+  text-align:center;
+  padding:1px 5px 5px;
+  border-right:1px solid rgba(225,184,83,.55);
+}
+
+.hq-time-unit:nth-child(4){
+  border-right:0;
+}
+
+.hq-time-unit small{
+  display:block;
+  color:#ffe6a0;
+  font-family:Georgia,serif;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.7px;
+}
+
+.hq-time-unit strong{
+  display:block;
+  color:#fff2bd;
+  font-family:Georgia,serif;
+  font-size:31px;
+  line-height:1.05;
+  text-shadow:0 2px 8px rgba(255,177,47,.35);
+}
+
+.hq-countdown-caption{
+  grid-column:1 / -1;
+  text-align:center;
+  padding-top:5px;
+  border-top:1px solid rgba(225,184,83,.5);
+  color:#ffe7a1;
+  font-family:Georgia,serif;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:1.5px;
 }
 
 .hq-days-block{
