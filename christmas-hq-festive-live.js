@@ -732,10 +732,14 @@ max-width:none!important;
   margin-top:4px!important;
 }
 
-/* Give countdown its own space on the left */
-.hq-bottom-row{
-  justify-content:flex-start!important;
-  padding-right:82px!important;
+/* Home countdown uses the full panel width */
+.mast[data-hq-page="home"] .hq-bottom-row{
+  justify-content:center!important;
+  padding-right:0!important;
+}
+
+.mast[data-hq-page="home"] .hq-header-buttons{
+  display:none!important;
 }
 
 .hq-bottom-row .hq-christmas-countdown{
