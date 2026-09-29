@@ -348,8 +348,8 @@ url('./christmas-hq-home.png?v=1') center 46% / cover no-repeat !important;     
   display:grid;
   grid-template-columns:repeat(4,1fr);
   width:100%;
-  max-width:620px;
-  padding:8px 10px 5px;
+  max-width:760px
+   padding:4px 8px 3px;
   border:2px solid #d9a93d;
   border-radius:14px;
   background:rgba(35,12,8,.78);
