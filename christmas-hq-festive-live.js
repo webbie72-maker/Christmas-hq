@@ -347,8 +347,7 @@ linear-gradient(180deg,rgba(3,34,28,.04),rgba(3,34,28,.25) 70%,rgba(3,34,28,.48)
 
 .mast[data-hq-page="home"]{
   min-height:665px!important;
-  background-position:center top!important;
-}
+background-position:center -45px!important;}
 
 .mast[data-hq-page="home"] .hq-home-hero{
   position:absolute;
