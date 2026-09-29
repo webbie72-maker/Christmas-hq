@@ -331,15 +331,24 @@ linear-gradient(180deg,rgba(3,34,28,.04),rgba(3,34,28,.25) 70%,rgba(3,34,28,.48)
 }
 
 .mast[data-hq-page="home"] .hq-christmas-countdown{
+.mast[data-hq-page="home"] .hq-christmas-countdown{
   margin:0 auto!important;
-  width:82%!important;
-  max-width:500px!important;
+  width:92%!important;
+  max-width:620px!important;
   min-height:0!important;
-  height:64px!important;
-  padding:2px 8px!important;
+  height:auto!important;
+  padding:5px 8px!important;
   box-sizing:border-box!important;
   align-content:center!important;
-  border-radius:11px!important;
+
+  background:rgba(0,0,0,.18)!important;
+  border:0!important;
+  border-top:1px solid rgba(255,225,145,.65)!important;
+  border-bottom:1px solid rgba(255,225,145,.45)!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
 }
 
 .hq-page-name{
