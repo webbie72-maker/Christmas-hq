@@ -467,8 +467,7 @@ setTimeout(refreshInstallUI,0);
 <script src="./christmas-hq-panel-theme.js?v=8"></script>
 <button id="navToggle" class="nav-toggle" type="button" aria-label="Open Christmas menu" aria-expanded="false">🎄</button><style>
 .nav-toggle{position:fixed;z-index:60;left:10px;bottom:calc(10px + env(safe-area-inset-bottom));width:42px;height:42px;padding:0;border:0;background:transparent;box-shadow:none;display:grid;place-items:center;font-size:30px;line-height:1}.nav-toggle span{font-size:11px;line-height:1;color:#ffde92}#bottomNav{display:none}
-#bottomNav.nav-open{display:grid;grid-template-columns:repeat(9,minmax(0,1fr))}</style>
- <script>
+#bottomNav.nav-open{display:flex;flex-direction:column;width:58px;left:6px;bottom:58px;transform:none;padding:6px 4px;gap:2px;background:transparent;border:0;box-shadow:none} <script>
 document.getElementById('navToggle').addEventListener('click',function(){
  const nav=document.getElementById('bottomNav');
  const open=nav.classList.toggle('nav-open');
