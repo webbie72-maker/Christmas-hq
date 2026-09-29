@@ -679,9 +679,70 @@ backdrop-filter:none!important;
  background:rgba(10,55,44,.62)!important;
 border:1px solid rgba(255,255,255,.22)!important;
 border-radius:12px!important;
-box-shadow:0 3px 10px rgba(0,0,0,.16)!important;
-backdrop-filter:blur(5px);
--webkit-backdrop-filter:blur(5px);
+<style>
+.nav-toggle{
+ position:fixed;
+ z-index:70;
+ left:8px;
+ bottom:calc(10px + env(safe-area-inset-bottom));
+ width:46px;
+ height:46px;
+ padding:0;
+ border:1px solid rgba(255,255,255,.22);
+ background:rgba(10,55,44,.62);
+ border-radius:12px;
+ box-shadow:0 3px 10px rgba(0,0,0,.16);
+ backdrop-filter:blur(5px);
+ -webkit-backdrop-filter:blur(5px);
+ display:grid;
+ place-items:center;
+ font-size:32px;
+ line-height:1;
+ touch-action:none;
+}
+
+#bottomNav{
+ display:none;
+}
+
+#bottomNav.nav-open{
+ display:flex!important;
+ position:fixed!important;
+ z-index:65!important;
+ flex-direction:column-reverse!important;
+ align-items:center!important;
+ width:48px!important;
+ height:auto!important;
+ left:8px!important;
+ right:auto!important;
+ top:auto!important;
+ bottom:calc(66px + env(safe-area-inset-bottom))!important;
+ padding:0!important;
+ margin:0!important;
+ gap:4px!important;
+ background:none!important;
+ backdrop-filter:none!important;
+ -webkit-backdrop-filter:none!important;
+ border:0!important;
+ border-radius:0!important;
+ box-shadow:none!important;
+ transform:translateY(var(--nav-drag-y,0px))!important;
+ touch-action:none!important;
+ will-change:transform;
+}
+
+#bottomNav.nav-open button{
+ width:46px!important;
+ height:46px!important;
+ min-height:46px!important;
+ padding:0!important;
+ margin:0!important;
+ background:rgba(10,55,44,.62)!important;
+ border:1px solid rgba(255,255,255,.22)!important;
+ border-radius:12px!important;
+ box-shadow:0 3px 10px rgba(0,0,0,.16)!important;
+ backdrop-filter:blur(5px);
+ -webkit-backdrop-filter:blur(5px);
 }
 
 #bottomNav.nav-open button span{
@@ -692,46 +753,122 @@ backdrop-filter:blur(5px);
  font-size:32px!important;
  line-height:1!important;
 }
-#bottomNav.nav-open button.nav-slide-hover{
- transform:scale(1.16)!important;
-}
 </style>
 
 <script>
- let navSlideActive=false;
-let navSlideChoice=null;
- document.getElementById('bottomNav').addEventListener('pointerdown',function(e){
- if(!this.classList.contains('nav-open')) return;
- if(!e.target.closest('button[data-nav]')) return;
- navSlideActive=true;
- navSlideChoice=e.target.closest('button[data-nav]');
- navSlideChoice.classList.add('nav-slide-hover');
-});
- document.addEventListener('pointermove',function(e){
- if(!navSlideActive) return;
- const btn=document.elementFromPoint(e.clientX,e.clientY)?.closest('#bottomNav button[data-nav]');
- if(!btn || btn===navSlideChoice) return;
- navSlideChoice?.classList.remove('nav-slide-hover');
- navSlideChoice=btn;
- navSlideChoice.classList.add('nav-slide-hover');
-});
- document.addEventListener('pointerup',function(){
- if(!navSlideActive) return;
- navSlideActive=false;
- const chosen=navSlideChoice;
- navSlideChoice=null;
- document.querySelectorAll('#bottomNav .nav-slide-hover').forEach(b=>b.classList.remove('nav-slide-hover'));
- if(chosen) chosen.click();
-});
-document.getElementById('navToggle').addEventListener('click',function(){
+(() => {
  const nav=document.getElementById('bottomNav');
- const open=nav.classList.toggle('nav-open');
- this.setAttribute('aria-expanded',open ? 'true' : 'false');
-});
+ const toggle=document.getElementById('navToggle');
 
-document.addEventListener('click',function(e){
- if(!e.target.closest('#bottomNav button[data-nav]')) return;
- document.getElementById('bottomNav')?.classList.remove('nav-open');
- document.getElementById('navToggle')?.setAttribute('aria-expanded','false');
-});
+ let dragging=false;
+ let startY=0;
+ let startOffset=0;
+ let offset=0;
+ let moved=false;
+
+ function clamp(value,min,max){
+   return Math.min(max,Math.max(min,value));
+ }
+
+ function maxDown(){
+   if(!nav.classList.contains('nav-open')) return 0;
+
+   const settings=nav.querySelector('button[data-nav="settings"]');
+   if(!settings) return 0;
+
+   const settingsBox=settings.getBoundingClientRect();
+   const treeBox=toggle.getBoundingClientRect();
+
+   /* Settings stops 4px above the Christmas tree */
+   return Math.max(0,treeBox.top-settingsBox.bottom-4);
+ }
+
+ function setOffset(value){
+   offset=clamp(value,0,maxDown());
+   nav.style.setProperty('--nav-drag-y',offset+'px');
+ }
+
+ function resetMenuPosition(){
+   offset=0;
+   nav.style.setProperty('--nav-drag-y','0px');
+ }
+
+ toggle.addEventListener('click',function(){
+   const open=nav.classList.toggle('nav-open');
+   this.setAttribute('aria-expanded',open?'true':'false');
+
+   if(open){
+     resetMenuPosition();
+   }
+ });
+
+ nav.addEventListener('pointerdown',function(e){
+   if(!nav.classList.contains('nav-open')) return;
+   if(!e.target.closest('button[data-nav]')) return;
+
+   dragging=true;
+   moved=false;
+   startY=e.clientY;
+   startOffset=offset;
+
+   try{nav.setPointerCapture(e.pointerId);}catch(_){}
+ });
+
+ nav.addEventListener('pointermove',function(e){
+   if(!dragging) return;
+
+   const distance=e.clientY-startY;
+
+   if(Math.abs(distance)>5){
+     moved=true;
+   }
+
+   setOffset(startOffset+distance);
+   e.preventDefault();
+ });
+
+ nav.addEventListener('pointerup',function(e){
+   if(!dragging) return;
+
+   dragging=false;
+
+   try{nav.releasePointerCapture(e.pointerId);}catch(_){}
+
+   /*
+     If the thumb only tapped, let the normal button click happen.
+     If the stack was dragged, don't accidentally open a page.
+   */
+   if(moved){
+     e.preventDefault();
+     e.stopPropagation();
+   }
+ });
+
+ nav.addEventListener('pointercancel',function(){
+   dragging=false;
+ });
+
+ nav.addEventListener('click',function(e){
+   const button=e.target.closest('button[data-nav]');
+   if(!button) return;
+
+   if(moved){
+     moved=false;
+     e.preventDefault();
+     e.stopImmediatePropagation();
+     return;
+   }
+
+   nav.classList.remove('nav-open');
+   toggle.setAttribute('aria-expanded','false');
+   resetMenuPosition();
+ });
+
+ document.addEventListener('click',function(e){
+   if(!e.target.closest('#bottomNav button[data-nav]')) return;
+   nav.classList.remove('nav-open');
+   toggle.setAttribute('aria-expanded','false');
+   resetMenuPosition();
+ });
+})();
 </script>
