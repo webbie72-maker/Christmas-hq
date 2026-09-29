@@ -473,6 +473,23 @@ document.addEventListener('click',e=>{let btn=e.target.closest('button');if(!btn
  case 'giftDelete':if(confirm('Remove this gift?')){state.gifts=state.gifts.filter(x=>x.id!==id);persist('Gift removed')}break;
  case 'taskDelete':if(confirm('Remove this task?')){state.tasks=state.tasks.filter(x=>x.id!==id);persist('Task removed')}break;
  case 'expenseDelete':if(confirm('Remove this expense?')){state.expenses=state.expenses.filter(x=>x.id!==id);persist()}break;
+case 'fixedEventEdit':{
+ const presets={
+  dec1:['Start of the festive month','2026-12-01','Time to get organised and make it magical!'],
+  dec24:['Christmas Eve','2026-12-24','Presents, family time and the magic begins!'],
+  dec25:['Christmas Day','2026-12-25','Family, food, fun and making memories!'],
+  dec26:['Boxing Day','2026-12-26','Relax, enjoy the leftovers and family time.']
+ };
+ const ev=presets[id];
+ if(!ev)break;
+ const name=prompt('Event name',ev[0]);
+ if(name===null||!name.trim())break;
+ const date=prompt('Date (YYYY-MM-DD)',ev[1]);
+ if(date===null||!date.trim())break;
+ state.events.unshift({id:uid(),name:name.trim(),date:date.trim(),time:''});
+ persist('Important date added to your calendar');
+ break;
+}
  case 'eventEdit':{
  const ev=state.events.find(x=>x.id===id);
  if(!ev)break;
