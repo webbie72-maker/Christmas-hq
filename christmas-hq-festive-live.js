@@ -296,7 +296,9 @@ url('./christmas-hq-home.png?v=1') center 46% / cover no-repeat !important;     
   flex-direction:column;
   gap:1px;
 }
-
+.mast[data-hq-page="home"] .hq-home-brand{
+  display:none!important;
+}
 .mast-name{
   font-size:24px!important;
   font-weight:950!important;
