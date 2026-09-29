@@ -331,12 +331,15 @@ linear-gradient(180deg,rgba(3,34,28,.04),rgba(3,34,28,.25) 70%,rgba(3,34,28,.48)
 }
 
 .mast[data-hq-page="home"] .hq-christmas-countdown{
-  margin:0 auto;
+  margin:0 auto!important;
+  width:82%!important;
+  max-width:500px!important;
   min-height:0!important;
-  height:88px!important;
-  padding:5px 10px!important;
-  box-sizing:border-box;
-  align-content:center;
+  height:64px!important;
+  padding:2px 8px!important;
+  box-sizing:border-box!important;
+  align-content:center!important;
+  border-radius:11px!important;
 }
 
 .hq-page-name{
