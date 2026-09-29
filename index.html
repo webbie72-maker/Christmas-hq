@@ -697,15 +697,11 @@ document.getElementById('navToggle').addEventListener('click',function(){
  const nav=document.getElementById('bottomNav');
  const open=nav.classList.toggle('nav-open');
  this.setAttribute('aria-expanded',open ? 'true' : 'false');
- <script>
-document.getElementById('bottomNav').addEventListener('click',function(e){
-  if(!e.target.closest('button[data-nav]')) return;
-
-  this.classList.remove('nav-open');
-
-  const toggle=document.getElementById('navToggle');
-  toggle.setAttribute('aria-expanded','false');
 });
-</script>
+
+document.getElementById('bottomNav').addEventListener('click',function(e){
+ if(!e.target.closest('button[data-nav]')) return;
+ this.classList.remove('nav-open');
+ document.getElementById('navToggle').setAttribute('aria-expanded','false');
 });
 </script>
