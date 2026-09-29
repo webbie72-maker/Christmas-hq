@@ -260,6 +260,11 @@ function buildChristmasHeader() {
         background:
 linear-gradient(180deg,rgba(3,34,28,.04),rgba(3,34,28,.25) 70%,rgba(3,34,28,.48)),url('./christmas-hq-home.png?v=1') center 46% / cover no-repeat !important;        box-shadow:inset 0 -1px 0 rgba(255,255,255,.14),0 12px 32px rgba(21,54,40,.16);
       }
+      .mast[data-hq-page="gifts"]{
+  background:
+    linear-gradient(180deg,rgba(3,34,28,.03),rgba(3,34,28,.18) 70%,rgba(3,34,28,.35)),
+    url('./christmas-hq-gifts.png?v=1') center center / cover no-repeat !important;
+}
       .mast:before{
         content:"";
         position:absolute;inset:0;z-index:-1;
