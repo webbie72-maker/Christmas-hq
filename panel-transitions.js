@@ -3,8 +3,7 @@
 'use strict';
 if(window.__christmasHQPanelTransitionsV6)return;
 window.__christmasHQPanelTransitionsV6=true;
-const ORDER=['home','gifts','plan','kitchen','magic','explore'];
-const OUT=150,IN=210;
+const ORDER=['home','gifts','plan','kitchen','magic','games','chat','explore'];const OUT=150,IN=210;
 let busy=false,startX=0,startY=0,dx=0,tracking=false;
 const screen=()=>document.getElementById('screen');
 const current=()=>document.querySelector('#bottomNav button.current')?.dataset?.nav||(typeof ui!=='undefined'?ui.tab:'home');
