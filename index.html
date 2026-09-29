@@ -727,8 +727,7 @@ setTimeout(refreshInstallUI,0);
    const treeBox=toggle.getBoundingClientRect();
 
    /* Settings stops 4px above the Christmas tree */
-   return Math.max(0,treeBox.top-settingsBox.bottom-4);
- }
+return Math.max(0,treeBox.top-(settingsBox.bottom-offset)-4); }
 
  function setOffset(value){
    offset=clamp(value,0,maxDown());
