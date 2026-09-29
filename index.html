@@ -472,6 +472,21 @@ document.addEventListener('click',e=>{let btn=e.target.closest('button');if(!btn
  case 'giftDelete':if(confirm('Remove this gift?')){state.gifts=state.gifts.filter(x=>x.id!==id);persist('Gift removed')}break;
  case 'taskDelete':if(confirm('Remove this task?')){state.tasks=state.tasks.filter(x=>x.id!==id);persist('Task removed')}break;
  case 'expenseDelete':if(confirm('Remove this expense?')){state.expenses=state.expenses.filter(x=>x.id!==id);persist()}break;
+ case 'eventEdit':{
+ const ev=state.events.find(x=>x.id===id);
+ if(!ev)break;
+ const name=prompt('Event name',ev.name);
+ if(name===null||!name.trim())break;
+ const date=prompt('Date (YYYY-MM-DD)',ev.date);
+ if(date===null||!date.trim())break;
+ const time=prompt('Time (HH:MM)',ev.time||'18:00');
+ if(time===null)break;
+ ev.name=name.trim();
+ ev.date=date.trim();
+ ev.time=time.trim();
+ persist('Important date updated');
+ break;
+ }
  case 'eventDelete':if(confirm('Remove this event?')){state.events=state.events.filter(x=>x.id!==id);persist()}break;
  case 'guestDelete':if(confirm('Remove this guest?')){state.guests=state.guests.filter(x=>x.id!==id);persist()}break;
  case 'menuAdd':if(!state.menu.includes(id))state.menu.push(id);persist('Added to your Christmas menu');break;
