@@ -250,8 +250,7 @@ function plan(){const subs=['Checklist','Budget','Calendar','Family','Guests'];l
    </div>
 
    <div class="date-card-list">
-    ${fixed.map(([day,month,icon,title,note])=>`
-     <div class="date-card">
+${fixed.map(({id,day,month,icon,title,note})=>`     <div class="date-card">
       <div class="date-block"><strong>${day}</strong><span>${month}</span></div>
       <div class="date-emoji">${icon}</div>
       <div class="date-details"><b>${title}</b><small>${note}</small></div>
