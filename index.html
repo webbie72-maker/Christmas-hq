@@ -715,6 +715,14 @@ let navSlideChoice=null;
  navSlideChoice=btn;
  navSlideChoice.classList.add('nav-slide-hover');
 });
+ document.addEventListener('pointerup',function(){
+ if(!navSlideActive) return;
+ navSlideActive=false;
+ const chosen=navSlideChoice;
+ navSlideChoice=null;
+ document.querySelectorAll('#bottomNav .nav-slide-hover').forEach(b=>b.classList.remove('nav-slide-hover'));
+ if(chosen) chosen.click();
+});
 document.getElementById('navToggle').addEventListener('click',function(){
  const nav=document.getElementById('bottomNav');
  const open=nav.classList.toggle('nav-open');
