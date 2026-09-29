@@ -223,17 +223,7 @@ function buildChristmasHeader() {
   <div class="hq-countdown-caption">✦ DAYS TIL CHRISTMAS ✦</div>
 </div>
 
-        <div class="hq-header-buttons hq-home-buttons">
-          <button class="circle-btn hq-settings-btn"
-            data-action="settings"
-            aria-label="Settings">⚙</button>
-
-          <button class="back-btn hq-back-btn"
-            data-action="back"
-            ${navStack.length ? '' : 'disabled'}>
-            ← Back
-          </button>
-        </div>
+       
 
       </div>
     </div>
@@ -244,10 +234,7 @@ function buildChristmasHeader() {
       <div class="hq-brand-flourish">✦ · ✦</div>
     </div>
 
-    <button class="back-btn hq-page-back"
-      data-action="back">
-      ← Back
-    </button>
+    
   `;
 
   addSnow();
