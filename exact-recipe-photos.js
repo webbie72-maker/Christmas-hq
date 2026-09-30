@@ -46,9 +46,7 @@
           alt="${safeAttr(r.name)}"
           loading="lazy"
           decoding="async"
-          data-fallback-tried="0"
-          onerror="hqRecipePhotoFallback(this,'${safeAttr(key)}')"
-        >
+          
         <span class="hq-real-food-shade"></span>
         <span class="hq-real-food-label">${typeof esc==='function' ? esc(exactLabel(r)) : safeAttr(exactLabel(r))}</span>
       </span>
