@@ -1854,7 +1854,6 @@ textarea.field{
   }
 
   async function refreshMusicSongs() {
-  async function refreshMusicSongs() {
   try {
     let cloud = window.ChristmasHQFamilyCloud;
 
