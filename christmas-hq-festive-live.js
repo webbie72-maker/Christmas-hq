@@ -1109,20 +1109,7 @@ textarea.field{
   box-shadow:none!important;
 }
 
-.subtabs{
-  gap:8px!important;
-  margin:4px 0 9px!important;
-  padding:3px 0 12px!important;
-}
 
-.subtabs button{
-  min-height:42px!important;
-  padding:10px 16px!important;
-  border-radius:999px!important;
-  border-color:#dde4db!important;
-  background:#fff!important;
-  box-shadow:0 3px 10px rgba(18,61,47,.035)!important;
-}
 
 .subtabs button.selected{
   background:#103f34!important;
