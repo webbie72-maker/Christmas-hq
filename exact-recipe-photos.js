@@ -14,9 +14,10 @@
 
   
 
-  function stableLock(text){
-  
-
+  function exactPhotoUrl(r){
+  const id = String(r?.id || '').trim();
+  return `./recipe-images/${encodeURIComponent(id)}.jpg`;
+}
   function exactLabel(r){
     return String(r?.name || 'Christmas dish');
   }
