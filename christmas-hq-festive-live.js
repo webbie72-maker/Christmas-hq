@@ -1111,12 +1111,7 @@ textarea.field{
 
 
 
-.subtabs button.selected{
-  background:#103f34!important;
-  border-color:#103f34!important;
-  color:#fff!important;
-  box-shadow:0 7px 18px rgba(16,63,52,.18)!important;
-}
+
 
 .summary{
   gap:10px!important;
