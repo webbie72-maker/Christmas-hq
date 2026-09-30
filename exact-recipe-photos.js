@@ -15,22 +15,7 @@
   
 
   function stableLock(text){
-    let h = 2166136261;
-    for(let i=0;i<text.length;i++){
-      h ^= text.charCodeAt(i);
-      h = Math.imul(h, 16777619);
-    }
-    return 1000 + (Math.abs(h >>> 0) % 900000);
-  }
-
-  function exactPhotoUrl(r){
-    const name = String(r?.name || 'Christmas dish').trim();
-    // Full dish name + food/plated helps the provider return the finished recipe,
-    // rather than a raw ingredient or generic category image.
-    const query = `${name} finished dish plated food`;
-    const q = encodeURIComponent(query.replace(/\s+/g, ','));
-    return `https://loremflickr.com/900/650/${q}?lock=${stableLock(name)}`;
-  }
+  
 
   function exactLabel(r){
     return String(r?.name || 'Christmas dish');
