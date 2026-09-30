@@ -1854,8 +1854,21 @@ textarea.field{
   }
 
   async function refreshMusicSongs() {
+  async function refreshMusicSongs() {
   try {
-    const cloud = window.ChristmasHQFamilyCloud;
+    let cloud = window.ChristmasHQFamilyCloud;
+
+    /* Wait for Family Cloud before falling back to this phone */
+    if (!(cloud && cloud.client && cloud.session && cloud.familyId)) {
+      for (let i = 0; i < 20; i++) {
+        await new Promise(resolve => setTimeout(resolve, 250));
+        cloud = window.ChristmasHQFamilyCloud;
+
+        if (cloud && cloud.client && cloud.session && cloud.familyId) {
+          break;
+        }
+      }
+    }
 
     if (
       cloud &&
