@@ -12,26 +12,7 @@
       .replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  function fallbackKey(r){
-    const s = [r?.name||'', r?.type||'', r?.detail||'', ...(Array.isArray(r?.tags)?r.tags:[])]
-      .join(' ').toLowerCase();
-    if(/prawn|shrimp|seafood|oyster|lobster|salmon|fish|snapper|barramundi|tuna/.test(s)) return 'seafood';
-    if(/ham/.test(s)) return 'ham';
-    if(/turkey/.test(s)) return 'turkey';
-    if(/chicken/.test(s)) return 'chicken';
-    if(/beef|steak|brisket|lamb/.test(s)) return 'beef';
-    if(/pork|crackling/.test(s)) return 'pork';
-    if(/potato/.test(s)) return 'potato';
-    if(/salad|slaw|coleslaw/.test(s)) return 'salad';
-    if(/pasta|spaghetti|penne|linguine|macaroni/.test(s)) return 'pasta';
-    if(/fruit|mango|watermelon|pineapple|berries|strawberry/.test(s)) return 'fruit';
-    if(/pavlova|trifle|cheesecake|cake|pudding|dessert|mousse|ice cream|rocky road|chocolate/.test(s)) return 'dessert';
-    if(/shortbread|cookie|biscuit|gingerbread|brownie|slice|cupcake/.test(s)) return 'baking';
-    if(/mocktail|cocktail|drink|tea|punch|lemonade/.test(s)) return 'drink';
-    if(/breakfast|brunch|pancake|french toast|toast/.test(s)) return 'breakfast';
-    if(/vegetarian|vegan|lentil|mushroom|vegetable|veggie/.test(s)) return 'veggie';
-    return 'main';
-  }
+  
 
   function stableLock(text){
     let h = 2166136261;
