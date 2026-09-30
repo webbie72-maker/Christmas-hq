@@ -107,7 +107,37 @@ h3{font-size:20px}
 <meta name="apple-mobile-web-app-title" content="Christmas HQ">
 <meta name="application-name" content="Christmas HQ">
 <meta name="format-detection" content="telephone=no">
- </head>
+<style>
+.subtabs button{
+  background:linear-gradient(180deg,#fffef9,#f7f2e7)!important;
+  color:#174d3e!important;
+  border:1px solid #d8c18b!important;
+  border-radius:999px!important;
+  box-shadow:0 5px 12px rgba(26,57,43,.12)!important;
+  font-weight:900!important;
+}
+
+.subtabs button.selected{
+  background:linear-gradient(145deg,#17604c,#0d4437)!important;
+  color:#fff8e7!important;
+  border-color:#d3a94f!important;
+  box-shadow:0 6px 14px rgba(16,59,49,.28)!important;
+}
+
+.btn{
+  background:linear-gradient(145deg,#17604c,#0d4437)!important;
+  color:#fffaf0!important;
+  border:1px solid #d2a84e!important;
+  border-radius:15px!important;
+  box-shadow:0 6px 14px rgba(16,59,49,.20)!important;
+}
+
+.btn:active,
+.subtabs button:active{
+  transform:translateY(2px) scale(.98)!important;
+}
+</style>
+</head>
 <body>
 <div class="app" id="app">
 <header class="mast"><div class="mast-bar"><div class="brand-icon">🎄</div><div><div class="mast-name">Christmas HQ</div><div class="mast-tag">One place for all the magic</div></div></div><p class="mast-kicker">YOUR CHRISTMAS, SORTED</p><h1 class="mast-title">Make this Christmas unforgettable.</h1><p class="mast-desc">Gifts, recipes, planning, family fun and more.</p></header>
