@@ -108,33 +108,54 @@ h3{font-size:20px}
 <meta name="application-name" content="Christmas HQ">
 <meta name="format-detection" content="telephone=no">
 <style>
+/* Christmas HQ premium buttons */
+.subtabs{
+  gap:10px!important;
+}
+
 .subtabs button{
-  background:linear-gradient(180deg,#fffef9,#f7f2e7)!important;
-  color:#174d3e!important;
-  border:1px solid #d8c18b!important;
+  background:linear-gradient(180deg,#fffdf4 0%,#f3e3b8 100%)!important;
+  color:#123f33!important;
+  border:2px solid #c99a35!important;
   border-radius:999px!important;
-  box-shadow:0 5px 12px rgba(26,57,43,.12)!important;
+  min-height:48px!important;
+  padding:11px 18px!important;
   font-weight:900!important;
+  box-shadow:
+    0 4px 0 #a77923,
+    0 8px 14px rgba(40,30,10,.18),
+    inset 0 1px 0 #fff!important;
 }
 
 .subtabs button.selected{
-  background:linear-gradient(145deg,#17604c,#0d4437)!important;
-  color:#fff8e7!important;
-  border-color:#d3a94f!important;
-  box-shadow:0 6px 14px rgba(16,59,49,.28)!important;
+  background:linear-gradient(180deg,#c92f35 0%,#8f1721 100%)!important;
+  color:#fff8e8!important;
+  border:2px solid #e5bd58!important;
+  box-shadow:
+    0 4px 0 #6f1018,
+    0 8px 16px rgba(111,16,24,.28),
+    inset 0 1px 0 rgba(255,255,255,.30)!important;
 }
 
-.btn{
-  background:linear-gradient(145deg,#17604c,#0d4437)!important;
-  color:#fffaf0!important;
-  border:1px solid #d2a84e!important;
-  border-radius:15px!important;
-  box-shadow:0 6px 14px rgba(16,59,49,.20)!important;
+form[data-form="gift"] .btn.full{
+  background:linear-gradient(180deg,#187057 0%,#0b4738 100%)!important;
+  color:#fff8e8!important;
+  border:2px solid #e1b84f!important;
+  border-radius:16px!important;
+  min-height:54px!important;
+  font-size:16px!important;
+  font-weight:950!important;
+  letter-spacing:.3px!important;
+  box-shadow:
+    0 5px 0 #07372b,
+    0 10px 18px rgba(7,55,43,.25),
+    inset 0 1px 0 rgba(255,255,255,.25)!important;
 }
 
-.btn:active,
-.subtabs button:active{
-  transform:translateY(2px) scale(.98)!important;
+.subtabs button:active,
+form[data-form="gift"] .btn.full:active{
+  transform:translateY(3px)!important;
+  box-shadow:0 2px 4px rgba(0,0,0,.20)!important;
 }
 </style>
 </head>
