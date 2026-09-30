@@ -244,6 +244,43 @@ form[data-form="gift"] .field:focus{
   box-shadow:
     0 0 0 3px rgba(181,29,41,.12),
     inset 0 2px 5px rgba(120,83,10,.07)!important;
+}/* ===== GIFTS — FESTIVE DETAIL ===== */
+form[data-form="gift"]::before{
+  content:"❄  ✦  ❄";
+  position:absolute;
+  top:8px;
+  right:16px;
+  color:rgba(198,145,28,.22);
+  font-size:18px;
+  letter-spacing:8px;
+  pointer-events:none;
+}
+
+form[data-form="gift"]::after{
+  content:"";
+  position:absolute;
+  inset:7px;
+  border:1px solid rgba(220,174,65,.30);
+  border-radius:18px;
+  pointer-events:none;
+}
+
+form[data-form="gift"] label,
+form[data-form="gift"] .field,
+form[data-form="gift"] .btn{
+  position:relative;
+  z-index:1;
+}
+
+#screen h2{
+  color:#0b493b;
+}
+
+#screen h2::after{
+  content:"  🎄  ✦";
+  color:#c28b18;
+  font-size:.55em;
+  vertical-align:middle;
 }</style>
 </head>
 <body>
