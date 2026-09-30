@@ -700,6 +700,76 @@ setTimeout(refreshInstallUI,0);
  font-size:32px!important;
  line-height:1!important;
 }
+/* ===== GIFTS PAGE – PREMIUM CHRISTMAS BUTTONS ===== */
+
+/* Top Gifts navigation */
+body:has([data-tab="gifts"]) .subtabs button {
+  min-height: 54px;
+  border-radius: 18px;
+  border: 1px solid rgba(11,77,62,.18);
+  background: linear-gradient(145deg,#fffdf8,#f5f1e8);
+  color: #164f42;
+  font-weight: 800;
+  box-shadow:
+    0 6px 14px rgba(20,65,52,.10),
+    inset 0 1px 0 rgba(255,255,255,.9);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+/* Selected Gifts navigation */
+body:has([data-tab="gifts"]) .subtabs button.selected {
+  color: #fff;
+  border: 1px solid #d5ad52;
+  background: linear-gradient(145deg,#17614f,#0b463a);
+  box-shadow:
+    0 7px 16px rgba(11,70,58,.24),
+    inset 0 0 0 1px rgba(255,215,120,.20);
+}
+
+/* Main Save Gift button */
+form[data-form="gift"] .btn.full {
+  min-height: 60px;
+  border-radius: 20px;
+  border: 1px solid #d8b45e;
+  background: linear-gradient(135deg,#17614f,#083f35);
+  color: white;
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: .2px;
+  box-shadow:
+    0 9px 20px rgba(8,63,53,.22),
+    inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+/* Add a festive gift icon */
+form[data-form="gift"] .btn.full::before {
+  content: "🎁";
+  margin-right: 9px;
+  font-size: 20px;
+}
+
+/* Browse Gift Ideas button */
+button[data-value="Gift ideas"].btn {
+  min-height: 58px;
+  border-radius: 19px;
+  border: 1px solid #d8b45e;
+  background: linear-gradient(145deg,#fffdf8,#f7f0df);
+  color: #0d5142;
+  font-weight: 900;
+  box-shadow: 0 7px 18px rgba(20,65,52,.12);
+}
+
+button[data-value="Gift ideas"].btn::before {
+  content: "✨";
+  margin-right: 8px;
+}
+
+/* Proper phone-button press */
+body:has([data-tab="gifts"]) button:active {
+  transform: scale(.97);
+  box-shadow: 0 3px 8px rgba(20,65,52,.15);
+                    }
+ 
 </style>
 
 <script>
