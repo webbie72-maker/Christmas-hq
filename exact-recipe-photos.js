@@ -37,7 +37,6 @@
   }
 
   window.recipeCard = function recipeCard(r){
-    const key = fallbackKey(r);
     const src = exactPhotoUrl(r);
 
     return `<button class="recipe-card hq-photo-recipe-card" data-action="recipe" data-id="${r.id}">
