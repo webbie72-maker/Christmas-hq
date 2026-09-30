@@ -396,6 +396,13 @@ function familyMusicReady() {
   }
 
   async function listSongs() {
+  /* Give Family Cloud time to restore the signed-in family on this device */
+  if (!familyMusicReady()) {
+    for (let i = 0; i < 20 && !familyMusicReady(); i++) {
+      await new Promise(resolve => setTimeout(resolve, 250));
+    }
+  }
+
   if (!familyMusicReady()) {
     const db = await openSongDb();
 
