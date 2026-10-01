@@ -779,7 +779,7 @@ function toggleArray(arr,i){let idx=arr.indexOf(i);if(idx>=0)arr.splice(idx,1);e
 // All buttons are handled in one place. No inline onclick functions or remote script dependencies.
 document.addEventListener('click',e=>{let btn=e.target.closest('button');if(!btn)return;if(btn.dataset.nav){go(btn.dataset.nav);return}let action=btn.dataset.action,id=btn.dataset.id,val=btn.dataset.value;switch(action){
  case 'back':back();break;
- case 'settings':go('settings');break;
+ case 'settings':go('settings');break;case 'personaliseSanta':state.santaPersonaliseOpen=true;persist();break;
  case 'installApp':installChristmasHQ();break;
  case 'shortcut':go(btn.dataset.target);break;
  case 'sub':if(ui.sub[btn.dataset.tab]!==val||ui.recipe)rememberNav();ui.sub[btn.dataset.tab]=val;ui.recipe='';ui.secretRevealId='';render();break;
