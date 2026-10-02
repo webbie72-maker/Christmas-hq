@@ -912,7 +912,9 @@ Have a magical Christmas, ${state.santaChildName}.
 With Christmas wishes,
 
 Santa Claus 🎅
-The North Pole`;persist('🎅 Santa has received your letter!');break; case 'family':{
+The North Pole`;persist('🎅 Santa has received your letter!');break;
+case 'santaPersonalise':state.santaPersonalisation={age:d.age.trim(),favourite:d.favourite.trim(),proud:d.proud.trim(),familyNames:d.familyNames.trim(),special:d.special.trim()};state.santaOrderStep='preview';persist('✨ Santa has everything he needs!');break;
+case 'family':{
   let name=d.name.trim(),relation=d.relation.trim(),wishlist=d.wishlist.trim(),isIn=d.participates==='yes';
   if(state.family.some(m=>m.id!==ui.editFamilyId&&m.name.toLowerCase()===name.toLowerCase())){notice('That family member is already in your list');break}
   if(ui.editFamilyId){let member=familyById(ui.editFamilyId);if(!member)break;if(drawPresent()&&member.participates!==isIn&&!confirm('Changing Secret Santa participation will clear the current draw. Continue?'))break;
