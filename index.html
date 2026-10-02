@@ -900,8 +900,7 @@ document.addEventListener('submit',e=>{let f=e.target;if(!f.dataset.form)return;
  case 'foodNeed':{let person=String(d.person||'').trim(),need=String(d.need||'').trim();if(!person||!need){notice('Enter a name and the food requirement');break}let member=state.family.find(m=>m.name.toLowerCase()===person.toLowerCase());let type=['Allergy','Intolerance','Dietary','Other'].includes(d.type)?d.type:'Other';let item={id:ui.editFoodNeedId||uid(),person:member?member.name:person,...(member?{memberId:member.id}:{}),type,need,notes:String(d.notes||'').trim()};if(ui.editFoodNeedId){let index=state.foodNeeds.findIndex(n=>n.id===ui.editFoodNeedId);if(index>=0)state.foodNeeds[index]=item;else state.foodNeeds.unshift(item)}else state.foodNeeds.unshift(item);ui.editFoodNeedId='';ui.allergyOpen=true;persist('Food requirement saved');break;}
  case 'shopping':state.shopping.unshift({id:uid(),name:d.name.trim(),from:'My list',bought:false});persist('Added to grocery list');break;
  case 'place':state.places.push({id:uid(),name:d.name.trim(),address:d.address.trim()});persist('Stop added');break;
-case 'letter':state.letter=d.letter;state.santaChildName=d.childName.trim();state.santaReply=`Dear ${state.santaChildName},case 'santaPersonalise':state.santaPersonalisation={age:d.age.trim(),favourite:d.favourite.trim(),proud:d.proud.trim(),familyNames:d.familyNames.trim(),special:d.special.trim()};state.santaOrderStep='preview';persist('✨ Santa has everything he needs!');break;
-
+case 'letter':state.letter=d.letter;state.santaChildName=d.childName.trim();state.santaReply=`Dear ${state.santaChildName},
 Ho ho ho! Your wonderful letter has arrived safely here at the North Pole.
 
 The elves and I are very busy getting everything ready for Christmas, but I wanted to send you a special message to say thank you for writing to me.
