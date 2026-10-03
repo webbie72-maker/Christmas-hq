@@ -776,8 +776,7 @@ document.addEventListener('click',e=>{let btn=e.target.closest('button');if(!btn
  case 'back':back();break;
  case 'settings':go('settings');break;
  case 'installApp':installChristmasHQ();break;
- case 'shortcut':go(btn.dataset.target);break;
- case 'shortcut':go(btn.dataset.target);break; case 'activityOpen':ui.sub[btn.dataset.target]=val;go(btn.dataset.target);break; case 'giftCategory':ui.giftFilter=val;render(false);break;
+ case 'sub':if(ui.sub[btn.dataset.tab]!==val||ui.recipe)rememberNav();ui.sub[btn.dataset.tab]=val;ui.recipe='';ui.secretRevealId='';render();break; case 'shortcut':go(btn.dataset.target);break; case 'activityOpen':ui.sub[btn.dataset.target]=val;go(btn.dataset.target);break; case 'giftCategory':ui.giftFilter=val;render(false);break;
  case 'planCategory':ui.planFilter=val;render(false);break;
  case 'recipeCategory':ui.category=val;render(false);break;
  case 'recipeSearchButton':runRecipeSearch();break;
