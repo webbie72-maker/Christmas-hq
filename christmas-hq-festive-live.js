@@ -1601,8 +1601,7 @@ I
       status:'question',
       questionIndex:0,
       
-            questionIndex:0, quizDeck:(type==='trivia'||type==='song')?hqQuizDeck(type==='trivia'?TRIVIA:SONG_GUESS):null,:{},
-      scores:{},
+      quizDeck:(type==='trivia'||type==='song')?hqQuizDeck(type==='trivia'?TRIVIA:SONG_GUESS):null, round:1, answers:{},      scores:{},
       spinResult:'',
       updatedAt:new Date().toISOString()
     };
