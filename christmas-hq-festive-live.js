@@ -1702,8 +1702,7 @@ I
   async function revealLive() {
     await mutateLive(state => {
       if ((state.game === 'trivia' || state.game === 'song') && state.status !== 'result') {        const bank = state.game === 'trivia' ? TRIVIA : SONG_GUESS;        const item = state.quizDeck?.[Number(state.questionIndex||0)] || bank[(state.questionIndex || 0) % bank.length];
-        for (const [id, answer] of Object.entries(state.answers || {})) {
-          if (Number(answer) === item[2]) state.scores[id] = Number(state.scores[id] || 0) + 1;
+        state.scores ||= {}; for (const [id, answer] of Object.entries(state.answers || {})) {          if (Number(answer) === item[2]) state.scores[id] = Number(state.scores[id] || 0) + 1;
           else state.scores[id] = Number(state.scores[id] || 0);
         }
       }
