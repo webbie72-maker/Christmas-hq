@@ -1112,39 +1112,58 @@ body:has([data-tab="gifts"]) button:active {
   box-shadow: 0 3px 8px rgba(20,65,52,.15);
                     }
  .gift-intro{
+  position:relative;
+  overflow:hidden;
   margin:0 0 22px;
-  padding:24px 20px;
+  padding:22px 20px;
   text-align:center;
-  border:1px solid #d8b45e;
-  border-radius:24px;
-  background:linear-gradient(145deg,#fffdf7,#fff2d5);
-  box-shadow:0 8px 22px rgba(93,66,20,.10);
+  border:2px solid #d6b35e;
+  border-radius:22px;
+  background:
+    radial-gradient(ellipse at top,#ffffff12,transparent 65%),
+    linear-gradient(145deg,#185642,#082d25);
+  box-shadow:
+    0 8px 0 #b28a34,
+    0 15px 25px #103b3125,
+    inset 0 0 0 4px #ffffff08;
+}
+.gift-intro::before{
+  content:"✦";
+  display:block;
+  margin-bottom:9px;
+  color:#f2cf78;
+  font-size:25px;
+  text-shadow:0 0 18px #ffd97680;
 }
 .gift-intro .eyebrow{
-  display:inline-block;
-  padding:7px 12px;
-  margin-bottom:14px;
-  border-radius:100px;
-  background:#fff7e7;
-  color:#a62b36;
+  display:block;
+  margin-bottom:12px;
+  padding:0;
+  background:none;
+  color:#f0d99e!important;
   font-size:10px;
-  letter-spacing:1.8px;
+  letter-spacing:2.4px;
 }
 .gift-intro h2{
-  max-width:340px;
-  margin:0 auto 12px!important;
-  color:#124d3d;
-  font-size:28px!important;
-  line-height:1.18;
+  max-width:310px;
+  margin:0 auto 14px!important;
+  color:#ffe7a6!important;
+  font-size:25px!important;
+  line-height:1.22;
+  font-weight:700;
   text-wrap:balance;
+  text-shadow:0 2px 3px #00000035;
 }
 .gift-intro .lead{
-  max-width:340px;
+  max-width:300px;
   margin:0 auto;
-  color:#667269;
-  font-size:13px;
-  line-height:1.65;
-   }
+  padding-top:13px;
+  border-top:1px solid #e7c67555;
+  color:#ecf3e8!important;
+  font-size:12px;
+  font-weight:400;
+  line-height:1.6;
+}
 </style>
 
 <script>
