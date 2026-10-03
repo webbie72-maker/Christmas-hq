@@ -247,8 +247,7 @@
         '<p>'+(family
           ? 'Folders, topics and replies here stay inside your connected family.'
           : 'Christmas-only discussion for the wider Christmas HQ community.')+'</p></div>'+
-      '</div>'+
-      (family && !familyId() ? settingsCallout(true) :
+      '</div>'+(!family?'<a class="btn full" href="https://www.facebook.com/share/196KiUncX6/" target="_blank" rel="noopener noreferrer" style="display:flex;justify-content:center;text-decoration:none;margin:16px 0">🌍 Join our Facebook community ↗</a>':'')+      (family && !familyId() ? settingsCallout(true) :
         '<div class="section-line"><h2>'+(family?'Family folders':'Christmas folders')+'</h2><span class="pill">'+chat.categories.length+'</span></div>'+
         categoryForm()+cards()
       )+
