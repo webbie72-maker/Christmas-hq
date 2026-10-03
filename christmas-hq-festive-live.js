@@ -566,8 +566,7 @@ max-width:none!important;
         display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px
       }
       .hq-game-card{
-        text-align:left;border:0;border-radius:20px;padding:15px;color:white;min-height:148px;
-        box-shadow:0 9px 24px rgba(20,67,50,.14);position:relative;overflow:hidden
+        text-align:left;border:0;border-radius:20px;padding:15px;color:#0b493b!important;min-height:148px;        box-shadow:0 9px 24px rgba(20,67,50,.14);position:relative;overflow:hidden
       }
       .hq-game-card:after{
         content:"";position:absolute;right:-18px;bottom:-28px;width:95px;height:95px;border-radius:50%;
@@ -575,10 +574,8 @@ max-width:none!important;
       }
       .hq-game-card .big{display:block;font-size:31px;margin-bottom:11px}
       .hq-game-card b{display:block;font-size:17px;margin-bottom:5px}
-      .hq-game-card small{display:block;line-height:1.35;opacity:.9}
-      .hq-game-card.trivia{background:linear-gradient(135deg,#0c7654,#0a4f3d)}
-      .hq-game-card.song{background:linear-gradient(135deg,#7553a7,#3f326c)}
-      .hq-game-card.would{background:linear-gradient(135deg,#c65d28,#993b21)}
+      .hq-game-card b{display:block;font-size:17px;margin-bottom:5px;color:#0b493b!important}      .hq-game-card.trivia{background:linear-gradient(135deg,#0c7654,#0a4f3d)}
+      .hq-game-card small{display:block;line-height:1.35;color:#5f6c61!important;opacity:1!important}      .hq-game-card.would{background:linear-gradient(135deg,#c65d28,#993b21)}
       .hq-game-card.bingo{background:linear-gradient(135deg,#2374a8,#174b7a)}
       .hq-game-card.wheel{background:linear-gradient(135deg,#ad3f8f,#65307d)}
       .hq-game-card.memory{background:linear-gradient(135deg,#ba3446,#7f2638)}
