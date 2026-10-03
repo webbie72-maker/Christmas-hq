@@ -1715,8 +1715,7 @@ I
     await mutateLive(state => {
       state.questionIndex = Number(state.questionIndex || 0) + 1;
       state.round = Number(state.round || 1) + 1;
-            state.questionIndex = Number(state.questionIndex || 0) + 1; if(state.game==='trivia'||state.game==='song'){const bank=state.game==='trivia'?TRIVIA:SONG_GUESS;if(!state.quizDeck||state.questionIndex>=state.quizDeck.length){state.quizDeck=hqQuizDeck(bank);state.questionIndex=0;}}
-      state.status = 'question';
+      if(state.game==='trivia'||state.game==='song'){const bank=state.game==='trivia'?TRIVIA:SONG_GUESS;if(!state.quizDeck||state.questionIndex>=state.quizDeck.length){state.quizDeck=hqQuizDeck(bank);state.questionIndex=0;}} state.answers = {};      state.status = 'question';
       state.spinResult = '';
     });
   }
