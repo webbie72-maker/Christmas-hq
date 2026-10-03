@@ -1443,8 +1443,7 @@ I
 
     if (type === 'trivia' || type === 'song') {
       const bank = type === 'trivia' ? TRIVIA : SONG_GUESS;
-      const item = bank[(state.questionIndex || 0) % bank.length];
-      const mine = state.answers?.[hqSession?.user?.id];
+      const item = state.quizDeck?.[Number(state.questionIndex||0)] || bank[(state.questionIndex || 0) % bank.length];      const mine = state.answers?.[hqSession?.user?.id];
       const revealed = state.status === 'result';
       const correct = item[2];
 
@@ -1601,8 +1600,8 @@ I
       hostId:hqSession?.user?.id || '',
       status:'question',
       questionIndex:0,
-      round:1,
-      answers:{},
+      
+            questionIndex:0, quizDeck:(type==='trivia'||type==='song')?hqQuizDeck(type==='trivia'?TRIVIA:SONG_GUESS):null,:{},
       scores:{},
       spinResult:'',
       updatedAt:new Date().toISOString()
@@ -1704,10 +1703,9 @@ I
   async function revealLive() {
     await mutateLive(state => {
       if (state.game === 'trivia' || state.game === 'song') {
-        const bank = state.game === 'trivia' ? TRIVIA : SONG_GUESS;
-        const item = bank[(state.questionIndex || 0) % bank.length];
+      if ((state.game === 'trivia' || state.game === 'song') && state.status !== 'result') {        const item = bank[(state.questionIndex || 0) % bank.length];
         state.scores ||= {};
-
+        const item = state.quizDeck?.[Number(state.questionIndex||0)] || bank[(state.questionIndex || 0) % bank.length];
         for (const [id, answer] of Object.entries(state.answers || {})) {
           if (Number(answer) === item[2]) state.scores[id] = Number(state.scores[id] || 0) + 1;
           else state.scores[id] = Number(state.scores[id] || 0);
@@ -1721,7 +1719,7 @@ I
     await mutateLive(state => {
       state.questionIndex = Number(state.questionIndex || 0) + 1;
       state.round = Number(state.round || 1) + 1;
-      state.answers = {};
+            state.questionIndex = Number(state.questionIndex || 0) + 1; if(state.game==='trivia'||state.game==='song'){const bank=state.game==='trivia'?TRIVIA:SONG_GUESS;if(!state.quizDeck||state.questionIndex>=state.quizDeck.length){state.quizDeck=hqQuizDeck(bank);state.questionIndex=0;}}
       state.status = 'question';
       state.spinResult = '';
     });
