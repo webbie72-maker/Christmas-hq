@@ -13,6 +13,11 @@ function imagePath(r){
 window.hqRecipeImagePath=imagePath;
 
 window.hqRecipeImageMissing=function(img){
+  if(!img.dataset.jpgTried){
+    img.dataset.jpgTried='1';
+    img.src=img.getAttribute('src').replace(/\.webp$/,'.jpg');
+    return;
+  }
   img.onerror=null;
   img.style.display='none';
   const box=img.closest('.hq-v6-photo,.hq-v6-detail-photo');
