@@ -737,137 +737,256 @@ function kitchen(){let subs=['Recipes','My menu','Groceries','Cook plan'];let c=
  let done=state.shopping.filter(x=>x.bought).length;c=`<div class="card"><h3>One grocery list for the lot</h3><p class="muted-note">Add ingredients from the recipe library or enter groceries yourself. Recipe quantities are listed separately, so check combined amounts before shopping.</p>${progress(state.shopping.length?100*done/state.shopping.length:0)}<small class="muted">${done} of ${state.shopping.length} items bought</small></div><form class="card form" data-form="shopping"><input class="field" name="name" placeholder="e.g. Ice, crackers, napkins" maxlength="130" required><button type="submit" class="btn full">+ Add grocery item</button></form>${line('Shopping list')}<div class="list">${state.shopping.length?state.shopping.map(x=>`<div class="item ${x.bought?'is-done':''}"><input class="tick" type="checkbox" data-action="shopToggle" data-id="${esc(x.id)}" ${x.bought?'checked':''} aria-label="Bought ${esc(x.name)}"><div class="item-info"><b>${esc(x.name)}</b><small>${esc(x.from||'My list')}</small></div><button class="icon-action" data-action="shopDelete" data-id="${esc(x.id)}" aria-label="Delete grocery item">×</button></div>`).join(''):empty('🛒','Ready when you are','Choose a recipe and add its ingredients, or add your own groceries.')}</div>`;
  }else{const p=state.cookSchedule||{}, dishes=state.menu.map(id=>RECIPES.find(r=>r.id===id)).filter(Boolean), rows=p.rows||{}, serve=new Date(p.serve), valid=p.serve&&Number.isFinite(serve.getTime()), events=[], ovens=[];const stamp=t=>new Date(t).toLocaleString('en-AU',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});if(valid)dishes.forEach(r=>{const v=rows[r.id];if(!v||!v.selected)return;const end=serve.getTime(), finish=end-v.rest*60000,start=finish-v.cook*60000,prep=start-v.prep*60000;events.push({at:prep,text:'Prep '+r.name},{at:start,text:(v.cook?'Start cooking ':'Finish preparing ')+r.name},{at:end,text:'Serve '+r.name});if(v.rest)events.push({at:finish,text:'Rest / finish '+r.name});if(v.oven&&v.cook){events.push({at:start-v.preheat*60000,text:'Preheat oven to '+v.temp+'°C for '+r.name});ovens.push({start,end:finish,temp:v.temp,name:r.name})}});const clashes=[];ovens.forEach((a,i)=>ovens.slice(i+1).forEach(b=>{if(a.start<b.end&&b.start<a.end&&a.temp!==b.temp)clashes.push(a.name+' ('+a.temp+'°C) and '+b.name+' ('+b.temp+'°C) need the oven at different temperatures at the same time.')}));c=`<div class="card"><h3>🍽️ Ready together</h3><p class="muted-note">Choose dishes from My menu and set when you want to serve. Enter prep, cooking and resting times from each recipe. All times below are in minutes.</p></div>${dishes.length?`<form class="card form" data-form="cookSchedule"><label>Serving date and time<input class="field" type="datetime-local" name="serve" value="${esc(p.serve||'')}" required></label>${dishes.map(r=>{const v=rows[r.id]||{};return `<fieldset style="border:2px solid #d3a43b;border-radius:16px;padding:14px;margin:16px 0"><legend style="font-weight:900;color:#0b493b">${esc(r.name)}</legend><label><input type="checkbox" name="pick_${r.id}" ${v.selected?'checked':''}> Include in this meal</label><div class="two"><label>Prep minutes<input class="field" type="number" min="0" max="10080" name="prep_${r.id}" value="${v.prep??''}" placeholder="e.g. 20"></label><label>Cooking minutes<input class="field" type="number" min="0" max="10080" name="cook_${r.id}" value="${v.cook??''}" placeholder="e.g. 60"></label><label>Rest / finish minutes<input class="field" type="number" min="0" max="10080" name="rest_${r.id}" value="${v.rest??0}"></label></div><label><input type="checkbox" name="oven_${r.id}" ${v.oven?'checked':''}> Uses the oven</label><div class="two"><label>Oven temperature °C<input class="field" type="number" min="30" max="300" name="temp_${r.id}" value="${v.temp??''}" placeholder="e.g. 180"></label><label>Preheat minutes<input class="field" type="number" min="0" max="120" name="preheat_${r.id}" value="${v.preheat??15}"></label></div></fieldset>`}).join('')}<button class="btn full" type="submit">⏱️ Save & build my cooking schedule</button></form>`:empty('🍽️','Add your dishes first','Save recipes to My menu, then come back to Cook plan.')}${clashes.length?`<div class="card"><h3>🔥 Oven clashes</h3>${clashes.map(x=>`<p>${esc(x)}</p>`).join('')}<p class="muted-note">Adjust your meal or use another oven before following this schedule.</p></div>`:''}${events.length?`${line('Your cooking schedule')}<div class="card">${events.sort((a,b)=>a.at-b.at).map((x,i)=>`<div class="timeline"><span class="dot">${i+1}</span><div><b>${esc(stamp(x.at))}</b><p>${esc(x.text)}</p></div></div>`).join('')}</div><p class="muted-note">Check this timeline here while cooking. Allow for shared equipment and hands-on prep; this schedule does not send phone notifications.</p>`:''}`} return bigheading('THE FESTIVE KITCHEN','Food, glorious Christmas food','Everything you need for the Christmas table.')+foodNeedsPanel()+subnav('kitchen',subs)+c;
 }
-function magic(){let subs=['Advent','Activities','Movie night','Santa letter'];let c='';if(ui.sub.magic==='Advent'){
- c=`<div class="card" style="text-align:center;background:linear-gradient(145deg,#fffdf3,#f7edce)!important;border:2px solid #d3a43b!important;padding:24px"><div style="font-size:42px">🎄 🎁 ✨</div><h2 style="color:#0b493b!important;margin:12px 0">A little magic every day</h2><p style="color:#5f6c61!important">25 little surprises. Tap a gift door to reveal a festive family activity.</p><span class="pill">${state.advent.length}/25 opened</span></div><div class="advent" style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:18px">${ADVENT.map((a,i)=>`<button class="${state.advent.includes(i)?'opened':''}" data-action="advent" data-index="${i}" aria-label="Open advent door ${i+1}" style="min-height:78px;padding:8px 3px;border:2px solid #d3a43b!important;border-radius:14px;background:${state.advent.includes(i)?'#e2eee5':'linear-gradient(145deg,#fffdf3,#f5e5b5)'}!important;color:#0b493b!important;box-shadow:0 4px 0 #ad7e20!important"><span style="display:block;font-size:22px">${state.advent.includes(i)?'✨':'🎁'}</span><strong style="display:block;font-size:20px;color:#0b493b!important">${state.advent.includes(i)?'✓':i+1}</strong></button>`).join('')}</div><a class="btn full" style="display:flex;justify-content:center;text-align:center;margin-top:22px;text-decoration:none" target="_blank" rel="noopener noreferrer" href="https://www.google.com/search?q=${encodeURIComponent('"advent calendar" (buy Australia OR DIY OR "how to make")')}">🎁 Find Advent calendars to buy or make ↗</a>${state.advent.length?`${line('Your revealed surprises')}<div class="list">${[...state.advent].sort((a,b)=>a-b).map(i=>`<div class="item"><span class="item-icon">🎁</span><div class="item-info"><b>Day ${i+1}</b><small>${esc(ADVENT[i])}</small></div></div>`).join('')}</div>`:''}`; }else if(ui.sub.magic==='Activities'){
-c=`<div class="card" style="background:#f3f6ed">
-  <h3>🎬 Your festive movie lounge</h3>
-  <p class="muted-note">19 Christmas favourites. Find Australian streaming options for each movie, then mark it watched after movie night. Availability and age suitability vary.</p>
-  <span class="pill green">${state.watched.length} watched</span>
-</div>
-<div class="list">
-${MOVIES.map((movie,i)=>({movie,i}))
-.sort((a,b)=>Number(b.movie[1]==='Die Hard')-Number(a.movie[1]==='Die Hard'))
-.map(({movie:[icon,title,genre],i})=>`
-  <div class="item" style="flex-wrap:wrap">
-    <span class="item-icon">${icon}</span>
-    <div class="item-info">
-      <a href="https://www.justwatch.com/au/search?q=${encodeURIComponent(title)}"
-         target="_blank"
-         rel="noopener noreferrer"
-         style="color:inherit;text-decoration:none">
-        <b>${esc(title)}</b>
-      </a>
-      <small>${esc(genre)}</small>
-    </div>
-    <div class="btnrow" style="flex-wrap:wrap">
-      <a class="btn small"
-         href="https://www.justwatch.com/au/search?q=${encodeURIComponent(title)}"
-         target="_blank"
-         rel="noopener noreferrer"
-         style="text-decoration:none">
-        ▶ Find movie
-      </a>
-      <button class="btn small ${state.watched.includes(i)?'tint':'alt'}"
-              data-action="watch"
-              data-index="${i}">
-        ${state.watched.includes(i)?'✓ Watched':'Mark watched'}
-      </button>
-    </div>
-  </div>
-`).join('')}
-</div>`;
-}else{
-c=`<div class="santa-box">
-  <h2>✉️ Dear Santa...</h2>
-  <p>Write a letter together. Print it or keep it as a Christmas memory.</p>
-</div>
-${line('My Santa letter')}
-<form class="card form" data-form="letter">
-  <label>Child's first name
-    <input class="field" name="childName" maxlength="40"
-           placeholder="e.g. Charlie" required>
-  </label>
-  <label>Your letter
-    <textarea class="field" name="letter" rows="12"
-      placeholder="Dear Santa,\n\nThis year my favourite memory was...\n\nLove, ...">${esc(state.letter)}</textarea>
-  </label>
-  <div class="btnrow">
-    <button type="submit" class="btn">💌 Send to Santa</button>
-    <button type="button" class="btn alt" data-action="print">🖨 Print</button>
-  </div>
-</form>
-${state.santaReply?`
-<div class="card" style="margin-top:22px;padding:28px 22px;text-align:center;background:linear-gradient(180deg,#fffdf2,#f8edc8)!important;border:3 c=`<div class="card" style="background:#f3f6ed"><h3>🎬 Your festive movie lounge</h3><p class="muted-note">19 Christmas favourites. Add one to your watched list each time you settle in for a family movie night. Availability and age suitability vary.</p><span class="pill green">${state.watched.length} watched</span></div><div class="list">${MOVIES.map((movie,i)=>({movie,i})).sort((a,b)=>Number(b.movie[1]==='Die Hard')-Number(a.movie[1]==='Die Hard')).map(({movie:[icon,title,genre],i})=>`<div class="item"><span class="item-icon">${icon}</span><div class="item-info"><b>${esc(title)}</b><sma ll>${esc(genre)}</small></div><button c=`<p class="lead">Choose an activity, then open its page or matching instructions.</p>
-<div class="list">
-${ACTIVITIES.map(([icon,title,type,desc],i)=>{
-  const routes={
-    0:['magic','Santa letter'],
-    2:['explore','Light trail'],
-    5:['magic','Movie night']
-  };
-  const route=routes[i];
-  return `<div class="catalog-card" style="background:linear-gradient(145deg,#fffdf4,#f8edce);border:2px solid #d3a43b;border-radius:20px;padding:18px">
-    <span class="em">${icon}</span>
-    <div class="body">
-      <b>${esc(title)}</b>
-      <small>${esc(desc)}</small>
-      <span class="pill">${esc(type)}</span>
-      <div class="btnrow" style="margin-top:12px">
-        ${route
-          ? `<button class="btn small" data-action="activityOpen" data-target="${route[0]}" data-value="${route[1]}">Open activity →</button>`
-          : `<a class="btn small" style="text-decoration:none" href="https://www.google.com/search?q=${encodeURIComponent(title+' Christmas instructions ideas')}" target="_blank" rel="noopener noreferrer">Find instructions ↗</a>`
-        }
-        <button class="btn small alt" data-action="activity" data-index="${i}">
-          ${state.activitiesDone.includes(i)?'✓ Done':'Mark done'}
-        </button>
+
+
+function magic(){
+  const subs=['Advent','Activities','Movie night','Santa letter'];
+  let c='';
+
+  if(ui.sub.magic==='Advent'){
+    c=`
+      <div class="card" style="text-align:center">
+        <h2>🎄 A little magic every day</h2>
+        <p>25 little surprises. Tap a gift door to reveal a festive family activity.</p>
+        <span class="pill">${state.advent.length}/25 opened</span>
       </div>
-    </div>
-  </div>`;
-}).join('')}
-</div>`;
-}else if(ui.sub.magic==='Movie night'){
-c=`<div class="card" style="background:#f3f6ed">
-<h3>🎬 Your festive movie lounge</h3>
-<p class="muted-note">19 Christmas favourites. Find Australian streaming options, then mark each movie watched after movie night. Availability and age suitability vary.</p>
-<span class="pill green">${state.watched.length} watched</span>
-</div><div class="list">
-${MOVIES.map((movie,i)=>({movie,i}))
-.sort((a,b)=>Number(b.movie[1]==='Die Hard')-Number(a.movie[1]==='Die Hard'))
-.map(({movie:[icon,title,genre],i})=>`
-<div class="item" style="flex-wrap:wrap">
-<span class="item-icon">${icon}</span>
-<div class="item-info"><b>${esc(title)}</b><small>${esc(genre)}</small></div>
-<div class="btnrow" style="flex-wrap:wrap">
-<a class="btn small" href="https://www.justwatch.com/au/search?q=${encodeURIComponent(title)}" target="_blank" rel="noopener noreferrer" style="text-decoration:none">▶ Find movie</a>
-<button class="btn small alt" data-action="watch" data-index="${i}">${state.watched.includes(i)?'✓ Watched':'Mark watched'}</button>
-</div></div>`).join('')}
-</div>`;
-}else{
-c=`<div class="santa-box"><h2>✉️ Dear Santa...</h2><p>Write a letter together. Print it or keep it as a Christmas memory.</p></div>
-${line('My Santa letter')}
-<form class="card form" data-form="letter">
-<label>Child's first name<input class="field" name="childName" maxlength="40" placeholder="e.g. Charlie" required></label>
-<label>Your letter<textarea class="field" name="letter" rows="12" placeholder="Dear Santa,\n\nThis year my favourite memory was...\n\nLove, ...">${esc(state.letter)}</textarea></label>
-<div class="btnrow"><button type="submit" class="btn">💌 Send to Santa</button><button type="button" class="btn alt" data-action="print">🖨 Print</button></div>
-</form>
-${state.santaReply?`
-<div class="card" style="margin-top:22px;padding:28px 22px;text-align:center;background:linear-gradient(180deg,#fffdf2,#f8edc8)!important;border:3px solid #c99a27!important">
-<div style="font-size:13px;font-weight:900;letter-spacing:2px;color:#b51f2e">OFFICIAL NORTH POLE POST</div>
-<div style="font-size:42px;margin:10px 0">🎅✉️</div>
-<h2 style="font-family:Georgia,serif;color:#0b493b!important">A Letter From Santa</h2>
-<div style="height:2px;background:#d6a638;margin:16px auto;width:70%"></div>
-<div style="white-space:pre-wrap;text-align:left;font-family:Georgia,serif;font-size:17px;line-height:1.75;color:#28473e">${esc(state.santaReply)}</div>
-<div style="font-size:32px;margin-top:20px">🎄 ❄️ 🎁</div>
-</div>
-<div class="card" style="margin-top:22px;padding:24px 20px;text-align:center;background:linear-gradient(180deg,#0f5b47,#073b30)!important;border:3px solid #e1b84f!important;color:#fff8e8">
-<div style="font-size:38px">🎅✨</div>
-<div style="font-size:12px;font-weight:950;letter-spacing:2px;color:#f4d36b;margin-top:8px">MAKE IT EXTRA MAGICAL</div>
-<h2 style="color:#fff8e8!important;margin:10px 0">Personalised Letter From Santa</h2>
-<p style="font-size:16px;line-height:1.55;margin:8px 0 18px">Create a special letter written just for <strong style="color:#f4d36b">${esc(state.santaChildName)}</strong>, inspired by their own letter to Santa, beautifully printed and delivered to your door.</p>
-<button type="button" class="btn" data-action="personaliseSanta" style="width:100%;background:linear-gradient(180deg,#df3940,#9b1420)!important;border-color:#f4d36b!important">🎁 Personalise My Santa Letter</button>
-</div>`:''}`;
-}
- return bigheading('THE NORTH POLE','Make some family magic','Activities, traditions and Christmas excitement for everyone.')+subnav('magic',subs)+c;
+
+      <div class="advent">
+        ${ADVENT.map((a,i)=>`
+          <button
+            class="${state.advent.includes(i)?'opened':''}"
+            data-action="advent"
+            data-index="${i}"
+            aria-label="Open advent door ${i+1}">
+            ${state.advent.includes(i)?'✓':i+1}
+          </button>
+        `).join('')}
+      </div>
+
+      <a class="btn full"
+        href="https://www.google.com/search?q=Christmas+advent+calendar+Australia+buy+DIY"
+        target="_blank"
+        rel="noopener noreferrer">
+        🎁 Find Advent calendars ↗
+      </a>
+
+      ${state.advent.length?`
+        ${line('Your revealed surprises')}
+        <div class="list">
+          ${[...state.advent].sort((a,b)=>a-b).map(i=>`
+            <div class="item">
+              <span class="item-icon">🎁</span>
+              <div class="item-info">
+                <b>Day ${i+1}</b>
+                <small>${esc(ADVENT[i])}</small>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `:''}
+    `;
+
+  }else if(ui.sub.magic==='Activities'){
+    c=`
+      <p class="lead">
+        Choose an activity, then open its page or matching instructions.
+      </p>
+
+      <div class="list">
+        ${ACTIVITIES.map(([icon,title,type,desc],i)=>{
+          const routes={
+            0:['magic','Santa letter'],
+            2:['explore','Light trail'],
+            5:['magic','Movie night']
+          };
+          const route=routes[i];
+
+          return `
+            <div class="catalog-card">
+              <span class="em">${icon}</span>
+
+              <div class="body">
+                <b>${esc(title)}</b>
+                <small>${esc(desc)}</small>
+                <span class="pill">${esc(type)}</span>
+
+                <div class="btnrow" style="margin-top:12px">
+                  ${route?`
+                    <button class="btn small"
+                      data-action="activityOpen"
+                      data-target="${route[0]}"
+                      data-value="${route[1]}">
+                      Open activity →
+                    </button>
+                  `:`
+                    <a class="btn small"
+                      href="https://www.google.com/search?q=${encodeURIComponent(title+' Christmas instructions ideas')}"
+                      target="_blank"
+                      rel="noopener noreferrer">
+                      Find instructions ↗
+                    </a>
+                  `}
+
+                  <button class="btn small alt"
+                    data-action="activity"
+                    data-index="${i}">
+                    ${state.activitiesDone.includes(i)?'✓ Done':'Mark done'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+
+  }else if(ui.sub.magic==='Movie night'){
+    c=`
+      <div class="card" style="background:#f3f6ed">
+        <h3>🎬 Your festive movie lounge</h3>
+        <p class="muted-note">
+          ${MOVIES.length} Christmas favourites.
+          Find Australian streaming options, then mark each movie watched.
+          Availability and age suitability vary.
+        </p>
+        <span class="pill green">${state.watched.length} watched</span>
+      </div>
+
+      <div class="list">
+        ${MOVIES.map((movie,i)=>({movie,i}))
+          .sort((a,b)=>
+            Number(b.movie[1]==='Die Hard')-
+            Number(a.movie[1]==='Die Hard')
+          )
+          .map(({movie:[icon,title,genre],i})=>`
+            <div class="item" style="flex-wrap:wrap">
+              <a class="item-icon"
+                href="https://www.justwatch.com/au/search?q=${encodeURIComponent(title)}"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Find ${esc(title)}">
+                ${icon}
+              </a>
+
+              <div class="item-info">
+                <a
+                  href="https://www.justwatch.com/au/search?q=${encodeURIComponent(title)}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style="color:inherit;text-decoration:none">
+                  <b>${esc(title)}</b>
+                </a>
+                <small>${esc(genre)}</small>
+              </div>
+
+              <div class="btnrow" style="flex-wrap:wrap">
+                <a class="btn small"
+                  href="https://www.justwatch.com/au/search?q=${encodeURIComponent(title)}"
+                  target="_blank"
+                  rel="noopener noreferrer">
+                  ▶ Find movie
+                </a>
+
+                <button
+                  class="btn small ${state.watched.includes(i)?'tint':'alt'}"
+                  data-action="watch"
+                  data-index="${i}">
+                  ${state.watched.includes(i)?'✓ Watched':'Mark watched'}
+                </button>
+              </div>
+            </div>
+          `).join('')}
+      </div>
+    `;
+
+  }else{
+    c=`
+      <div class="santa-box">
+        <h2>✉️ Dear Santa...</h2>
+        <p>
+          Write a letter together.
+          Print it or keep it as a Christmas memory.
+        </p>
+      </div>
+
+      ${line('My Santa letter')}
+
+      <form class="card form" data-form="letter">
+        <label>
+          Child's first name
+          <input class="field"
+            name="childName"
+            maxlength="40"
+            placeholder="e.g. Charlie"
+            required>
+        </label>
+
+        <label>
+          Your letter
+          <textarea class="field"
+            name="letter"
+            rows="12"
+            placeholder="Dear Santa,\n\nThis year my favourite memory was...\n\nLove, ...">${esc(state.letter)}</textarea>
+        </label>
+
+        <div class="btnrow">
+          <button type="submit" class="btn">
+            💌 Send to Santa
+          </button>
+          <button type="button"
+            class="btn alt"
+            data-action="print">
+            🖨 Print
+          </button>
+        </div>
+      </form>
+
+      ${state.santaReply?`
+        <div class="card"
+          style="margin-top:22px;padding:28px 22px;text-align:center;background:linear-gradient(180deg,#fffdf2,#f8edc8)!important;border:3px solid #c99a27!important">
+          <div style="font-size:13px;font-weight:900;letter-spacing:2px;color:#b51f2e">
+            OFFICIAL NORTH POLE POST
+          </div>
+          <div style="font-size:42px;margin:10px 0">🎅✉️</div>
+          <h2 style="font-family:Georgia,serif;color:#0b493b!important">
+            A Letter From Santa
+          </h2>
+          <div style="height:2px;background:#d6a638;margin:16px auto;width:70%"></div>
+          <div style="white-space:pre-wrap;text-align:left;font-family:Georgia,serif;font-size:17px;line-height:1.75;color:#28473e">${esc(state.santaReply)}</div>
+          <div style="font-size:32px;margin-top:20px">🎄 ❄️ 🎁</div>
+        </div>
+
+        <div class="card"
+          style="margin-top:22px;padding:24px 20px;text-align:center;background:linear-gradient(180deg,#0f5b47,#073b30)!important;border:3px solid #e1b84f!important;color:#fff8e8">
+          <div style="font-size:38px">🎅✨</div>
+          <div style="font-size:12px;font-weight:950;letter-spacing:2px;color:#f4d36b;margin-top:8px">
+            MAKE IT EXTRA MAGICAL
+          </div>
+          <h2 style="color:#fff8e8!important;margin:10px 0">
+            Personalised Letter From Santa
+          </h2>
+          <p style="font-size:16px;line-height:1.55;margin:8px 0 18px">
+            Create a special letter written just for
+            <strong style="color:#f4d36b">${esc(state.santaChildName)}</strong>,
+            inspired by their own letter to Santa,
+            beautifully printed and delivered to your door.
+          </p>
+          <button type="button"
+            class="btn"
+            data-action="personaliseSanta"
+            style="width:100%;background:linear-gradient(180deg,#df3940,#9b1420)!important;border-color:#f4d36b!important">
+            🎁 Personalise My Santa Letter
+          </button>
+        </div>
+      `:''}
+    `;
+  }
+
+  return bigheading(
+    'THE NORTH POLE',
+    'Make some family magic',
+    'Activities, traditions and Christmas excitement for everyone.'
+  )+subnav('magic',subs)+c;
 }
 function explore(){let subs=['Discover','Light trail','Decor ideas'];let c='';if(ui.sub.explore==='Discover'){
  c=`<div class="card" style="background:#f2f6eb"><h3>Find festive adventures</h3><p class="muted-note">Explore local Christmas lights, markets, Santa experiences, carols and more. Search opens Google Maps and requires an internet connection; check event dates and hours before travelling.</p><label style="font-size:11px;font-weight:800">Your city or suburb</label><input class="field" id="cityInput" value="${esc(ui.city)}" placeholder="e.g. Perth WA"></div><div class="quick-grid">${LOCAL.map(([icon,title,desc,term])=>`<button class="tap-card" data-action="mapSearch" data-term="${esc(term)}"><span class="big">${icon}</span><strong>${esc(title)}</strong><small>${esc(desc)} ↗</small></button>`).join('')}</div><div class="callout" style="margin-top:15px">These are search categories, not verified current events or business listings.</div>`;
