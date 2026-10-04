@@ -458,7 +458,7 @@
         <div class="cloud-row" style="margin-top:12px">
           <button class="btn" type="button" data-cloud-action="invite">Invite family</button>
           <button class="btn alt" type="button" data-cloud-action="syncnow">Sync now</button>
-          <button class="btn warn" type="button" data-cloud-action="signout">Sign out</button>
+          <button class="btn" type="button" data-cloud-action="signout">Sign out</button>
         </div>
 
         <div id="cloudInviteBox"></div>
