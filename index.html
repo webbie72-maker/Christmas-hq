@@ -53,6 +53,10 @@
 .food-alert .privacy-note{font-size:10.5px;line-height:1.55;color:#6b6260;margin:9px 0 0}
 .food-alert .food-caution{font-size:11.5px;line-height:1.55;border-radius:11px;background:#fff5e1;color:#735327;padding:10px 11px;margin:12px 0}
 @media(max-width:360px){.food-alert-head .food-alert-title{font-size:15px}.food-alert-body{padding:12px 10px}}
+html,body{scroll-behavior:auto!important;overscroll-behavior-y:contain}
+.app{overflow-anchor:none}
+#bottomNav.nav-open{transition:transform .22s ease-out}
+#bottomNav.nav-open.nav-dragging{transition:none!important}
 
 /* Christmas HQ readability upgrade */
 body{font-size:16.5px;line-height:1.56;font-weight:500}
@@ -1497,9 +1501,15 @@ const toggle=document.getElementById('navToggle'); let dragging=false;
    /* Settings stops 4px above the Christmas tree */
 return Math.max(0,treeBox.top-(settingsBox.bottom-offset)-4); }
 
- function setOffset(value){
-   offset=clamp(value,0,maxDown());
+ let dragMax=0;
+ let paintQueued=false;
+ function paintOffset(){
+   paintQueued=false;
    nav.style.setProperty('--nav-drag-y',offset+'px');
+ }
+ function setOffset(value){
+   offset=clamp(value,0,dragMax);
+   if(!paintQueued){paintQueued=true;requestAnimationFrame(paintOffset)}
  }
 
  function resetMenuPosition(){
@@ -1521,9 +1531,11 @@ return Math.max(0,treeBox.top-(settingsBox.bottom-offset)-4); }
    if(!e.target.closest('button[data-nav]')) return;
 
    dragging=true;
+   nav.classList.add('nav-dragging');
    moved=false;
    startY=e.clientY;
    startOffset=offset;
+   dragMax=maxDown();
 
    try{nav.setPointerCapture(e.pointerId);}catch(_){}
  });
@@ -1545,6 +1557,7 @@ return Math.max(0,treeBox.top-(settingsBox.bottom-offset)-4); }
    if(!dragging) return;
 
    dragging=false;
+   nav.classList.remove('nav-dragging');
 
    try{nav.releasePointerCapture(e.pointerId);}catch(_){}
 
@@ -1560,6 +1573,7 @@ return Math.max(0,treeBox.top-(settingsBox.bottom-offset)-4); }
 
  nav.addEventListener('pointercancel',function(){
    dragging=false;
+   nav.classList.remove('nav-dragging');
  });
 
  nav.addEventListener('click',function(e){
