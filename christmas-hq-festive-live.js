@@ -521,21 +521,29 @@ max-width:none!important;
         z-index:20;
         width:calc(100% - 32px);
         max-width:650px;
-        margin:12px auto 18px auto;
-        border:1px solid rgba(255,255,255,.18);
-        background:rgba(8,46,37,.96);
-        color:white;
-        border-radius:16px;
-        padding:9px 12px;
-        box-shadow:0 8px 22px rgba(0,0,0,.16);
-        backdrop-filter:blur(14px)
+        margin:8px auto 12px auto;
+        border:2px solid #e7c56a;
+        background:linear-gradient(145deg,#1c6b4e,#083428);
+        color:#fff8df;
+        border-radius:18px;
+        padding:10px 14px 11px;
+        box-shadow:0 4px 0 #b28a34,0 8px 16px #103b3125;
+        text-align:center
+      }
+      .hq-music-dock::before{
+        content:"❄  ✦  ❄";
+        display:block;
+        color:#f2cf78;
+        font-size:11px;
+        letter-spacing:3px;
+        margin-bottom:4px
       }
       
       .hq-music-mini{display:flex;align-items:center;gap:9px}
       .hq-music-icon{font-size:24px}
       .hq-music-info{flex:1;min-width:0}
-      .hq-music-info b,.hq-music-info small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-      .hq-music-info small{opacity:.76;font-size:11px}
+      .hq-music-info b,.hq-music-info small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff8df}
+      .hq-music-info small{opacity:1;font-size:12px;color:#f4efe2}
       .hq-music-btn{
         border:0;border-radius:999px;background:#fff;color:#0c4b3b;
         min-width:44px;height:40px;font-weight:900;font-size:17px;padding:0 12px
