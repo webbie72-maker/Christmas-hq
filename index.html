@@ -496,7 +496,7 @@ function load(){try{let raw=localStorage.getItem(STORAGE);if(raw){let v=JSON.par
  }
  return st;
 }}}catch(e){storageAvailable=false}return seed()}
-let state=load(), ui={tab:'home',sub:{gifts:'My gifts',plan:'Checklist',kitchen:'Recipes',magic:'Advent',explore:'Discover'},recipe:'',category:'All',search:'',giftFilter:'All',giftSearch:'',planFilter:'All',city:'Perth WA',editFamilyId:'',secretRevealId:'',giftRecipientPreset:'',allergyOpen:true,editFoodNeedId:''};
+let state=load(), ui={tab:'home',sub:{gifts:'My gifts',plan:'Checklist',kitchen:'Recipes',magic:'Advent',explore:'Discover'},recipe:'',category:'All',search:'',giftFilter:'All',giftSearch:'',planFilter:'All',city:'Perth WA',editFamilyId:'',secretRevealId:'',santaLetterOpen:false,giftRecipientPreset:'',allergyOpen:true,editFoodNeedId:''};
 const navStack=[];
 function navSnapshot(){return {tab:ui.tab,sub:{...ui.sub},recipe:ui.recipe,category:ui.category,search:ui.search,allergyOpen:ui.allergyOpen}}
 function rememberNav(){if(navStack.length>35)navStack.shift();navStack.push(navSnapshot())}
@@ -561,7 +561,20 @@ function secretScreen(){let group=participating(),s=state.santa,draw=drawPresent
  <div class="privacy-note">🔒 Give the phone to one person at a time. Only reveal that person’s assignment. Don’t send the full Christmas HQ backup to participants: backups contain all assignments.</div>
  ${!exposed||!match?`<div class="card"><label>Who is holding the phone?<select id="secretWho" class="field"><option value="">Choose your name</option>${group.map(m=>`<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('')}</select></label><button class="btn full spaced" data-action="santaReveal">👀 Reveal my Secret Santa</button></div>`:`<div class="santa-result"><span class="em">🎁</span><span class="eyebrow">PRIVATE REVEAL FOR ${esc(exposed.name.toUpperCase())}</span><div class="readonly-desc">You are buying a present for</div><div class="santa-to">${esc(familyById(match.to)?.name||'')}</div><span class="pill green">Limit ${currency(s.budget)}</span>${familyById(match.to)?.wishlist?`<p style="margin:13px 0 0;font-size:12px"><b>Gift hints:</b> ${esc(familyById(match.to).wishlist)}</p>`:''}<p class="muted-note" style="margin-top:13px">Exchange: ${new Date(s.exchangeDate+'T12:00:00').toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'})}</p></div>
  <label style="font-size:12px;font-weight:800">Private message for ${esc(exposed.name)}<textarea id="secretShareText" class="field secret-share-box" readonly>${esc(santaText(exposed.id))}</textarea></label><div class="btnrow spaced"><button class="btn" data-action="santaShare" data-id="${esc(exposed.id)}">↗ Share privately</button><button class="btn alt" data-action="santaCopy" data-id="${esc(exposed.id)}">Copy message</button></div><button class="btn full warn spaced" data-action="santaHide">🔒 Hide and hand phone back</button>`}
- <p class="muted-note">Online account-based Secret Santa, automatic notifications and real-time multi-phone syncing need a hosted version of the app. This offline version stores the draw locally.</p>`:''}`}
+ <p class="muted-note">Online account-based Secret Santa, automatic notifications and real-time multi-phone syncing need a hosted version of the app. This offline version stores the draw locally.</p>`:''}
+ ${line('A letter from Santa')}
+ <div id="santaLetterPay" class="card" style="background:linear-gradient(145deg,#17614f,#0b463a);border:2px solid #e7c56a;color:#fff8df">
+  <h3 style="color:#fff8df">✉️ Personalised letter from Santa</h3>
+  <p class="muted-note" style="color:#f3e2b0">A letter written for one person in the draw. It stays locked until it is paid for.</p>
+  ${ui.santaLetterOpen?`<form class="form" data-form="santaLetter" style="margin-top:12px">
+    <label style="color:#fff8df">Who is the letter for?<select class="field" name="forId" required><option value="">Choose a name</option>${group.map(m=>`<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('')}</select></label>
+    <label style="color:#fff8df">A kind thing they did<input class="field" name="kind" maxlength="120" placeholder="e.g. Helped set the table" required></label>
+    <label style="color:#fff8df">Something they are hoping for<input class="field" name="hope" maxlength="120" placeholder="e.g. A new book" required></label>
+    <label style="color:#fff8df">Who is it from?<input class="field" name="fromName" maxlength="40" placeholder="e.g. Mum" required></label>
+    <button class="btn full" type="submit" style="background:#fff;color:#0b463a;border-color:#e7c56a">Pay for this letter</button>
+    <p class="muted-note" style="color:#f3e2b0">The letter is not written until payment is connected.</p>
+  </form>`:`<button class="btn full" data-action="santaLetterOpen" style="background:#fff;color:#0b463a;border-color:#e7c56a">See letter options</button>`}
+ </div>`}
 
 function home(){const remaining=Math.max(0,Math.ceil((christmas-new Date())/86400000));const done=state.tasks.filter(t=>t.done).length;const remainingBudget=state.budget-state.expenses.reduce((a,e)=>a+Number(e.amount||0),0)-state.gifts.filter(g=>g.bought).reduce((a,g)=>a+Number(g.price||0),0);let next=state.tasks.filter(t=>!t.done).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,4);
 return `<section class="hero"><div class="hero-kicker">COUNTDOWN TO CHRISTMAS ${YEAR}</div><div class="hero-count">${remaining}</div><div class="hero-text">${remaining===1?'day to go!':'days to go!'}</div><div class="hero-sub">Make the season magical, without the last-minute madness.</div><div class="hero-tree">🎄</div></section><div class="summary"><div class="metric"><strong>${done}/${state.tasks.length}</strong><span>Tasks done</span></div><div class="metric gold"><strong>${state.gifts.filter(x=>x.bought).length}/${state.gifts.length}</strong><span>Gifts bought</span></div><div class="metric red"><strong>${currency(remainingBudget)}</strong><span>Budget left</span></div></div>
@@ -1056,6 +1069,8 @@ document.addEventListener('click',e=>{let btn=e.target.closest('button');if(!btn
   state.santa.assignments=result;state.santa.drawnAt=new Date().toISOString();ui.secretRevealId='';persist('Secret Santa draw saved — use private reveals below');break}
  case 'santaReveal':{let chosen=document.getElementById('secretWho')?.value;if(!chosen||!participating().some(m=>m.id===chosen)){notice('Select your name first');break}ui.secretRevealId=chosen;render(false);break}
  case 'santaHide':ui.secretRevealId='';render(false);break;
+ case 'santaLetterOpen':ui.santaLetterOpen=true;render(false);break;
+ case 'personaliseSanta':ui.santaLetterOpen=true;go('gifts','Secret Santa');requestAnimationFrame(()=>document.getElementById('santaLetterPay')?.scrollIntoView({block:'start',behavior:'smooth'}));break;
  case 'santaCopy':copySantaMessage(id);break;
  case 'santaShare':shareSantaMessage(id);break;
  case 'giftDelete':if(confirm('Remove this gift?')){state.gifts=state.gifts.filter(x=>x.id!==id);persist('Gift removed')}break;
@@ -1165,6 +1180,7 @@ The North Pole`;persist('🎅 Santa has received your letter!');break; case 'fam
    let member={id:uid(),name,relation,wishlist,participates:isIn};state.family.push(member);
    if(d.addGuest==='yes'&&!linkedGuest(member))state.guests.push({id:uid(),name,note:'',familyId:member.id});
    if(isIn&&drawPresent())invalidateDraw();persist('Added to your family');}break}
+ case 'santaLetter':notice('Payment is not connected yet, so the letter stays locked.');break;
  case 'santaRules':state.santa.budget=Math.max(0,Number(d.budget)||0);state.santa.exchangeDate=d.exchangeDate;state.santa.message=d.message.trim();persist('Secret Santa rules saved');break;
  case 'santaExclude':{if(!d.a||!d.b||d.a===d.b){notice('Choose two different family members');break}
  if(!participating().some(m=>m.id===d.a)||!participating().some(m=>m.id===d.b)){notice('Both must be in Secret Santa');break}
