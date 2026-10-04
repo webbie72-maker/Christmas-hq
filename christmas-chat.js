@@ -328,7 +328,11 @@
   function draw(top){
     header();
     ensureNav();
+    const intro = (!chat.threadId && !chat.categoryId)
+      ? '<div class="gift-intro"><div class="eyebrow">CHRISTMAS CHAT</div><h2>Gather round and talk Christmas</h2><p class="lead">Community topics, plus a private space just for your family.</p></div>'
+      : '';
     screen.innerHTML='<div class="hq-chat-shell">'+
+      intro+
       (chat.error?'<div class="callout">'+x(chat.error)+'</div>':'')+
       (chat.loading?'<div class="hq-chat-loading">🎄<b>Loading Christmas Chat…</b></div>':
         chat.threadId?threadPage():chat.categoryId?categoryPage():hub())+

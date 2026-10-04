@@ -1395,7 +1395,9 @@ I
          <button class="btn small" style="margin-left:8px" data-hq-action="joinLiveGame">Join →</button></div>`
       : '';
 
+    const intro = `<div class="gift-intro"><div class="eyebrow">FAMILY GAME NIGHT</div><h2>Play together, laugh louder</h2><p class="lead">Trivia, bingo and challenges for the whole family.</p></div>`;
     return `
+      ${intro}
       ${onlineHtml()}
       ${live}
       <div class="hq-games-grid">
