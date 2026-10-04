@@ -1395,7 +1395,7 @@ I
          <button class="btn small" style="margin-left:8px" data-hq-action="joinLiveGame">Join →</button></div>`
       : '';
 
-    const intro = `<div class="gift-intro"><div class="eyebrow">FAMILY GAME NIGHT</div><h2>Play together, laugh louder</h2><p class="lead">Trivia, bingo and challenges for the whole family.</p></div>`;
+    const intro = `<div class="gift-intro"><div class="eyebrow">FAMILY GAME NIGHT</div><h2>Beat the family, then rematch</h2><p class="lead">Trivia, songs, bingo and a wheel of dares.</p></div>`;
     return `
       ${intro}
       ${onlineHtml()}
