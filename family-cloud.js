@@ -406,7 +406,7 @@
             <button class="btn alt" type="submit">Join family</button>
           </form>
 
-          <button class="btn warn" type="button" data-cloud-action="signout">
+          <button class="btn" type="button" data-cloud-action="signout">
             Sign out
           </button>
         </div>
@@ -579,7 +579,12 @@
       const originalSettings = settings;
 
       settings = function () {
-        return cloudPanelHtml() + originalSettings();
+        const html = originalSettings();
+        const close = html.indexOf('</div>');
+        if (html.startsWith('<div class="gift-intro">') && close > 0) {
+          return html.slice(0, close + 6) + cloudPanelHtml() + html.slice(close + 6);
+        }
+        return cloudPanelHtml() + html;
       };
     }
 
