@@ -580,9 +580,19 @@
 
       settings = function () {
         const html = originalSettings();
-        const close = html.indexOf('</div>');
-        if (html.startsWith('<div class="gift-intro">') && close > 0) {
-          return html.slice(0, close + 6) + cloudPanelHtml() + html.slice(close + 6);
+        if (html.startsWith('<div class="gift-intro">')) {
+          let depth = 0;
+          for (let i = 0; i < html.length; i++) {
+            if (html.startsWith('<div', i)) { depth++; i += 3; continue; }
+            if (html.startsWith('</div>', i)) {
+              depth--;
+              if (depth === 0) {
+                const end = i + 6;
+                return html.slice(0, end) + cloudPanelHtml() + html.slice(end);
+              }
+              i += 5;
+            }
+          }
         }
         return cloudPanelHtml() + html;
       };
