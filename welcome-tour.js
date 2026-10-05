@@ -4,7 +4,7 @@
   if (window.__hqWelcomeTour) return;
   window.__hqWelcomeTour = true;
 
-  var STORE_KEY = 'christmas-hq-welcome-tour-v1';
+  var STORE_KEY = 'christmas-hq-welcome-tour-v2';
   var ROOT_ID = 'hqWelcomeTour';
   var STYLE_ID = 'hqWelcomeTourStyle';
   var CARD_ID = 'hqWelcomeTourCard';
@@ -77,6 +77,15 @@
       nav: 'games'
     },
     {
+      id: 'explore',
+      emoji: '✨',
+      title: 'Explore',
+      body: 'Decor ideas and Discover cards live here. Tap a card for steps and a checklist, add it to your plans, or show places near us.',
+      selectors: ['#bottomNav button[data-nav="explore"]'],
+      openNav: true,
+      nav: 'explore'
+    },
+    {
       id: 'chat-tree',
       emoji: '💬',
       title: 'Chat & the tree button',
@@ -84,6 +93,15 @@
       selectors: ['#navToggle', '#bottomNav button[data-nav="chat"]', '#hqBackFab', '#soundToggle'],
       openNav: true,
       nav: 'chat'
+    },
+    {
+      id: 'settings',
+      emoji: '⚙️',
+      title: 'Settings',
+      body: 'In the tree menu: change your pattern lock, connect Family Cloud, export or import a backup, install the app, and replay this tour anytime.',
+      selectors: ['#bottomNav button[data-nav="settings"]', 'button.circle-btn[data-action="settings"]', '.hq-settings-btn'],
+      openNav: true,
+      nav: 'settings'
     }
   ];
 
@@ -491,7 +509,7 @@
   /* ---------- Settings: "Replay welcome tour" card ---------- */
   var CARD_HTML =
     '<h3>🎄 Welcome tour</h3>' +
-    '<p class="muted-note">New here? Take a quick festive stroll through Home, Gifts, Plan, Kitchen, Games &amp; Magic, Chat, and the Christmas tree menu.</p>' +
+    '<p class="muted-note">New here? Take a quick festive stroll through Home, Gifts, Plan, Kitchen, Games &amp; Magic, Explore, Chat, Settings, and the Christmas tree menu.</p>' +
     '<div class="btnrow" style="margin-top:12px"><button class="btn" type="button" data-hq-welcome-action="replay">✨ Replay welcome tour</button></div>' +
     '<p class="muted-note" style="margin-top:10px">The tour shows once on this phone after you unlock. Replay anytime you like a refresher.</p>';
 
