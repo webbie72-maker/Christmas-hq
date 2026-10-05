@@ -954,7 +954,8 @@ max-width:none!important;
 }
 
 /* PROPER BACK BUTTON */
-.hq-page-back{
+/* legacy big back button retired (replaced by #hqBackFab) */
+.hq-page-back{display:none!important;
   position:absolute!important;
   right:18px!important;
   bottom:18px!important;
@@ -2450,4 +2451,81 @@ renderFestiveAfter();
   };
 
   applyApprovedGiftsCopy();
+})();
+
+
+/* SMALL BACK BUTTON — matches the home Christmas tree button (#navToggle) */
+(function () {
+  var SUB_BACK = [
+    '#screen [data-hq-gift-edit-close]',
+    '#screen [data-action="recipeBack"]',
+    '#screen [data-hq-chat-back]',
+    '#screen [data-hq-action="backHub"]'
+  ].join(',');
+
+  function injectBackFabStyle() {
+    if (document.getElementById('hqBackFabStyle')) return;
+    var st = document.createElement('style');
+    st.id = 'hqBackFabStyle';
+    st.textContent =
+      '#hqBackFab{position:fixed;z-index:70;right:calc(8px + env(safe-area-inset-right));' +
+      'bottom:calc(10px + env(safe-area-inset-bottom));width:46px;height:46px;padding:0;margin:0;' +
+      'border:1px solid rgba(255,255,255,.22);background:rgba(10,55,44,.62);border-radius:12px;' +
+      'box-shadow:0 3px 10px rgba(0,0,0,.16);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);' +
+      'display:grid;place-items:center;color:#fff8df;font:700 34px/1 Georgia,serif;cursor:pointer;' +
+      'text-shadow:0 1px 3px rgba(0,0,0,.5);-webkit-tap-highlight-color:transparent}' +
+      '#hqBackFab span{display:block;transform:translate(-1px,-3px)}' +
+      '#hqBackFab[hidden]{display:none!important}' +
+      '#hqBackFab:active{transform:scale(.94)}';
+    document.head.appendChild(st);
+  }
+
+  function visibleSubBack() {
+    var list = document.querySelectorAll(SUB_BACK);
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].offsetParent !== null) return list[i];
+    }
+    return null;
+  }
+
+  function onHome() {
+    try { return typeof ui !== 'undefined' && ui.tab === 'home'; } catch (e) { return false; }
+  }
+
+  function syncBackFab() {
+    var btn = document.getElementById('hqBackFab');
+    if (!btn) return;
+    var show = !onHome() || !!visibleSubBack();
+    if (btn.hidden === show) btn.hidden = !show;
+  }
+
+  function handleBackFab(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var sub = visibleSubBack();
+    if (sub) { sub.click(); }
+    else if (typeof back === 'function') { back(); }
+    setTimeout(syncBackFab, 30);
+  }
+
+  function ensureBackFab() {
+    injectBackFabStyle();
+    if (document.getElementById('hqBackFab')) return;
+    var btn = document.createElement('button');
+    btn.id = 'hqBackFab';
+    btn.type = 'button';
+    btn.setAttribute('aria-label', 'Back');
+    btn.innerHTML = '<span aria-hidden="true">‹</span>';
+    btn.addEventListener('click', handleBackFab);
+    document.body.appendChild(btn);
+    syncBackFab();
+    var target = document.getElementById('screen') || document.body;
+    new MutationObserver(syncBackFab).observe(target, { childList: true, subtree: true });
+    var m = document.querySelector('.mast');
+    if (m) new MutationObserver(syncBackFab).observe(m, { attributes: true, childList: true });
+    document.addEventListener('click', function () { setTimeout(syncBackFab, 30); });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ensureBackFab);
+  else ensureBackFab();
 })();
