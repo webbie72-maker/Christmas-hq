@@ -601,6 +601,7 @@ function secretScreen(){let group=participating(),s=state.santa,draw=drawPresent
   <p class="muted-note" style="color:#f3e2b0">A letter written for one person in the draw. It stays locked until a real payment is connected. Nothing here takes a payment yet.</p>
  </div>`:`<div class="card"><h3>✉️ Personalised letter from Santa</h3><p class="muted-note">Premium only. It stays locked until a real payment is connected.</p></div>`}
 
+`}
 function hqPlan(){return localStorage.getItem('christmasHQ_plan')||'free';}
 function hqFamily(){return hqPlan()==='family'||hqPlan()==='premium';}
 function hqPremium(){return hqPlan()==='premium';}
