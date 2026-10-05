@@ -38,7 +38,7 @@
       </span>
       <span class="recipe-type">${typeof esc==='function' ? esc(r.type) : safeAttr(r.type)}</span>
       <b>${typeof esc==='function' ? esc(r.name) : safeAttr(r.name)}</b>
-      <small>⏱ ${typeof esc==='function' ? esc(r.time) : safeAttr(r>.time)} · ${r.serves} serves</small>
+      <small>⏱ ${typeof esc==='function' ? esc(r.time) : safeAttr(r.time)} · ${r.serves} serves</small>
       <span class="open">Full recipe & method →</span>
     </button>`;
   };

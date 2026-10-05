@@ -74,6 +74,9 @@ h3{font-size:20px}
 .btn.small{font-size:13.5px;min-height:40px;padding:8px 11px}
 .subtabs button{font-size:15px;min-height:47px;padding:11px 16px;font-weight:850;color:#415d4d}
 .item-info b{font-size:16px}.item-info small{font-size:13.5px}
+/* Movie night: titles get their own row beside the icon so they never squeeze to a few letters */
+.movie-item .item-info{flex:1 1 calc(100% - 52px)!important;min-width:0}
+.movie-item .movie-title{display:block;color:#103b31!important;-webkit-text-fill-color:#103b31!important;background:none!important;filter:none!important;text-shadow:none!important;opacity:1!important;font-size:17px!important;font-weight:800;line-height:1.3!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:break-word!important;word-break:normal!important;hyphens:none}
 .form label{font-size:14.5px}.field{font-size:16px;min-height:50px}
 .muted-note{font-size:14px;line-height:1.6}.callout{font-size:14px}
 .metric span{font-size:12.5px;font-weight:700}.pill{font-size:12px}
@@ -911,7 +914,7 @@ function magic(){
             Number(a.movie[1]==='Die Hard')
           )
           .map(({movie:[icon,title,genre],i})=>`
-            <div class="item" style="flex-wrap:wrap">
+            <div class="item movie-item" style="flex-wrap:wrap">
               <a class="item-icon"
                 href="https://www.justwatch.com/au/search?q=${encodeURIComponent(title)}"
                 target="_blank"
@@ -926,7 +929,7 @@ function magic(){
                   target="_blank"
                   rel="noopener noreferrer"
                   style="color:inherit;text-decoration:none">
-                  <b>${esc(title)}</b>
+                  <b class="movie-title">${esc(title)}</b>
                 </a>
                 <small>${esc(genre)}</small>
               </div>
@@ -1249,10 +1252,10 @@ setTimeout(refreshInstallUI,0);
 <script src="./christmas-upgrades.js?v=6"></script>
 <script src="./gift-library-2600.js"></script>
 <script src="./checklist-links-fix.js"></script>
-<script src="./christmas-hq-festive-live.js?v=18"></script><script src="./christmas-chat.js?v=2"></script>
+<script src="./christmas-hq-festive-live.js?v=19"></script><script src="./christmas-chat.js?v=2"></script>
 <script src="./recipe-food-tiles.js?v=2"></script>
 <script src="./panel-transitions.js?v=7"></script>
-<script src="./exact-recipe-photos.js?v=1"></script>
+<script src="./exact-recipe-photos.js?v=2"></script>
 <script src="./christmas-hq-kitchen-v5.js?v=1"></script>
 <script src="./christmas-hq-panel-theme.js?v=8"></script>
 <style>.mast[data-hq-page="magic"]{background:url('./christmas-hq-magic.png?v=2') center/cover no-repeat!important}
