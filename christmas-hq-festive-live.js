@@ -548,8 +548,10 @@ max-width:none!important;
         border:0;border-radius:999px;background:#fff;color:#0c4b3b;
         min-width:44px;height:40px;font-weight:900;font-size:17px;padding:0 12px
       }
-      .hq-music-tools{display:none;gap:7px;margin-top:9px;align-items:center}
+      .hq-music-tools{display:none;gap:7px;margin-top:9px;align-items:center;flex-wrap:wrap}
       .hq-music-dock.open .hq-music-tools{display:flex}
+      .hq-music-actions{display:flex;gap:7px;width:100%}
+      .hq-music-actions .hq-music-btn{flex:1;min-width:0;height:36px;font-size:13px;padding:0 6px}
       .hq-music-tools select{
         min-width:0;flex:1;border-radius:11px;padding:8px;border:1px solid rgba(255,255,255,.25);
         background:#173f36;color:white
@@ -2097,9 +2099,11 @@ audio.volume = hqMusicVolume;
         </select>
         <span>🔈</span>
         <input data-hq-volume type="range" min="0" max="1" step=".05" value="${hqMusicVolume}">
-        <button class="hq-music-btn" data-hq-music="all" style="font-size:12px;white-space:nowrap">Play all</button>
-        <button class="hq-music-btn" data-hq-music="shuffle" style="font-size:12px;white-space:nowrap">Shuffle</button>
-        <button class="hq-music-btn" data-hq-music="add" style="font-size:12px;white-space:nowrap">+ Add song</button>
+        <div class="hq-music-actions">
+          <button class="hq-music-btn" data-hq-music="all">Play all</button>
+          <button class="hq-music-btn" data-hq-music="shuffle">Shuffle</button>
+          <button class="hq-music-btn" data-hq-music="add">Add song</button>
+        </div>
       </div>`;
   }
 
