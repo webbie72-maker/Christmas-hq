@@ -1638,7 +1638,11 @@ return Math.max(0,treeBox.top-(settingsBox.bottom-offset)-4); }
  window.__hqAmbient=true;
  const KEY='christmasHQ_ambient';
  let on=localStorage.getItem(KEY)!=='off';
- let ctx,master,started=false;
+ const bells=new Audio('./bells.ogg');
+ const choir=new Audio('./carolers.mp3');
+ bells.loop=true; choir.loop=true;
+ bells.volume=0.55; choir.volume=0.22;
+ let started=false;
  const btn=document.createElement('button');
  btn.type='button';
  btn.setAttribute('aria-label','Christmas sounds');
@@ -1646,60 +1650,20 @@ return Math.max(0,treeBox.top-(settingsBox.bottom-offset)-4); }
  function paint(){btn.textContent=on?'🔔':'🔕';}
  paint();
  document.body.appendChild(btn);
- function bell(time,freq){
-  const o=ctx.createOscillator();
-  const g=ctx.createGain();
-  o.type='triangle';
-  o.frequency.value=freq;
-  g.gain.setValueAtTime(0.0001,time);
-  g.gain.exponentialRampToValueAtTime(0.05,time+0.02);
-  g.gain.exponentialRampToValueAtTime(0.0001,time+1.4);
-  o.connect(g);g.connect(master);
-  o.start(time);o.stop(time+1.5);
- }
- function hum(time,freq,len){
-  const o=ctx.createOscillator();
-  const g=ctx.createGain();
-  const f=ctx.createBiquadFilter();
-  o.type='sine';
-  o.frequency.value=freq;
-  f.type='lowpass';
-  f.frequency.value=700;
-  g.gain.setValueAtTime(0.0001,time);
-  g.gain.linearRampToValueAtTime(0.018,time+0.35);
-  g.gain.linearRampToValueAtTime(0.0001,time+len);
-  o.connect(f);f.connect(g);g.connect(master);
-  o.start(time);o.stop(time+len+0.05);
- }
- const bells=[659,659,659,659,659,659,659,784,523,587,659];
- const carol=[392,440,392,330,392,440,494,440];
- function loop(){
-  if(!on||!ctx)return;
-  const t=ctx.currentTime+0.05;
-  bells.forEach((n,i)=>bell(t+i*0.42,n));
-  carol.forEach((n,i)=>hum(t+1.2+i*0.9,n,1.05));
-  setTimeout(loop,9000);
- }
  function start(){
-  if(started||!on)return;
-  const AC=window.AudioContext||window.webkitAudioContext;
-  if(!AC)return;
-  ctx=new AC();
-  master=ctx.createGain();
-  master.gain.value=0.55;
-  master.connect(ctx.destination);
+  if(!on)return;
   started=true;
-  ctx.resume();
-  loop();
+  bells.play().catch(()=>{});
+  choir.play().catch(()=>{});
  }
- document.addEventListener('pointerdown',function(){if(on)start();},{once:false});
+ document.addEventListener('pointerdown',function(){if(on&&!started)start();});
  btn.addEventListener('click',function(e){
   e.stopPropagation();
   on=!on;
   localStorage.setItem(KEY,on?'on':'off');
   paint();
-  if(on){start();if(ctx)ctx.resume();}
-  else if(ctx)ctx.suspend();
+  if(on){started=false;start();}
+  else{bells.pause();choir.pause();started=false;}
  });
 })();
 </script>
