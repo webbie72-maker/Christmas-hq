@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.christmas.hq",
+      "sha256_cert_fingerprints": [
+        "FF:FC:77:16:39:61:CF:C5:82:9B:A0:FE:1B:76:D5:27:B3:58:30:74:9A:53:D6:84:70:F6:D5:85:9A:A9:DF:81"
+      ]
+    }
+  }
+]
