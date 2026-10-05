@@ -1639,8 +1639,9 @@ return Math.max(0,treeBox.top-(settingsBox.bottom-offset)-4); }
  const KEY='christmasHQ_ambient';
  let on=localStorage.getItem(KEY)!=='off';
  const music=new Audio('./nutcracker.ogg');
+ music.preload='auto';
  music.loop=true;
- music.volume=0.7;
+ music.volume=0.85;
  let started=false;
  function paint(){
   const btn=document.getElementById('soundToggle');
