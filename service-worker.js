@@ -1,4 +1,4 @@
-const CACHE = 'christmas-hq-pwa-v60';
+const CACHE = 'christmas-hq-pwa-v61';
 
 const CORE = [
   './',

@@ -4,11 +4,13 @@
   if (window.__hqWelcomeTour) return;
   window.__hqWelcomeTour = true;
 
-  var STORE_KEY = 'christmas-hq-welcome-tour-v2';
+  var STORE_KEY = 'christmas-hq-welcome-tour-v3';
   var ROOT_ID = 'hqWelcomeTour';
   var STYLE_ID = 'hqWelcomeTourStyle';
   var CARD_ID = 'hqWelcomeTourCard';
   var Z = 2147482000;
+  /* Leave the left icon tower (~8+46+padding) clear of the tour card. */
+  var TOWER_CLEAR_PX = 96;
 
   var reducedMotion = false;
   try {
@@ -22,86 +24,126 @@
   var waitTimer = null;
   var replayRequested = false;
 
-  /* Selectors tried in order; first visible hit wins. */
+  /*
+   * Tower visual order is bottom→top (column-reverse): Sound nearest the tree,
+   * then Home…Settings at the top. Tour: welcome → tree → each tower icon →
+   * music dock + back (if present) → finish.
+   */
   var STEPS = [
     {
       id: 'welcome',
       emoji: '🎄',
       title: 'Welcome to Christmas HQ',
-      body: 'Your Christmas, sorted. A quick tour of the festive bits — skip anytime.',
+      body: 'Your Christmas, sorted. A quick stroll through every icon in the tree menu — skip anytime.',
       selectors: []
+    },
+    {
+      id: 'tree',
+      emoji: '🎄',
+      title: 'The Christmas tree menu',
+      body: 'Tap the 🎄 tree (bottom left) anytime to open the icon tower. Drag it up or down if you need more reach.',
+      selectors: ['#navToggle']
+    },
+    {
+      id: 'sound',
+      emoji: '🔔',
+      title: 'Sound',
+      body: 'Mute or play the festive ambient music that floats behind Christmas HQ. Tap again whenever you need quiet.',
+      selectors: ['#soundToggle'],
+      openNav: true
     },
     {
       id: 'home',
       emoji: '🏠',
       title: 'Home',
-      body: 'Your countdown to Christmas lives here, with gentle reminders so nothing important sneaks up on you.',
-      selectors: ['#hqReminderCard', '#screen .hero', '#bottomNav button[data-nav="home"]'],
-      openNav: true,
-      nav: 'home'
+      body: 'Your countdown to Christmas lives here, with gentle reminders and shortcuts so nothing important sneaks up on you.',
+      selectors: ['#bottomNav button[data-nav="home"]'],
+      openNav: true
     },
     {
       id: 'gifts',
       emoji: '🎁',
       title: 'Gifts',
-      body: 'My gifts, gift ideas, and Secret Santa — keep every present on track without the panic.',
+      body: 'Track My gifts, browse Gift ideas, and run Secret Santa — keep every present on track without the panic.',
       selectors: ['#bottomNav button[data-nav="gifts"]'],
-      openNav: true,
-      nav: 'gifts'
+      openNav: true
     },
     {
       id: 'plan',
       emoji: '✅',
       title: 'Plan',
-      body: 'Checklist, budget, and your family list — the planning centre for a calmer Christmas.',
+      body: 'Checklist, budget, calendar, family list, and guests — the planning centre for a calmer Christmas.',
       selectors: ['#bottomNav button[data-nav="plan"]'],
-      openNav: true,
-      nav: 'plan'
+      openNav: true
     },
     {
       id: 'kitchen',
       emoji: '🍽️',
       title: 'Kitchen',
-      body: 'Recipes, your menu, and groceries — plus a print list when you’re ready to shop.',
+      body: 'Recipes, your menu, groceries, and a cook plan — plus a print list when you’re ready to shop.',
       selectors: ['#bottomNav button[data-nav="kitchen"]'],
-      openNav: true,
-      nav: 'kitchen'
+      openNav: true
     },
     {
-      id: 'games-magic',
+      id: 'magic',
       emoji: '🎅',
-      title: 'Games & Magic',
-      body: 'Family Games for party fun, and Magic for advent, movies, music, and festive extras.',
-      selectors: ['#bottomNav button[data-nav="games"]', '#bottomNav button[data-nav="magic"]'],
-      openNav: true,
-      nav: 'games'
+      title: 'Magic',
+      body: 'Advent calendar, activities, movie night, and Santa letters — the festive extras that make memories.',
+      selectors: ['#bottomNav button[data-nav="magic"]'],
+      openNav: true
+    },
+    {
+      id: 'games',
+      emoji: '🎮',
+      title: 'Family Games',
+      body: 'Trivia, bingo, memory match, and more for party fun — solo here, or live together with Family Cloud.',
+      selectors: ['#bottomNav button[data-nav="games"]'],
+      openNav: true
+    },
+    {
+      id: 'chat',
+      emoji: '💬',
+      title: 'Chat',
+      body: 'Community Christmas topics and private Family threads — keep the festive chatter in one place.',
+      selectors: ['#bottomNav button[data-nav="chat"]'],
+      openNav: true
     },
     {
       id: 'explore',
       emoji: '✨',
       title: 'Explore',
-      body: 'Decor ideas and Discover cards live here. Tap a card for steps and a checklist, add it to your plans, or show places near us.',
+      body: 'Discover cards, your light trail, and decor ideas. Tap a card for steps, a checklist, or places near you.',
       selectors: ['#bottomNav button[data-nav="explore"]'],
-      openNav: true,
-      nav: 'explore'
-    },
-    {
-      id: 'chat-tree',
-      emoji: '💬',
-      title: 'Chat & the tree button',
-      body: 'Chat has Family and Community threads. Tap the 🎄 tree (left) for the icon tower — Sound mute, tabs, and Settings. The ‹ button on the right takes you back.',
-      selectors: ['#navToggle', '#bottomNav button[data-nav="chat"]', '#hqBackFab', '#soundToggle'],
-      openNav: true,
-      nav: 'chat'
+      openNav: true
     },
     {
       id: 'settings',
       emoji: '⚙️',
       title: 'Settings',
-      body: 'In the tree menu: change your pattern lock, connect Family Cloud, export or import a backup, install the app, and replay this tour anytime.',
-      selectors: ['#bottomNav button[data-nav="settings"]', 'button.circle-btn[data-action="settings"]', '.hq-settings-btn'],
-      openNav: true,
-      nav: 'settings'
+      body: 'Change your pattern lock, connect Family Cloud, export or import a backup, install the app, and replay this tour.',
+      selectors: ['#bottomNav button[data-nav="settings"]'],
+      openNav: true
+    },
+    {
+      id: 'music-dock',
+      emoji: '🎶',
+      title: 'Music dock',
+      body: 'Your song library lives in the music dock — pick a track, set the volume, and keep carols playing while you plan.',
+      selectors: ['.hq-music-dock', '#hqMusicDock']
+    },
+    {
+      id: 'back',
+      emoji: '‹',
+      title: 'Back button',
+      body: 'The ‹ button on the right takes you back a page. Handy after you dive into a recipe, gift, or chat thread.',
+      selectors: ['#hqBackFab']
+    },
+    {
+      id: 'finish',
+      emoji: '✨',
+      title: 'You’re all set',
+      body: 'That’s the tour! Open the tree anytime, explore at your pace, and replay from Settings if you want a refresher. Merry Christmas!',
+      selectors: []
     }
   ];
 
@@ -123,7 +165,6 @@
     if (html.classList.contains('hq-pin-locked')) return false;
     var lock = document.getElementById('hqPinLock');
     if (!lock) {
-      /* Pin script present but overlay not mounted yet — wait. */
       if (window.__hqPinLockLoaded) return false;
       return true;
     }
@@ -143,45 +184,55 @@
       '#' + ROOT_ID + '{position:fixed;inset:0;z-index:' + Z + ';pointer-events:none;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}',
       '#' + ROOT_ID + ' *{box-sizing:border-box}',
       '#' + ROOT_ID + '.hqwt-on{pointer-events:auto}',
-      '#' + ROOT_ID + ' .hqwt-dim{position:absolute;inset:0;background:rgba(8,28,22,.58);' +
-        (reducedMotion ? '' : 'transition:opacity .28s ease;') + 'opacity:0}',
+      '#' + ROOT_ID + ' .hqwt-dim{position:absolute;inset:0;background:rgba(8,28,22,.52);' +
+        (reducedMotion ? '' : 'transition:opacity .28s ease,clip-path .2s ease;') + 'opacity:0}',
       '#' + ROOT_ID + '.hqwt-on .hqwt-dim{opacity:1}',
+      /* Keep the left tower strip undimmed so icons stay readable while lit. */
+      '#' + ROOT_ID + '.hqwt-tower-clear .hqwt-dim{clip-path:inset(0 0 0 ' + TOWER_CLEAR_PX + 'px)}',
       '#' + ROOT_ID + ' .hqwt-spot{position:fixed;pointer-events:none;border-radius:16px;' +
-        'box-shadow:0 0 0 3px #efc85a,0 0 0 8px rgba(239,200,90,.28),0 0 0 9999px rgba(8,28,22,.55);' +
-        'outline:2px solid rgba(255,248,223,.35);z-index:1;' +
+        'box-shadow:0 0 0 3px #efc85a,0 0 0 8px rgba(239,200,90,.32),0 0 0 9999px rgba(8,28,22,.48);' +
+        'outline:2px solid rgba(255,248,223,.4);z-index:1;' +
         (reducedMotion ? '' : 'transition:top .25s ease,left .25s ease,width .25s ease,height .25s ease,opacity .2s ease;') +
         'opacity:0}',
+      '#' + ROOT_ID + '.hqwt-tower-clear .hqwt-spot{' +
+        'box-shadow:0 0 0 3px #efc85a,0 0 0 10px rgba(239,200,90,.4),0 0 24px 6px rgba(239,200,90,.55)}',
       '#' + ROOT_ID + ' .hqwt-spot.hqwt-show{opacity:1}',
       '#' + ROOT_ID + ' .hqwt-sparkles{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1}',
       '#' + ROOT_ID + ' .hqwt-flake{position:absolute;color:#fff8df;opacity:.55;font-size:12px;' +
         (reducedMotion ? 'display:none;' : 'animation:hqwtFall linear infinite;') + '}',
       '@keyframes hqwtFall{0%{transform:translateY(-8vh) rotate(0deg);opacity:0}12%{opacity:.7}100%{transform:translateY(105vh) rotate(280deg);opacity:0}}',
-      '#' + ROOT_ID + ' .hqwt-sheet{position:absolute;left:50%;bottom:0;transform:translateX(-50%) translateY(110%);' +
-        'width:min(100%,420px);z-index:2;padding:0 12px calc(14px + env(safe-area-inset-bottom));' +
-        (reducedMotion ? '' : 'transition:transform .32s cubic-bezier(.2,.8,.2,1);') + '}',
-      '#' + ROOT_ID + '.hqwt-on .hqwt-sheet{transform:translateX(-50%) translateY(0)}',
-      '#' + ROOT_ID + ' .hqwt-card{background:linear-gradient(160deg,#134538 0%,#103b31 55%,#0b2f28 100%);' +
-        'color:#fff8df;border:2px solid #efc85a;border-radius:22px 22px 18px 18px;' +
-        'box-shadow:0 -4px 0 #b28a34,0 12px 36px rgba(0,0,0,.35);padding:18px 16px 14px;position:relative;overflow:hidden}',
+      /* Card sits on the right, clearing the left tower (~0–90px). */
+      '#' + ROOT_ID + ' .hqwt-sheet{position:absolute;left:' + TOWER_CLEAR_PX + 'px;right:10px;bottom:0;' +
+        'width:auto;max-width:min(320px,calc(100% - ' + (TOWER_CLEAR_PX + 20) + 'px));margin-left:auto;' +
+        'z-index:2;padding:0 0 calc(12px + env(safe-area-inset-bottom));transform:translateY(110%);' +
+        (reducedMotion ? '' : 'transition:transform .32s cubic-bezier(.2,.8,.2,1),top .25s ease,bottom .25s ease;') + '}',
+      '#' + ROOT_ID + '.hqwt-on .hqwt-sheet{transform:translateY(0)}',
+      '#' + ROOT_ID + ' .hqwt-sheet.hqwt-top{bottom:auto;top:calc(10px + env(safe-area-inset-top));transform:translateY(-110%)}',
+      '#' + ROOT_ID + '.hqwt-on .hqwt-sheet.hqwt-top{transform:translateY(0)}',
+      '#' + ROOT_ID + ' .hqwt-card{background:linear-gradient(160deg,rgba(19,69,56,.92) 0%,rgba(16,59,49,.94) 55%,rgba(11,47,40,.95) 100%);' +
+        'color:#fff8df;border:2px solid #efc85a;border-radius:20px;' +
+        'box-shadow:0 -3px 0 #b28a34,0 12px 36px rgba(0,0,0,.32);padding:14px 14px 12px;position:relative;overflow:hidden;' +
+        'backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}',
       '#' + ROOT_ID + ' .hqwt-card::before{content:"❄  ✦  ❄";display:block;text-align:center;letter-spacing:4px;' +
-        'font-size:11px;color:#f2cf78;margin:0 0 8px;opacity:.9}',
-      '#' + ROOT_ID + ' .hqwt-emoji{font-size:28px;line-height:1;margin:0 0 6px;text-align:center}',
-      '#' + ROOT_ID + ' .hqwt-title{font:700 20px Georgia,"Times New Roman",serif;margin:0 0 6px;text-align:center;color:#fff8df}',
-      '#' + ROOT_ID + ' .hqwt-body{margin:0 0 14px;font-size:13px;line-height:1.5;color:#e4f0e6;text-align:center}',
-      '#' + ROOT_ID + ' .hqwt-progress{display:flex;justify-content:center;gap:6px;margin:0 0 14px}',
-      '#' + ROOT_ID + ' .hqwt-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,248,223,.28);border:1px solid rgba(239,200,90,.45)}',
+        'font-size:10px;color:#f2cf78;margin:0 0 6px;opacity:.9}',
+      '#' + ROOT_ID + ' .hqwt-emoji{font-size:24px;line-height:1;margin:0 0 4px;text-align:center}',
+      '#' + ROOT_ID + ' .hqwt-title{font:700 17px Georgia,"Times New Roman",serif;margin:0 0 5px;text-align:center;color:#fff8df}',
+      '#' + ROOT_ID + ' .hqwt-body{margin:0 0 10px;font-size:12px;line-height:1.45;color:#e4f0e6;text-align:center}',
+      '#' + ROOT_ID + ' .hqwt-progress{display:flex;justify-content:center;flex-wrap:wrap;gap:5px;margin:0 0 10px;max-width:100%}',
+      '#' + ROOT_ID + ' .hqwt-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,248,223,.28);border:1px solid rgba(239,200,90,.45)}',
       '#' + ROOT_ID + ' .hqwt-dot.hqwt-on{background:#efc85a;box-shadow:0 0 8px rgba(239,200,90,.55)}',
       '#' + ROOT_ID + ' .hqwt-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}',
       '#' + ROOT_ID + ' .hqwt-actions .hqwt-grow{flex:1;min-width:0}',
-      '#' + ROOT_ID + ' .hqwt-btn{appearance:none;-webkit-appearance:none;border-radius:12px;min-height:44px;' +
-        'padding:10px 14px;font-size:13px;font-weight:850;cursor:pointer;border:1px solid transparent;' +
+      '#' + ROOT_ID + ' .hqwt-btn{appearance:none;-webkit-appearance:none;border-radius:12px;min-height:42px;' +
+        'padding:9px 12px;font-size:12px;font-weight:850;cursor:pointer;border:1px solid transparent;' +
         'display:inline-flex;align-items:center;justify-content:center;gap:6px;-webkit-tap-highlight-color:transparent}',
       '#' + ROOT_ID + ' .hqwt-btn:focus-visible{outline:3px solid #efc85a;outline-offset:2px}',
       '#' + ROOT_ID + ' .hqwt-btn-primary{background:#efc85a;color:#103b31;border-color:#d4a84a;flex:1}',
-      '#' + ROOT_ID + ' .hqwt-btn-alt{background:rgba(255,255,255,.1);color:#fff8df;border-color:rgba(255,248,223,.28)}',
-      '#' + ROOT_ID + ' .hqwt-btn-ghost{background:transparent;color:#d2e2d7;border-color:transparent;font-size:12px;min-height:36px;padding:6px 8px}',
+      '#' + ROOT_ID + ' .hqwt-btn-alt{background:rgba(255,255,255,.12);color:#fff8df;border-color:rgba(255,248,223,.28)}',
+      '#' + ROOT_ID + ' .hqwt-btn-ghost{background:transparent;color:#d2e2d7;border-color:transparent;font-size:11px;min-height:32px;padding:5px 8px}',
       '#' + ROOT_ID + ' .hqwt-btn:active{transform:scale(.98)}',
-      '#' + ROOT_ID + ' .hqwt-skiprow{display:flex;justify-content:center;margin-top:6px}',
+      '#' + ROOT_ID + ' .hqwt-skiprow{display:flex;justify-content:center;margin-top:4px}',
+      '@media(max-width:380px){#' + ROOT_ID + ' .hqwt-title{font-size:16px}#' + ROOT_ID + ' .hqwt-body{font-size:11px}#' + ROOT_ID + ' .hqwt-card{padding:12px 11px 10px}}',
       '@media(prefers-reduced-motion:reduce){#' + ROOT_ID + ' .hqwt-flake{display:none!important}#' + ROOT_ID + ' .hqwt-dim,#' + ROOT_ID + ' .hqwt-sheet,#' + ROOT_ID + ' .hqwt-spot{transition:none!important}}'
     ].join('');
     document.head.appendChild(st);
@@ -199,7 +250,7 @@
       '<div class="hqwt-spot" id="hqwtSpot" hidden></div>' +
       '<div class="hqwt-sparkles" id="hqwtSparkles" aria-hidden="true"></div>' +
       '<div class="hqwt-sheet">' +
-        '<div class="hqwt-card" role="dialog" aria-modal="true" aria-labelledby="hqwtTitle" aria-describedby="hqwtBody" tabindex="-1">' +
+        '<div class="hqwt-card" id="' + CARD_ID + 'Dialog" role="dialog" aria-modal="true" aria-labelledby="hqwtTitle" aria-describedby="hqwtBody" tabindex="-1">' +
           '<div class="hqwt-emoji" id="hqwtEmoji" aria-hidden="true"></div>' +
           '<h2 class="hqwt-title" id="hqwtTitle"></h2>' +
           '<p class="hqwt-body" id="hqwtBody"></p>' +
@@ -269,13 +320,12 @@
   }
 
   function findTarget(step) {
-    if (!step || !step.selectors) return null;
+    if (!step || !step.selectors || !step.selectors.length) return null;
     var i;
     for (i = 0; i < step.selectors.length; i++) {
       var el = document.querySelector(step.selectors[i]);
       if (isVisible(el)) return el;
     }
-    /* Retry after opening nav */
     if (step.openNav) {
       openNavTower();
       for (i = 0; i < step.selectors.length; i++) {
@@ -284,6 +334,11 @@
       }
     }
     return null;
+  }
+
+  function rectsOverlap(a, b, pad) {
+    var p = pad || 0;
+    return !(a.right + p <= b.left || a.left - p >= b.right || a.bottom + p <= b.top || a.top - p >= b.bottom);
   }
 
   function placeSpotlight(el) {
@@ -305,6 +360,45 @@
     requestAnimationFrame(function () { spot.classList.add('hqwt-show'); });
   }
 
+  function positionSheet(target) {
+    var root = document.getElementById(ROOT_ID);
+    if (!root) return;
+    var sheet = root.querySelector('.hqwt-sheet');
+    var card = root.querySelector('.hqwt-card');
+    if (!sheet || !card) return;
+
+    /* Default: bottom-right (clears left tower via CSS left offset). */
+    sheet.classList.remove('hqwt-top');
+    /* Force layout so we can measure and flip if needed. */
+    void sheet.offsetWidth;
+
+    if (!target) return;
+
+    var t = target.getBoundingClientRect();
+    var vh = window.innerHeight || 740;
+    var cardH = Math.max(card.getBoundingClientRect().height || 200, 160);
+    /* If the target sits where a bottom card would live, flip to top. */
+    var bottomZoneTop = vh - cardH - 28;
+    var placeTop = t.bottom > bottomZoneTop || t.top > vh * 0.52;
+
+    if (placeTop) sheet.classList.add('hqwt-top');
+    else sheet.classList.remove('hqwt-top');
+
+    void sheet.offsetWidth;
+    var c = card.getBoundingClientRect();
+    if (rectsOverlap(t, c, 10)) {
+      /* Still overlapping — flip the other way. */
+      if (sheet.classList.contains('hqwt-top')) sheet.classList.remove('hqwt-top');
+      else sheet.classList.add('hqwt-top');
+    }
+  }
+
+  function setTowerClear(on) {
+    var root = document.getElementById(ROOT_ID);
+    if (!root) return;
+    root.classList.toggle('hqwt-tower-clear', !!on);
+  }
+
   function renderStep() {
     var root = ensureRoot();
     var step = STEPS[stepIndex];
@@ -312,6 +406,8 @@
 
     if (step.openNav) openNavTower();
     else closeNavTowerIfWeOpened();
+
+    setTowerClear(!!step.openNav);
 
     var emoji = document.getElementById('hqwtEmoji');
     var title = document.getElementById('hqwtTitle');
@@ -342,7 +438,16 @@
     }
 
     var target = findTarget(step);
+    /* Optional steps (music dock / back) — skip if target missing. */
+    if (!target && (step.id === 'music-dock' || step.id === 'back')) {
+      if (stepIndex >= STEPS.length - 1) { finish(true); return; }
+      stepIndex += 1;
+      renderStep();
+      return;
+    }
+
     placeSpotlight(target);
+    positionSheet(target);
 
     root.classList.add('hqwt-on');
     root.setAttribute('aria-hidden', 'false');
@@ -401,7 +506,10 @@
 
   function onResize() {
     if (!active) return;
-    placeSpotlight(findTarget(STEPS[stepIndex]));
+    var step = STEPS[stepIndex];
+    var target = findTarget(step);
+    placeSpotlight(target);
+    positionSheet(target);
   }
 
   function startTour(force) {
@@ -434,6 +542,7 @@
     active = false;
     if (mark) markSeen();
     closeNavTowerIfWeOpened();
+    setTowerClear(false);
     document.removeEventListener('keydown', onKey, true);
     window.removeEventListener('resize', onResize);
     window.removeEventListener('orientationchange', onResize);
@@ -446,7 +555,6 @@
         spot.classList.remove('hqwt-show');
         spot.hidden = true;
       }
-      /* Remove after transition */
       setTimeout(function () {
         var r = document.getElementById(ROOT_ID);
         if (r && !active) r.remove();
@@ -493,7 +601,6 @@
       }
     }, 500);
 
-    /* Also watch html class / lock overlay */
     try {
       var obs = new MutationObserver(function () {
         if (isUnlocked()) {
@@ -506,10 +613,9 @@
     } catch (e) {}
   }
 
-  /* ---------- Settings: "Replay welcome tour" card ---------- */
   var CARD_HTML =
     '<h3>🎄 Welcome tour</h3>' +
-    '<p class="muted-note">New here? Take a quick festive stroll through Home, Gifts, Plan, Kitchen, Games &amp; Magic, Explore, Chat, Settings, and the Christmas tree menu.</p>' +
+    '<p class="muted-note">New here? Take a quick festive stroll through every icon in the Christmas tree menu — Sound, Home, Gifts, Plan, Kitchen, Magic, Games, Chat, Explore, and Settings.</p>' +
     '<div class="btnrow" style="margin-top:12px"><button class="btn" type="button" data-hq-welcome-action="replay">✨ Replay welcome tour</button></div>' +
     '<p class="muted-note" style="margin-top:10px">The tour shows once on this phone after you unlock. Replay anytime you like a refresher.</p>';
 
@@ -576,6 +682,7 @@
   window.ChristmasHQWelcomeTour = {
     start: function () { clearSeen(); startTour(true); },
     reset: function () { clearSeen(); },
-    isActive: function () { return !!active; }
+    isActive: function () { return !!active; },
+    steps: function () { return STEPS.slice(); }
   };
 })();
