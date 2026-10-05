@@ -42,7 +42,13 @@
   let pushTimer = null;
   let cloudReady = false;
   let lastCloudUpdatedAt = null;
-   window.ChristmasHQFamilyCloud = {
+  let authInFlight = false;
+  let authCooldownTimer = null;
+  let authCooldownUntil = 0;
+  let authCooldownBaseMessage = '';
+  let authCooldownKind = ''; // 'confirm' | 'rate'
+
+  window.ChristmasHQFamilyCloud = {
   get client() {
     return db;
   },
@@ -346,6 +352,141 @@
       .subscribe();
   }
 
+
+  function authCooldownRemaining() {
+    return Math.max(0, Math.ceil((authCooldownUntil - Date.now()) / 1000));
+  }
+
+  function parseAuthRateLimitSeconds(err) {
+    const status = err && (err.status ?? err.statusCode);
+    const msg = String((err && err.message) || '');
+    const afterMatch = msg.match(/after\s+(\d+)\s+seconds?/i);
+    if (status === 429 || /security purposes/i.test(msg) || afterMatch) {
+      return afterMatch ? Number(afterMatch[1]) : 60;
+    }
+    return null;
+  }
+
+  function isUserAlreadyExistsError(err) {
+    const msg = String((err && err.message) || '').toLowerCase();
+    return (
+      /already\s+(been\s+)?registered/.test(msg) ||
+      /user\s+already\s+exists/.test(msg) ||
+      /email.*(already|exists)/.test(msg) ||
+      /already\s+exists/.test(msg)
+    );
+  }
+
+  function getAuthButtons(form) {
+    const root = form || document.getElementById('cloudAuthForm');
+    if (!root) return { signInBtn: null, signUpBtn: null };
+    return {
+      signInBtn: root.querySelector('button[value="signin"]'),
+      signUpBtn: root.querySelector('button[value="signup"]')
+    };
+  }
+
+  function setAuthBusy(form, mode) {
+    const { signInBtn, signUpBtn } = getAuthButtons(form);
+    if (signInBtn) {
+      signInBtn.disabled = true;
+      if (mode === 'signin') signInBtn.textContent = 'Signing in…';
+    }
+    if (signUpBtn) {
+      signUpBtn.disabled = true;
+      if (mode === 'signup') signUpBtn.textContent = 'Creating account…';
+    }
+  }
+
+  function rateLimitCooldownMessage(secondsLeft) {
+    return (
+      "We've already sent a link to that email. Check your inbox and junk folder, then press Sign in. You can try again in " +
+      secondsLeft +
+      ' seconds.'
+    );
+  }
+
+  function updateAuthCooldownMessage() {
+    const errorBox = document.getElementById('cloudError');
+    const left = authCooldownRemaining();
+    if (!errorBox) return;
+
+    if (authCooldownKind === 'rate') {
+      errorBox.textContent = rateLimitCooldownMessage(left);
+      return;
+    }
+
+    if (authCooldownBaseMessage) {
+      errorBox.textContent = authCooldownBaseMessage;
+    }
+  }
+
+  function applyAuthCooldownUi(form) {
+    const { signInBtn, signUpBtn } = getAuthButtons(form);
+    const left = authCooldownRemaining();
+
+    if (signInBtn && !authInFlight) {
+      signInBtn.disabled = false;
+      signInBtn.textContent = 'Sign in';
+    }
+
+    if (signUpBtn) {
+      if (left > 0) {
+        signUpBtn.disabled = true;
+        signUpBtn.textContent = 'Create account (' + left + 's)';
+      } else if (!authInFlight) {
+        signUpBtn.disabled = false;
+        signUpBtn.textContent = 'Create account';
+      }
+    }
+
+    if (left > 0) updateAuthCooldownMessage();
+  }
+
+  function clearAuthCooldown() {
+    if (authCooldownTimer) {
+      clearInterval(authCooldownTimer);
+      authCooldownTimer = null;
+    }
+    authCooldownUntil = 0;
+    authCooldownBaseMessage = '';
+    authCooldownKind = '';
+  }
+
+  function startAuthCooldown(seconds, kind, message) {
+    clearAuthCooldown();
+    const secs = Math.max(1, Number(seconds) || 60);
+    authCooldownUntil = Date.now() + secs * 1000;
+    authCooldownKind = kind || 'confirm';
+    authCooldownBaseMessage = message || '';
+
+    applyAuthCooldownUi();
+    authCooldownTimer = setInterval(() => {
+      const left = authCooldownRemaining();
+      applyAuthCooldownUi();
+      if (left <= 0) {
+        clearAuthCooldown();
+        applyAuthCooldownUi();
+      }
+    }, 250);
+  }
+
+  function restoreAuthButtonsAfterRequest(form) {
+    const { signInBtn, signUpBtn } = getAuthButtons(form);
+    if (authCooldownRemaining() > 0) {
+      applyAuthCooldownUi(form);
+      return;
+    }
+    if (signInBtn) {
+      signInBtn.disabled = false;
+      signInBtn.textContent = 'Sign in';
+    }
+    if (signUpBtn) {
+      signUpBtn.disabled = false;
+      signUpBtn.textContent = 'Create account';
+    }
+  }
+
   function authPanel() {
     return `
       <div class="cloud-card">
@@ -366,7 +507,7 @@
 
           <div class="cloud-row">
             <button class="btn" type="submit" name="mode" value="signin">Sign in</button>
-            <button class="btn alt" type="submit" name="mode" value="signup">Create account</button>
+            <button class="btn alt" type="submit" name="mode" value="signup"${authCooldownRemaining() > 0 ? ' disabled' : ''}>${authCooldownRemaining() > 0 ? 'Create account (' + authCooldownRemaining() + 's)' : 'Create account'}</button>
           </div>
         </form>
 
@@ -374,7 +515,7 @@
           Your personal gifts, spending and Secret Santa assignment are not included in the shared family sync.
         </p>
 
-        <div id="cloudError" class="cloud-error"></div>
+        <div id="cloudError" class="cloud-error">${authCooldownRemaining() > 0 ? cloudEsc(authCooldownKind === 'rate' ? rateLimitCooldownMessage(authCooldownRemaining()) : (authCooldownBaseMessage || '')) : ''}</div>
       </div>`;
   }
 
@@ -644,12 +785,19 @@
     if (event.target.id === 'cloudAuthForm') {
       event.preventDefault();
 
-      const formData = new FormData(event.target);
+      const form = event.target;
+      const formData = new FormData(form);
       const mode = event.submitter?.value || 'signin';
       const email = String(formData.get('email') || '').trim();
       const password = String(formData.get('password') || '');
       const displayName = String(formData.get('displayName') || '').trim();
       const errorBox = document.getElementById('cloudError');
+
+      if (authInFlight) return;
+      if (mode === 'signup' && authCooldownRemaining() > 0) return;
+
+      authInFlight = true;
+      setAuthBusy(form, mode);
 
       try {
         if (mode === 'signup') {
@@ -665,11 +813,20 @@
 
           if (error) throw error;
 
-          if (!data.session) {
+          const identities = data?.user?.identities;
+          if (Array.isArray(identities) && identities.length === 0) {
             if (errorBox) {
               errorBox.textContent =
-                'Account created. Check your email to confirm it, then come back and sign in.';
+                'An account with that email already exists. Press Sign in instead.';
             }
+            return;
+          }
+
+          if (!data.session) {
+            const confirmMsg =
+              'Check your email (and junk folder) for a link from Christmas HQ, tap it, then come back and press Sign in.';
+            if (errorBox) errorBox.textContent = confirmMsg;
+            startAuthCooldown(60, 'confirm', confirmMsg);
             return;
           }
         } else {
@@ -680,6 +837,8 @@
 
           if (error) throw error;
         }
+
+        clearAuthCooldown();
 
         const { data } = await db.auth.getSession();
         session = data.session;
@@ -692,9 +851,26 @@
           render(false);
         }
       } catch (err) {
+        const rateSeconds = parseAuthRateLimitSeconds(err);
+        if (rateSeconds != null) {
+          startAuthCooldown(rateSeconds, 'rate', '');
+          return;
+        }
+
+        if (isUserAlreadyExistsError(err)) {
+          if (errorBox) {
+            errorBox.textContent =
+              'An account with that email already exists. Press Sign in instead.';
+          }
+          return;
+        }
+
         if (errorBox) {
           errorBox.textContent = err.message || 'Could not sign in.';
         }
+      } finally {
+        authInFlight = false;
+        restoreAuthButtonsAfterRequest(form);
       }
 
       return;
