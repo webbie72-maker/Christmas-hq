@@ -571,16 +571,18 @@ function familyMusicReady() {
 }
 
   function musicScreen() {
+    const songLibraryLocked = !window.hqFamily || !window.hqFamily();
     return `
       <div class="card" style="background:#f2f6ed">
         <h3>🎵 My Christmas music</h3>
         <p class="muted-note">
-          Add your own Christmas song from your phone, or paste a Suno, YouTube,
-          Spotify or other music link.
+          ${songLibraryLocked
+            ? 'The song library stays locked until a real payment is connected.'
+            : 'Add your own Christmas song from your phone, or paste a Suno, YouTube, Spotify or other music link.'}
         </p>
       </div>
 
-      <form class="card form" id="christmasSongForm">
+      ${songLibraryLocked ? `<div class="card"><h3>Add my song</h3><p class="muted-note">The song library stays locked until a real payment is connected.</p></div>` : `<form class="card form" id="christmasSongForm">
         <h3>Add my song</h3>
 
         <label>
@@ -614,7 +616,7 @@ function familyMusicReady() {
         <p class="muted-note">
   Songs added here are shared with your Family Christmas HQ so everyone in your family can see and play them.
 </p>
-      </form>
+      </form>`}
 
       ${line('My Christmas songs')}
       <div id="christmasSongList">
@@ -756,6 +758,10 @@ function familyMusicReady() {
     if (event.target.id !== 'christmasSongForm') return;
 
     event.preventDefault();
+    if (!window.hqFamily || !window.hqFamily()) {
+      notice('The song library stays locked until a real payment is connected.');
+      return;
+    }
 
     const form = event.target;
     const data = new FormData(form);

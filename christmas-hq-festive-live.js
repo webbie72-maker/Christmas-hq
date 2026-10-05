@@ -2001,7 +2001,7 @@ audio.volume = hqMusicVolume;
 
   function startQueue(list) {
     if (!window.hqFamily || !window.hqFamily()) {
-      notice('Play all and shuffle are in the Family plan. Turn it on in Settings.');
+      notice('Play all and shuffle stay locked until a real payment is connected.');
       return;
     }
     hqQueue = list.map(song => song.id);
@@ -2162,7 +2162,7 @@ renderFestiveAfter();
       }
 
       if (!window.hqFamily || !window.hqFamily()) {
-        notice('Live family games are in the Family plan. Turn it on in Settings.');
+        notice('Live family games stay locked until a real payment is connected.');
         return;
       }
       if (!hqSession || !hqFamilyId) {
@@ -2287,7 +2287,7 @@ renderFestiveAfter();
       }
       if (action === 'add') {
         if (!window.hqFamily || !window.hqFamily()) {
-          notice('The song library is in the Family plan. Turn it on in Settings.');
+          notice('The song library stays locked until a real payment is connected.');
           return;
         }
 

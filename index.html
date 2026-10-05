@@ -602,10 +602,10 @@ function secretScreen(){let group=participating(),s=state.santa,draw=drawPresent
  </div>`:`<div class="card"><h3>✉️ Personalised letter from Santa</h3><p class="muted-note">Premium only. It stays locked until a real payment is connected.</p></div>`}
 
 `}
-function hqPlan(){return localStorage.getItem('christmasHQ_plan')||'free';}
-function hqFamily(){return hqPlan()==='family'||hqPlan()==='premium';}
-function hqPremium(){return hqPlan()==='premium';}
-function planCard(){const plan=hqPlan();const name=plan==='premium'?'Premium':plan==='family'?'Family':'Free';return `<div class="card"><h3>Christmas HQ plans</h3><p class="muted-note">You are on <b>${name}</b>. Free keeps the countdown, checklist, gifts, recipes, advent, bingo and the Nutcracker. Family adds the song library, play all, shuffle and live family games. Premium holds the personal letter from Santa until a real payment is connected. There are no ads.</p><div class="btnrow">${plan!=='family'&&plan!=='premium'?'<button class="btn" data-action="planFamily">Use Family on this phone</button>':''}${plan!=='premium'?'<button class="btn alt" data-action="planPremium">Use Premium on this phone</button>':''}${plan!=='free'?'<button class="btn warn" data-action="planFree">Back to Free</button>':''}</div><p class="muted-note">Play Store billing is not connected yet. These buttons only switch the plan on this phone.</p></div>`;}
+function hqPlan(){return 'free';}
+function hqFamily(){return false;}
+function hqPremium(){return false;}
+function planCard(){return `<div class="card"><h3>Christmas HQ plans</h3><p class="muted-note">This phone is on <b>Free</b>. Family (song library, play all, shuffle, live family games) and Premium (personal letter from Santa) stay locked until a real payment is connected. There are no ads.</p></div>`;}
 function home(){const remaining=Math.max(0,Math.ceil((christmas-new Date())/86400000));const done=state.tasks.filter(t=>t.done).length;const remainingBudget=state.budget-state.expenses.reduce((a,e)=>a+Number(e.amount||0),0)-state.gifts.filter(g=>g.bought).reduce((a,g)=>a+Number(g.price||0),0);let next=state.tasks.filter(t=>!t.done).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,4);
 return `<section class="hero"><div class="hero-kicker">COUNTDOWN TO CHRISTMAS ${YEAR}</div><div class="hero-count">${remaining}</div><div class="hero-text">${remaining===1?'day to go!':'days to go!'}</div><div class="hero-sub">Make the season magical, without the last-minute madness.</div><div class="hero-tree">🎄</div></section><div class="summary"><div class="metric"><strong>${done}/${state.tasks.length}</strong><span>Tasks done</span></div><div class="metric gold"><strong>${state.gifts.filter(x=>x.bought).length}/${state.gifts.length}</strong><span>Gifts bought</span></div><div class="metric red"><strong>${currency(remainingBudget)}</strong><span>Budget left</span></div></div>
 ${line('Your Christmas toolkit','<span class="pill">ALL IN ONE</span>')}
@@ -1068,7 +1068,7 @@ function toggleArray(arr,i){let idx=arr.indexOf(i);if(idx>=0)arr.splice(idx,1);e
 // All buttons are handled in one place. No inline onclick functions or remote script dependencies.
 document.addEventListener('click',e=>{let btn=e.target.closest('button');if(!btn)return;if(btn.dataset.nav){go(btn.dataset.nav);return}let action=btn.dataset.action,id=btn.dataset.id,val=btn.dataset.value;switch(action){
  case 'back':back();break;
- case 'settings':go('settings');break;case 'planFamily':localStorage.setItem('christmasHQ_plan','family');notice('Family is on for this phone');render(false);break;case 'planPremium':localStorage.setItem('christmasHQ_plan','premium');notice('Premium is on for this phone');render(false);break;case 'planFree':localStorage.setItem('christmasHQ_plan','free');notice('Back on Free');render(false);break;
+ case 'settings':go('settings');break;
  case 'installApp':installChristmasHQ();break;
  case 'sub':if(ui.sub[btn.dataset.tab]!==val||ui.recipe)rememberNav();ui.sub[btn.dataset.tab]=val;ui.recipe='';ui.secretRevealId='';render();break; case 'shortcut':go(btn.dataset.target);break; case 'activityOpen':ui.sub[btn.dataset.target]=val;go(btn.dataset.target);break; case 'giftCategory':ui.giftFilter=val;render(false);break;
  case 'planCategory':ui.planFilter=val;render(false);break;
@@ -1246,10 +1246,10 @@ setTimeout(refreshInstallUI,0);
  <script src="https://unpkg.com/html5-qrcode"></script>
  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./family-cloud.js?v=5"></script>
-<script src="./christmas-upgrades.js?v=5"></script>
+<script src="./christmas-upgrades.js?v=6"></script>
 <script src="./gift-library-2600.js"></script>
 <script src="./checklist-links-fix.js"></script>
-<script src="./christmas-hq-festive-live.js?v=15"></script><script src="./christmas-chat.js?v=2"></script>
+<script src="./christmas-hq-festive-live.js?v=16"></script><script src="./christmas-chat.js?v=2"></script>
 <script src="./recipe-food-tiles.js?v=2"></script>
 <script src="./panel-transitions.js?v=7"></script>
 <script src="./exact-recipe-photos.js?v=1"></script>
