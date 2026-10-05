@@ -2000,6 +2000,10 @@ audio.volume = hqMusicVolume;
   }
 
   function startQueue(list) {
+    if (!window.hqFamily || !window.hqFamily()) {
+      notice('Play all and shuffle are in the Family plan. Turn it on in Settings.');
+      return;
+    }
     hqQueue = list.map(song => song.id);
     if (!hqQueue.length) {
       notice('Add a song to the library first');
@@ -2157,6 +2161,10 @@ renderFestiveAfter();
         return;
       }
 
+      if (!window.hqFamily || !window.hqFamily()) {
+        notice('Live family games are in the Family plan. Turn it on in Settings.');
+        return;
+      }
       if (!hqSession || !hqFamilyId) {
         notice('Connect Family Cloud in Settings to start a live family game.');
         return;
@@ -2278,6 +2286,11 @@ renderFestiveAfter();
         startQueue(list);
       }
       if (action === 'add') {
+        if (!window.hqFamily || !window.hqFamily()) {
+          notice('The song library is in the Family plan. Turn it on in Settings.');
+          return;
+        }
+
   ui.tab = 'magic';
   ui.sub.magic = 'Music';
   render(true);
