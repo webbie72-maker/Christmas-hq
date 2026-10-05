@@ -1057,7 +1057,7 @@ const TABS={home:['Home','Your Christmas, sorted','All the magic in one place.']
 function render(top=true){try{
 document.getElementById('bottomNav')?.classList.remove('nav-open');
 document.getElementById('navToggle')?.setAttribute('aria-expanded','false');let [name,title,desc]=TABS[ui.tab]||TABS.home;mast.innerHTML=`<div class="mast-bar"><div class="brand-icon">🎄</div><div><div class="mast-name">Christmas HQ</div><div class="mast-tag">One place for all the magic</div></div><div class="mast-spacer"></div><button class="back-btn" data-action="back" ${navStack.length||ui.tab!=='home'?'':'disabled'} aria-label="Back to previous page">← Back</button><button class="circle-btn" data-action="settings" aria-label="Settings">⚙</button></div><p class="mast-kicker">${esc(name.toUpperCase())} · ${YEAR}</p><h1 class="mast-title">${esc(title)}</h1><p class="mast-desc">${esc(desc)}</p>`;
- screen.innerHTML=({home,gifts,plan,kitchen,magic,explore,settings})[ui.tab]();nav.innerHTML=[['home','🏠','Home'],['gifts','🎁','Gifts'],['plan','✅','Plan'],['kitchen','🍽️','Kitchen'],['magic','🎅','Magic'],['explore','✨','Explore'],['settings','⚙️','Settings']].map(([id,icon,text])=>`<button data-nav="${id}" class="${ui.tab===id?'current':''}" ${ui.tab===id?'aria-current="page"':''}><i>${icon}</i><span>${text}</span></button>`).join('');if(top){window.scrollTo(0,0);screen.classList.remove('page-in');void screen.offsetWidth;screen.classList.add('page-in');}
+ screen.innerHTML=({home,gifts,plan,kitchen,magic,explore,settings})[ui.tab]();nav.innerHTML=[['home','🏠','Home'],['gifts','🎁','Gifts'],['plan','✅','Plan'],['kitchen','🍽️','Kitchen'],['magic','🎅','Magic'],['explore','✨','Explore'],['settings','⚙️','Settings']].map(([id,icon,text])=>`<button data-nav="${id}" class="${ui.tab===id?'current':''}" ${ui.tab===id?'aria-current="page"':''}><i>${icon}</i><span>${text}</span></button>`).join('');nav.insertAdjacentHTML('afterbegin','<button type="button" id="soundToggle" aria-label="Christmas sounds"><i>🔔</i><span>Sound</span></button>');if(top){window.scrollTo(0,0);screen.classList.remove('page-in');void screen.offsetWidth;screen.classList.add('page-in');}
  }catch(e){console.error('Christmas HQ render error',e);screen.innerHTML='<div class="callout">Something interrupted this screen. Please reload the page or reopen the downloaded HTML in Chrome.</div>'}}
 function go(tab,sub){if(ui.tab!==tab||sub&&ui.sub[tab]!==sub||ui.recipe)rememberNav();if(tab==='kitchen'&&ui.tab!=='kitchen'){ui.allergyOpen=false;if(!sub||sub==='Recipes'){ui.sub.kitchen='Recipes';ui.category='All';ui.search=''}}ui.secretRevealId='';ui.tab=tab;ui.recipe='';if(sub)ui.sub[tab]=sub;render(true)}
 function download(name,contents,type){let url=URL.createObjectURL(new Blob([contents],{type}));let a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
@@ -1638,32 +1638,35 @@ return Math.max(0,treeBox.top-(settingsBox.bottom-offset)-4); }
  window.__hqAmbient=true;
  const KEY='christmasHQ_ambient';
  let on=localStorage.getItem(KEY)!=='off';
- const bells=new Audio('./bells.ogg');
- const choir=new Audio('./carolers.mp3');
- bells.loop=true; choir.loop=true;
- bells.volume=0.55; choir.volume=0.22;
+ const music=new Audio('./nutcracker.ogg');
+ music.loop=true;
+ music.volume=0.7;
  let started=false;
- const btn=document.createElement('button');
- btn.type='button';
- btn.setAttribute('aria-label','Christmas sounds');
- btn.style.cssText='position:fixed;z-index:60;right:14px;bottom:calc(92px + env(safe-area-inset-bottom));width:42px;height:42px;border-radius:50%;border:1px solid #e4c98a;background:#103b31;color:#f3d48a;font-size:18px;box-shadow:0 4px 12px #103b3140';
- function paint(){btn.textContent=on?'🔔':'🔕';}
+ function paint(){
+  const btn=document.getElementById('soundToggle');
+  if(!btn)return;
+  btn.innerHTML=on?'<i>🔔</i><span>Sound</span>':'<i>🔕</i><span>Muted</span>';
+  btn.setAttribute('aria-label',on?'Mute Christmas music':'Play Christmas music');
+ }
  paint();
- document.body.appendChild(btn);
  function start(){
   if(!on)return;
   started=true;
-  bells.play().catch(()=>{});
-  choir.play().catch(()=>{});
+  music.play().catch(()=>{});
  }
  document.addEventListener('pointerdown',function(){if(on&&!started)start();});
- btn.addEventListener('click',function(e){
+ document.getElementById('bottomNav').addEventListener('click',function(e){
+  const btn=e.target.closest('#soundToggle');
+  if(!btn)return;
+  e.preventDefault();
   e.stopPropagation();
   on=!on;
   localStorage.setItem(KEY,on?'on':'off');
   paint();
   if(on){started=false;start();}
-  else{bells.pause();choir.pause();started=false;}
+  else{music.pause();started=false;}
  });
+ const orig=render;
+ render=function(top){orig(top);paint();};
 })();
 </script>
