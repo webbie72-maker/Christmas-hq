@@ -590,8 +590,8 @@ max-width:none!important;
       .hq-game-card.wheel{background:linear-gradient(135deg,#ad3f8f,#65307d)}
       .hq-game-card.memory{background:linear-gradient(135deg,#ba3446,#7f2638)}
       .hq-game-stage{
-        border-radius:22px;padding:17px;background:white;border:1px solid #e4e8e1;
-        box-shadow:0 8px 26px rgba(30,60,44,.08)
+        border-radius:22px;padding:14px;background:white;border:1px solid #e4e8e1;
+        box-shadow:0 8px 26px rgba(30,60,44,.08);width:100%;max-width:100%;box-sizing:border-box;overflow:hidden
       }
       .hq-game-stage h2{margin:0 0 8px;color:var(--forest)}
       .hq-game-stage .hq-question{font:700 24px Georgia,serif;line-height:1.2;margin:15px 0}
@@ -609,11 +609,11 @@ max-width:none!important;
       }
       .hq-game-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
       .hq-bingo{
-        display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:12px
+        display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin-top:12px;width:100%;max-width:100%
       }
       .hq-bingo button{
-        aspect-ratio:1;border:1px solid #e0e4dd;border-radius:10px;background:#fff;
-        font-size:13px;font-weight:800;padding:3px;line-height:1.15;color:var(--forest)
+        aspect-ratio:1;min-width:0;overflow:hidden;border:1px solid #e0e4dd;border-radius:10px;background:#fff;
+        font-size:11px;font-weight:800;padding:2px;line-height:1.1;color:var(--forest);overflow-wrap:anywhere
       }
       .hq-bingo button.marked{background:#145440;color:white;border-color:#145440}
       .hq-memory{
@@ -1319,7 +1319,7 @@ I
       @media(max-width:420px){
         .hq-games-grid{grid-template-columns:1fr 1fr}
         .hq-game-card{padding:13px;min-height:137px}
-        .hq-bingo button{font-size:12px}
+        .hq-bingo button{font-size:11px}
       }
     `;
     document.head.appendChild(style);
