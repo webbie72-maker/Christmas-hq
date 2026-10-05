@@ -613,7 +613,7 @@ max-width:none!important;
       }
       .hq-bingo button{
         aspect-ratio:1;border:1px solid #e0e4dd;border-radius:10px;background:#fff;
-        font-size:10px;font-weight:800;padding:4px;line-height:1.1;color:var(--forest)
+        font-size:13px;font-weight:800;padding:3px;line-height:1.15;color:var(--forest)
       }
       .hq-bingo button.marked{background:#145440;color:white;border-color:#145440}
       .hq-memory{
@@ -1319,7 +1319,7 @@ I
       @media(max-width:420px){
         .hq-games-grid{grid-template-columns:1fr 1fr}
         .hq-game-card{padding:13px;min-height:137px}
-        .hq-bingo button{font-size:9px}
+        .hq-bingo button{font-size:12px}
       }
     `;
     document.head.appendChild(style);
