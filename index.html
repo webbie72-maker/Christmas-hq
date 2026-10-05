@@ -801,7 +801,7 @@ function magic(){
       <div class="card" style="text-align:center">
         <h2>🎄 A little magic every day</h2>
         <p>25 little surprises. Tap a gift door to reveal a festive family activity.</p>
-        <span class="pill">${state.advent.length}/25 opened</span>
+        <span class="pill">${state.advent.length}/25 opened</span> <button class="btn small alt" data-action="adventReset" style="margin-left:8px">Reset</button>
       </div>
 
       <div class="advent">
@@ -1147,7 +1147,7 @@ case 'fixedEventEdit':{
  case 'guestInvite':{const guest=state.guests.find(g=>g.id===id);const invite={title:'Christmas invitation',text:`${guest?'Hi '+guest.name+'!':'Hi!'} You're invited to celebrate Christmas with us 🎄🎁 Open Christmas HQ below. Let us know if you can come!`,url:'https://christmas-hq-mu.vercel.app/'};(async()=>{try{if(navigator.share){await navigator.share(invite);return}}catch(e){if(e.name==='AbortError')return}const text=invite.text+'\n'+invite.url;try{await navigator.clipboard.writeText(text);notice('Invitation copied — paste it into Messenger or email')}catch(e){prompt('Copy your invitation:',text)}})();break;} case 'guestDelete':if(confirm('Remove this guest?')){state.guests=state.guests.filter(x=>x.id!==id);persist()}break; case 'menuAdd':if(!state.menu.includes(id))state.menu.push(id);persist('Added to your Christmas menu');break; case 'menuRemove':state.menu=state.menu.filter(x=>x!==id);persist('Dish removed');break;
  case 'ingredientsAdd':{let r=RECIPES.find(x=>x.id===id);if(r){r.ingredients.forEach(name=>state.shopping.push({id:uid(),name,from:r.name,bought:false}));persist(r.ingredients.length+' ingredients added to your grocery list')}break}
  case 'shopDelete':state.shopping=state.shopping.filter(x=>x.id!==id);persist();break;
- case 'advent':{let i=Number(btn.dataset.index);if(!state.advent.includes(i)){state.advent.push(i);persist('Day '+(i+1)+': '+ADVENT[i])}else notice('Day '+(i+1)+': '+ADVENT[i]);break} case 'adventLink':go(btn.dataset.target, btn.dataset.value||undefined);break
+ case 'advent':{let i=Number(btn.dataset.index);if(!state.advent.includes(i)){state.advent.push(i);persist('Day '+(i+1)+': '+ADVENT[i])}else notice('Day '+(i+1)+': '+ADVENT[i]);break} case 'adventReset':if(confirm('Close all the advent doors again?')){state.advent=[];persist('Advent calendar reset')}break; case 'adventLink':go(btn.dataset.target, btn.dataset.value||undefined);break;
  case 'activity':toggleArray(state.activitiesDone,Number(btn.dataset.index));persist();break;
  case 'watch':toggleArray(state.watched,Number(btn.dataset.index));persist();break;
  case 'print':window.print();break;
