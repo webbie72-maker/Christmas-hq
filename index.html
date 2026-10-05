@@ -483,6 +483,33 @@ const MOVIES=[['🎬','Home Alone','Comedy'],['🎬','Elf','Comedy'],['🎬','Th
 const ADVENT=[
 'Make your Christmas wishlist','Tell someone why they matter','Listen to your favourite Christmas song','Make a paper snowflake','Enjoy a Christmas story','Give someone a compliment','Decorate a Christmas biscuit','Watch a festive movie','Draw Santa and his reindeer','Help with a household chore','Make a handmade Christmas card','Donate a toy if you can','Take a silly Christmas photo','Have a backyard picnic','Write a letter to Santa','Make a Christmas ornament','Sing a Christmas carol','Share a favourite family memory','Plan your Christmas lights drive','Wrap one present together','Make hot chocolate or iced cocoa','Play a Christmas family game','Prepare the Christmas table decorations','Get the Christmas Eve box ready','Merry Christmas! Make a lovely family memory'
 ];
+const ADVENT_LINK=[
+['See gift ideas','gifts',''],
+null,
+['Open the song list','magic','Music'],
+['How to make one','https://www.google.com/search?q=how+to+make+a+paper+snowflake'],
+['Read a Christmas story','https://www.google.com/search?q=short+Christmas+story+to+read+aloud'],
+null,
+['Biscuit ideas','https://www.google.com/search?q=Christmas+biscuit+decorating+ideas'],
+['Open movie night','magic','Movie night'],
+['How to draw Santa','https://www.google.com/search?q=easy+how+to+draw+Santa'],
+['Open the checklist','plan','Checklist'],
+['How to make a card','https://www.google.com/search?q=handmade+Christmas+card+ideas'],
+['Find where to donate','https://www.google.com/search?q=donate+toys+near+me+Australia'],
+null,
+['Picnic food ideas','kitchen','Recipes'],
+['Write the letter','magic','Santa letter'],
+['How to make an ornament','https://www.google.com/search?q=easy+Christmas+ornament+craft'],
+['Open the song list','magic','Music'],
+null,
+['Plan the lights drive','explore','Light trail'],
+['Open gifts','gifts',''],
+['Hot chocolate ideas','https://www.google.com/search?q=Christmas+hot+chocolate+recipe'],
+['Family game ideas','https://www.google.com/search?q=Christmas+family+games+to+play'],
+['Decoration ideas','explore','Decor ideas'],
+['Christmas Eve box ideas','https://www.google.com/search?q=Christmas+Eve+box+ideas'],
+null
+];
 const TIMELINE=[['December 21','Buy pantry supplies, drinks and anything frozen.'],['December 23','Collect final fresh produce, seafood orders and ice.'],['December 24 · Morning','Prepare trifle and desserts; organise serving platters and tableware.'],['December 24 · Evening','Prep vegetables, chill drinks, check fridge space and set the table.'],['December 25 · 8 am','Easy family breakfast. Keep cold foods refrigerated.'],['December 25 · 10 am','Start ham or roast according to your recipe; arrange drinks and nibbles.'],['December 25 · 11 am','Cook potatoes and hot sides; prepare fresh salads.'],['December 25 · 12:30 pm','Serve lunch, keeping chilled food cold.'],['December 25 · 2 pm','Bring out pavlova, trifle and the festive treats.']];
 const LOCAL=[['✨','Christmas lights drive','Search display areas and save favourite stops','Christmas lights'],['🛍️','Christmas markets','Find seasonal gifts and local makers','Christmas market'],['🎅','Santa experiences','Explore Santa photos and family events','Santa Christmas photos'],['🎶','Carols & concerts','Look for local Christmas music events','Christmas carols'],['🍽️','Christmas dining','Discover festive lunches and family meals','Christmas restaurant'],['🧸','Family Christmas activities','Search family-friendly holiday outings','Christmas kids activities']];
 const STORAGE='christmas-hq-rebuilt-v1'; let storageAvailable=true;
@@ -789,7 +816,7 @@ function magic(){
         `).join('')}
       </div>
 
-      ${state.advent.length?(i=>'<div class="card" style="margin-top:12px;text-align:center;background:#fff8ea;border-color:#ead7a4"><div class="eyebrow">Day '+(i+1)+'</div><h3 style="margin:0;color:#103b31">'+esc(ADVENT[i])+'</h3></div>')(state.advent[state.advent.length-1]):'<p class="muted" style="text-align:center;margin:12px 0 0">Open a door for a Christmas surprise.</p>'}
+      ${state.advent.length?(i=>{const link=ADVENT_LINK[i];const btn=link?(link[1].startsWith('http')?'<a class="btn" style="margin-top:12px" href="'+link[1]+'" target="_blank" rel="noopener noreferrer">'+esc(link[0])+' ↗</a>':'<button class="btn" style="margin-top:12px" data-action="adventLink" data-target="'+link[1]+'" data-value="'+link[2]+'">'+esc(link[0])+' →</button>'):'';return '<div class="card" style="margin-top:12px;text-align:center;background:#fff8ea;border-color:#ead7a4"><div class="eyebrow">Day '+(i+1)+'</div><h3 style="margin:0;color:#103b31">'+esc(ADVENT[i])+'</h3>'+btn+'</div>'})(state.advent[state.advent.length-1]):'<p class="muted" style="text-align:center;margin:12px 0 0">Open a door for a Christmas surprise.</p>'}
 
       <a class="btn full" style="margin-top:16px"
         href="https://www.google.com/search?q=Christmas+advent+calendar+Australia+buy+DIY"
@@ -1120,7 +1147,7 @@ case 'fixedEventEdit':{
  case 'guestInvite':{const guest=state.guests.find(g=>g.id===id);const invite={title:'Christmas invitation',text:`${guest?'Hi '+guest.name+'!':'Hi!'} You're invited to celebrate Christmas with us 🎄🎁 Open Christmas HQ below. Let us know if you can come!`,url:'https://christmas-hq-mu.vercel.app/'};(async()=>{try{if(navigator.share){await navigator.share(invite);return}}catch(e){if(e.name==='AbortError')return}const text=invite.text+'\n'+invite.url;try{await navigator.clipboard.writeText(text);notice('Invitation copied — paste it into Messenger or email')}catch(e){prompt('Copy your invitation:',text)}})();break;} case 'guestDelete':if(confirm('Remove this guest?')){state.guests=state.guests.filter(x=>x.id!==id);persist()}break; case 'menuAdd':if(!state.menu.includes(id))state.menu.push(id);persist('Added to your Christmas menu');break; case 'menuRemove':state.menu=state.menu.filter(x=>x!==id);persist('Dish removed');break;
  case 'ingredientsAdd':{let r=RECIPES.find(x=>x.id===id);if(r){r.ingredients.forEach(name=>state.shopping.push({id:uid(),name,from:r.name,bought:false}));persist(r.ingredients.length+' ingredients added to your grocery list')}break}
  case 'shopDelete':state.shopping=state.shopping.filter(x=>x.id!==id);persist();break;
- case 'advent':{let i=Number(btn.dataset.index);if(!state.advent.includes(i)){state.advent.push(i);persist('Day '+(i+1)+': '+ADVENT[i])}else notice('Day '+(i+1)+': '+ADVENT[i]);break}
+ case 'advent':{let i=Number(btn.dataset.index);if(!state.advent.includes(i)){state.advent.push(i);persist('Day '+(i+1)+': '+ADVENT[i])}else notice('Day '+(i+1)+': '+ADVENT[i]);break} case 'adventLink':go(btn.dataset.target, btn.dataset.value||undefined);break
  case 'activity':toggleArray(state.activitiesDone,Number(btn.dataset.index));persist();break;
  case 'watch':toggleArray(state.watched,Number(btn.dataset.index));persist();break;
  case 'print':window.print();break;
