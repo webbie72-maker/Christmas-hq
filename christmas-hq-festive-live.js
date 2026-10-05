@@ -8,6 +8,10 @@
 (() => {
   'use strict';
 
+  /* Flip to false to re-lock Family-plan live games behind hqFamily(). */
+  const HQ_GAMES_UNLOCKED = true;
+  window.HQ_GAMES_UNLOCKED = HQ_GAMES_UNLOCKED;
+
   const HQ_SUPABASE_URL = 'https://onrphnvudtcmhltfbwkk.supabase.co';
   const HQ_SUPABASE_KEY = 'sb_publishable_uBe-QyM-eAYFpiRQxnsp7w_7v2HQoBl';
   const GAME_ROW_TITLE = '__live_game__';
@@ -35,6 +39,20 @@
 
   let hqBingoMarked = new Set();
   let hqMemory = null;
+
+  function gamesFamilyOk() {
+    return HQ_GAMES_UNLOCKED || (typeof window.hqFamily === 'function' && window.hqFamily());
+  }
+
+  function soloGamesMode() {
+    return HQ_GAMES_UNLOCKED && (!hqSession || !hqFamilyId);
+  }
+
+  function effectiveUserId() {
+    if (hqSession?.user?.id) return hqSession.user.id;
+    if (soloGamesMode()) return 'local-solo';
+    return null;
+  }
 
   const TRIVIA = [
     ['What colour are the berries on mistletoe?', ['Red','White','Blue','Gold'], 1],
@@ -576,19 +594,28 @@ max-width:none!important;
         display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px
       }
       .hq-game-card{
-        text-align:left;border:0;border-radius:20px;padding:15px;color:#0b493b!important;min-height:148px;        box-shadow:0 9px 24px rgba(20,67,50,.14);position:relative;overflow:hidden
+        text-align:left;border:0;border-radius:20px;padding:15px;color:#fff8df!important;min-height:148px;        box-shadow:0 9px 24px rgba(20,67,50,.14);position:relative;overflow:hidden
       }
       .hq-game-card:after{
         content:"";position:absolute;right:-18px;bottom:-28px;width:95px;height:95px;border-radius:50%;
         background:rgba(255,255,255,.10)
       }
       .hq-game-card .big{display:block;font-size:31px;margin-bottom:11px}
-      .hq-game-card b{display:block;font-size:17px;margin-bottom:5px}
-      .hq-game-card b{display:block;font-size:17px;margin-bottom:5px;color:#0b493b!important}      .hq-game-card.trivia{background:linear-gradient(135deg,#0c7654,#0a4f3d)}
-      .hq-game-card small{display:block;line-height:1.35;color:#5f6c61!important;opacity:1!important}      .hq-game-card.would{background:linear-gradient(135deg,#c65d28,#993b21)}
-      .hq-game-card.bingo{background:linear-gradient(135deg,#2374a8,#174b7a)}
-      .hq-game-card.wheel{background:linear-gradient(135deg,#ad3f8f,#65307d)}
-      .hq-game-card.memory{background:linear-gradient(135deg,#ba3446,#7f2638)}
+      .hq-game-card b{display:block;font-size:17px;margin-bottom:5px;color:#fff!important}
+      .hq-game-card small{display:block;line-height:1.35;color:#f3e6c0!important;opacity:.95!important}
+      /* !important beats index.html HQ blanket on [class*=hq-][class*=card] */
+      .hq-game-card.trivia{background:linear-gradient(135deg,#0c7654,#0a4f3d)!important;color:#fff8df!important}
+      .hq-game-card.song{background:linear-gradient(135deg,#0a6e8a,#0a4560)!important;color:#fff8df!important}
+      .hq-game-card.would{background:linear-gradient(135deg,#c65d28,#993b21)!important;color:#fff8df!important}
+      .hq-game-card.bingo{background:linear-gradient(135deg,#2374a8,#174b7a)!important;color:#fff8df!important}
+      .hq-game-card.wheel{background:linear-gradient(135deg,#ad3f8f,#65307d)!important;color:#fff8df!important}
+      .hq-game-card.memory{background:linear-gradient(135deg,#ba3446,#7f2638)!important;color:#fff8df!important}
+      .hq-game-card.trivia b,.hq-game-card.song b,.hq-game-card.would b,
+      .hq-game-card.bingo b,.hq-game-card.wheel b,.hq-game-card.memory b{color:#fff!important}
+      .hq-game-card.trivia small,.hq-game-card.song small,.hq-game-card.would small,
+      .hq-game-card.bingo small,.hq-game-card.wheel small,.hq-game-card.memory small{color:#f3e6c0!important}
+      /* No lock badge while HQ_GAMES_UNLOCKED — easy to restore later */
+      .hq-game-card.hq-game-locked:after{content:"🔒";right:10px;bottom:10px;width:auto;height:auto;border-radius:0;background:transparent;font-size:18px}
       .hq-game-stage{
         border-radius:22px;padding:14px;background:white;border:1px solid #e4e8e1;
         box-shadow:0 8px 26px rgba(30,60,44,.08);width:100%;max-width:100%;box-sizing:border-box;overflow:hidden
@@ -1421,7 +1448,9 @@ I
       </div>
       <div class="card" style="margin-top:14px;background:#f4f8f1">
         <h3>👪 Family multiplayer</h3>
-        <p class="muted-note">Trivia, Guess the Song, Would You Rather and Spin the Wheel sync live between family members who have joined the same Christmas HQ family. Bingo and Memory Match work instantly on each phone.</p>
+        <p class="muted-note">${HQ_GAMES_UNLOCKED
+          ? 'All games are open to play now. Bingo and Memory Match work on this phone. Trivia, Guess the Song, Would You Rather and Spin the Wheel play solo here, and sync live when Family Cloud is connected.'
+          : 'Trivia, Guess the Song, Would You Rather and Spin the Wheel sync live between family members who have joined the same Christmas HQ family. Bingo and Memory Match work instantly on each phone.'}</p>
       </div>`;
   }
 
@@ -1456,7 +1485,7 @@ I
 
     if (type === 'trivia' || type === 'song') {
       const bank = type === 'trivia' ? TRIVIA : SONG_GUESS;
-      const item = state.quizDeck?.[Number(state.questionIndex||0)] || bank[(state.questionIndex || 0) % bank.length];      const mine = state.answers?.[hqSession?.user?.id];
+      const item = state.quizDeck?.[Number(state.questionIndex||0)] || bank[(state.questionIndex || 0) % bank.length];      const mine = state.answers?.[effectiveUserId()];
       const revealed = state.status === 'result';
       const correct = item[2];
 
@@ -1485,7 +1514,7 @@ I
 
     if (type === 'would') {
       const item = WOULD[(state.questionIndex || 0) % WOULD.length];
-      const mine = state.answers?.[hqSession?.user?.id];
+      const mine = state.answers?.[effectiveUserId()];
       const revealed = state.status === 'result';
       const values = Object.values(state.answers || {});
       const aCount = values.filter(v => v === 0).length;
@@ -1604,13 +1633,15 @@ I
 }
 
   function isHost(state) {
-    return !!hqSession && state?.hostId === hqSession.user.id;
+    if (soloGamesMode()) return true;
+    const uid = effectiveUserId();
+    return !!uid && state?.hostId === uid;
   }
 
   function defaultGameState(type) {
     return {
       game:type,
-      hostId:hqSession?.user?.id || '',
+      hostId:effectiveUserId() || '',
       status:'question',
       questionIndex:0,
       
@@ -1701,14 +1732,15 @@ I
   }
 
   async function submitAnswer(index) {
-    if (!hqSession) {
+    const uid = effectiveUserId();
+    if (!uid) {
       notice('Sign into Family Cloud to play live with family.');
       return;
     }
 
     await mutateLive(state => {
       state.answers ||= {};
-      state.answers[hqSession.user.id] = Number(index);
+      state.answers[uid] = Number(index);
     });
   }
 
@@ -2162,11 +2194,12 @@ renderFestiveAfter();
         return;
       }
 
-      if (!window.hqFamily || !window.hqFamily()) {
+      /* HQ_GAMES_UNLOCKED bypasses the Family plan gate for games only. */
+      if (!gamesFamilyOk()) {
         notice('Live family games stay locked until a real payment is connected.');
         return;
       }
-      if (!hqSession || !hqFamilyId) {
+      if (!soloGamesMode() && (!hqSession || !hqFamilyId)) {
         notice('Connect Family Cloud in Settings to start a live family game.');
         return;
       }
