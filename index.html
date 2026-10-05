@@ -576,7 +576,7 @@ function familyScreen(){let current=familyById(ui.editFamilyId),all=state.family
  ${!current?'<label class="switch-label"><input type="checkbox" name="addGuest" value="yes"> Also add to Christmas Day guests</label>':''}
  <div class="btnrow"><button class="btn" type="submit">${current?'Save family member':'+ Add member'}</button>${current?'<button class="btn alt" type="button" data-action="familyCancel">Cancel</button>':''}</div></form>
  ${line('Your family',`<span class="pill green">${all.length} members</span>`)}
- <div class="list">${all.length?all.map(m=>{let gifts=state.gifts.filter(g=>g.recipientId===m.id||(!g.recipientId&&g.recipient?.toLowerCase()===m.name.toLowerCase())).length;return `<div class="family-card"><div class="family-head"><span class="family-initial">👨‍👩‍👧</span><div class="item-info"><div class="family-name">${esc(m.name)}</div><div class="family-meta">${esc(m.relation||'Family member')} · ${gifts} gifts${linkedGuest(m)?' · Coming for Christmas':''}</div></div><span class="pill ${m.participates!==false?'green':''}">${m.participates!==false?'🎁 In draw':'Not in draw'}</span></div>${m.wishlist?`<p class="readonly-desc"><b>Gift hints:</b> ${esc(m.wishlist)}</p>`:''}<div class="family-actions"><button class="btn small alt" data-action="familyEdit" data-id="${esc(m.id)}">✎ Edit</button><button class="btn small tint" data-action="familyGift" data-id="${esc(m.id)}">+ Gift</button>${!linkedGuest(m)?`<button class="btn small alt" data-action="familyGuest" data-id="${esc(m.id)}">+ Guest</button>`:''}<button class="btn small warn" data-action="familyDelete" data-id="${esc(m.id)}">Remove</button></div></div>`}).join(''):empty('👪','Bring the family together','Add your first family member above. Everyone added here will appear in Secret Santa automatically.')}</div>
+ <div class="list">${all.length?all.map(m=>{let gifts=state.gifts.filter(g=>g.recipientId===m.id||(!g.recipientId&&g.recipient?.toLowerCase()===m.name.toLowerCase())).length;return `<div class="family-card"><div class="family-head"><span class="family-initial">👨‍👩‍👧</span><div class="item-info"><div class="family-name">${esc(m.name)}</div><div class="family-meta">${esc(m.relation||'Family member')} · ${gifts} gifts${linkedGuest(m)?' · Coming for Christmas':''}</div></div><span class="pill ${m.participates!==false?'green':''}">${m.participates!==false?'🎁 In draw':'Not in draw'}</span></div>${m.wishlist?`<p class="readonly-desc"><b>Gift hints:</b> ${esc(m.wishlist)}</p>`:''}<div class="family-actions"><button class="btn small alt" data-action="familyEdit" data-id="${esc(m.id)}">✎ Edit</button><button class="btn small tint" data-action="familyGift" data-id="${esc(m.id)}">+ Gift</button>${!linkedGuest(m)?`<button class="btn small alt" data-action="familyGuest" data-id="${esc(m.id)}">+ Guest</button>`:''}<button class="btn small warn family-remove" type="button" data-action="familyDelete" data-id="${esc(m.id)}" aria-label="Remove ${esc(m.name)} from your family list" title="Remove from family">🗑 Remove</button></div></div>`}).join(''):empty('👪','Bring the family together','Add your first family member above. Everyone added here will appear in Secret Santa automatically.')}</div>
  <div class="card spaced"><h3>📤 Take your family list to another phone</h3><p class="muted-note">Export or import family names and gift hints. This file NEVER contains Secret Santa assignments. It is a manual transfer, not real-time syncing.</p><div class="btnrow"><button class="btn small alt" data-action="familyExport">Download family list</button><label class="btn small tint" for="familyImport" style="cursor:pointer">Import family list</label><input id="familyImport" type="file" accept="application/json,.json" style="display:none"></div></div>
  <div class="card"><h3>🎅 Ready to draw names?</h3><p class="muted-note">The Secret Santa draw uses the family list above. Add participants here, then hop straight to Santa's draw.</p><button class="btn full" data-action="secretOpen">Open Secret Santa →</button></div>`}
 function secretScreen(){let group=participating(),s=state.santa,draw=drawPresent();let assignmentsCurrent=draw&&s.assignments.length===group.length&&s.assignments.every(a=>group.some(x=>x.id===a.from)&&group.some(x=>x.id===a.to));let exposed=familyById(ui.secretRevealId),match=s.assignments.find(a=>a.from===ui.secretRevealId);
@@ -1097,10 +1097,11 @@ document.addEventListener('click',e=>{let btn=e.target.closest('button');if(!btn
  case 'familyCancel':ui.editFamilyId='';render(false);break;
  case 'familyGift':{let m=familyById(id);if(m){ui.giftRecipientPreset=m.name;go('gifts','My gifts')}break}
  case 'familyGuest':{let m=familyById(id);if(m&&!linkedGuest(m)){state.guests.push({id:uid(),name:m.name,note:'',familyId:m.id});persist('Added to Christmas Day guests')}break}
- case 'familyDelete':{let m=familyById(id);if(!m)break;if(confirm(`Remove ${m.name} from Family? ${drawPresent()?'Your existing Secret Santa draw will also be cleared.':'Their Christmas Day guest entry and gifts will be kept.'}`)){
+ case 'familyDelete':{let m=familyById(id);if(!m)break;let inDraw=drawPresent()&&state.santa.assignments.some(a=>a.from===id||a.to===id),lower=String(m.name||'').toLowerCase(),gone=state.guests.filter(g=>g.familyId===id||(!g.familyId&&String(g.name||'').toLowerCase()===lower));
+  if(confirm(`Remove ${m.name} from your family list? They’ll also be taken out of Secret Santa and guests.${inDraw?`\n\n⚠️ Your current Secret Santa draw includes ${m.name}, so the draw will be reset and you’ll need to draw again.`:''}`)){
   state.family=state.family.filter(v=>v.id!==id);state.santa.exclusions=state.santa.exclusions.filter(pair=>!pair.includes(id));
-  if(drawPresent())invalidateDraw();state.guests.forEach(g=>{if(g.familyId===id)delete g.familyId});
-  state.gifts.forEach(g=>{if(g.recipientId===id){g.recipient=m.name;delete g.recipientId}});state.foodNeeds.forEach(n=>{if(n.memberId===id){n.person=m.name;delete n.memberId}});ui.editFamilyId='';persist('Family member removed');}break}
+  if(inDraw)invalidateDraw();if(ui.secretRevealId===id)ui.secretRevealId='';state.guests=state.guests.filter(g=>!gone.includes(g));
+  state.gifts.forEach(g=>{if(g.recipientId===id){g.recipient=m.name;delete g.recipientId}});state.foodNeeds.forEach(n=>{if(n.memberId===id){n.person=m.name;delete n.memberId}});if(ui.editFamilyId===id)ui.editFamilyId='';persist(`${m.name} removed from your family${inDraw?' · Secret Santa draw reset':''}`);}break}
  case 'familyExport':download('christmas-hq-family-'+YEAR+'.json',JSON.stringify(cleanFamilyExport(),null,2),'application/json');notice('Family-only file downloaded (no Secret Santa assignments)');break;
  case 'santaExclusionDelete':{if(drawPresent()&&!confirm('Changing exclusions will clear the current draw. Continue?'))break;state.santa.exclusions=state.santa.exclusions.filter(pair=>pair.join('|')!==id);if(drawPresent())invalidateDraw();persist('Exclusion removed');break}
  case 'santaDraw':{if(participating().length<2){notice('Add two or more family members');break}if(drawPresent()&&!confirm('Replace the existing Secret Santa draw with a new one?'))break;
@@ -1253,11 +1254,11 @@ setTimeout(refreshInstallUI,0);
 </script>
  <script src="https://unpkg.com/html5-qrcode"></script>
  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./family-cloud.js?v=6"></script>
+<script src="./family-cloud.js?v=7"></script>
 <script src="./christmas-upgrades.js?v=6"></script>
 <script src="./gift-library-2600.js"></script>
 <script src="./checklist-links-fix.js"></script>
-<script src="./christmas-hq-festive-live.js?v=20"></script><script src="./christmas-chat.js?v=2"></script>
+<script src="./christmas-hq-festive-live.js?v=20"></script><script src="./christmas-chat.js?v=4"></script>
 <script src="./recipe-food-tiles.js?v=2"></script>
 <script src="./panel-transitions.js?v=7"></script>
 <script src="./exact-recipe-photos.js?v=2"></script>
@@ -1266,7 +1267,8 @@ setTimeout(refreshInstallUI,0);
 <script src="./gift-detail-sheet.js?v=1"></script>
 <script src="./explore-detail-sheet.js?v=1"></script>
 <script src="./metric-links.js?v=1"></script>
-<script src="./tap-fixes.js?v=1"></script><script src="./countdown-reminders.js?v=1"></script>
+<script src="./tap-fixes.js?v=1"></script>
+<script src="./countdown-reminders.js?v=1"></script>
 <style>.mast[data-hq-page="magic"]{background:url('./christmas-hq-magic.png?v=2') center/cover no-repeat!important}
 .mast[data-hq-page="games"]{background:url('./christmas-hq-games.png?v=2') center/cover no-repeat!important}
 .mast[data-hq-page="chat"]{background:url('./christmas-hq-chat.png?v=2') center/cover no-repeat!important}

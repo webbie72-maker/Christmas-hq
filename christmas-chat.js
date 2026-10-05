@@ -20,8 +20,26 @@
     reads: {},
     loading: false,
     error: '',
-    loadedKey: ''
+    loadedKey: '',
+    members: [],
+    membersError: '',
+    panelOpen: {family:true, community:false}
   };
+
+  /* Device-only chat preferences: community you've left, people you've hidden,
+     family chat hidden here when the server won't let you leave. */
+  const PREFS_KEY='christmas-hq-chat-prefs';
+  function readPrefs(){
+    try{
+      const v=JSON.parse(localStorage.getItem(PREFS_KEY)||'{}')||{};
+      return {communityLeft:!!v.communityLeft,hidden:(v.hidden&&typeof v.hidden==='object')?v.hidden:{},familyHidden:(v.familyHidden&&typeof v.familyHidden==='object')?v.familyHidden:{}};
+    }catch(e){return {communityLeft:false,hidden:{},familyHidden:{}};}
+  }
+  let prefs=readPrefs();
+  function savePrefs(){try{localStorage.setItem(PREFS_KEY,JSON.stringify(prefs));}catch(e){}}
+  const isHiddenUser=id=>!!(id && prefs.hidden[id] && id!==session()?.user?.id);
+  const familyChatHidden=()=>!!(familyId() && prefs.familyHidden[familyId()]);
+  const visibleThreads=()=>chat.mode==='community'?chat.threads.filter(t=>!isHiddenUser(t.created_by)):chat.threads;
 
   const x = v => String(v ?? '').replace(/[&<>"']/g, c => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
@@ -201,11 +219,11 @@
 
   function settingsCallout(familyOnly){
     return '<div class="hq-chat-callout">'+
-      '<b>'+(familyOnly?'🔒 Connect your family first':'🔐 Sign in to join the conversation')+'</b>'+
+      '<b>'+(familyOnly?'🔒 Connect your family first':'🔐 Sign in to post in the Community')+'</b>'+
       '<p>'+(familyOnly
         ? 'Family Chat is visible only to people in your connected Christmas HQ family.'
-        : 'You can read Community Chat now. Sign in to create folders, start topics and reply.')+'</p>'+
-      '<button class="btn" data-hq-chat-settings>Open Settings →</button>'+
+        : 'Anyone can read Community topics. To start a topic or reply, sign in (or create a free account) with Family Cloud — it only takes a minute.')+'</p>'+
+      '<button class="btn" type="button" data-hq-chat-settings aria-label="Sign in with Family Cloud in Settings">'+(familyOnly?'Open Family Cloud →':'Sign in →')+'</button>'+
     '</div>';
   }
 
@@ -225,7 +243,7 @@
       return '<div class="empty"><div class="big">💬</div><b>No folders yet</b><p>Start the first Christmas conversation.</p></div>';
     }
     const counts={}, unread={};
-    chat.threads.forEach(t=>{
+    visibleThreads().forEach(t=>{
       counts[t.category_id]=(counts[t.category_id]||0)+1;
       if(isUnread(t)) unread[t.category_id]=(unread[t.category_id]||0)+1;
     });
@@ -241,28 +259,57 @@
 
   function hub(){
     const family=chat.mode==='family';
+    if(!family && prefs.communityLeft) return switcher()+leftCommunityCallout();
+    if(family && familyId() && familyChatHidden()) return switcher()+hiddenFamilyCallout();
+    const topicCount=visibleThreads().length;
     return switcher()+
-      '<div class="hq-chat-intro '+(family?'private':'')+'">'+
-        '<span>'+(family?'🔒':'🌍')+'</span><div><b>'+(family?'Your private Family Chat':'Christmas Community')+'</b>'+
-        '<p>'+(family
-          ? 'Folders, topics and replies here stay inside your connected family.'
-          : 'Christmas-only discussion for the wider Christmas HQ community.')+'</p></div>'+
-      '</div>'+(!family?'<a class="btn full" href="https://www.facebook.com/share/196KiUncX6/" target="_blank" rel="noopener noreferrer" style="display:flex;justify-content:center;text-decoration:none;margin:16px 0">🌍 Join our Facebook community ↗</a>':'')+      (family && !familyId() ? settingsCallout(true) :
+      (family
+        ? '<div class="hq-chat-intro private"><span>🔒</span><div><b>Your private Family Chat</b>'+
+            '<p>Folders, topics and replies here stay inside your connected family.</p></div></div>'
+        : '<button type="button" class="hq-chat-intro hq-chat-intro-btn" data-hq-chat-open-community aria-label="Open Christmas Community topics">'+
+            '<span>🌍</span><div><b>Christmas Community</b>'+
+            '<p>Christmas-only discussion for the wider Christmas HQ community.</p>'+
+            '<em>'+topicCount+' '+(topicCount===1?'topic':'topics')+' · '+chat.categories.length+' '+(chat.categories.length===1?'folder':'folders')+' · Tap to open</em></div>'+
+            '<span class="hq-chat-chevron" aria-hidden="true">›</span></button>')+(!family?'<a class="btn full" href="https://www.facebook.com/share/196KiUncX6/" target="_blank" rel="noopener noreferrer" style="display:flex;justify-content:center;text-decoration:none;margin:16px 0">🌍 Join our Facebook community ↗</a>':'')+      (family && !familyId() ? settingsCallout(true) :
         '<div class="section-line"><h2>'+(family?'Family folders':'Christmas folders')+'</h2><span class="pill">'+chat.categories.length+'</span></div>'+
-        categoryForm()+cards()
+        categoryForm()+cards()+
+        (family ? familyMembersPanel() : communityMembersPanel())
       )+
       (!family ? '<div class="hq-chat-rules"><b>🎄 Keep it Christmas</b><span>Public topics are for Christmas subjects only.</span></div>' : '');
+  }
+
+  /* Community "open" view: every topic across folders + post box / sign-in prompt */
+  function allTopicsPage(){
+    const rows=visibleThreads();
+    const folderName=id=>(chat.categories.find(c=>c.id===id)||{}).name||'Community';
+    return switcher()+
+      '<button class="btn alt hq-chat-back" data-hq-chat-back="hub">← Community home</button>'+
+      '<div class="hq-chat-folder-head"><span>🌍</span><div><h2>Christmas Community</h2><p>Latest topics from every Christmas folder.</p></div></div>'+
+      threadForm(true)+
+      '<div class="section-line"><h2>Latest topics</h2><span class="pill">'+rows.length+'</span></div>'+
+      '<div class="hq-chat-list">'+(rows.length ? rows.map(t=>
+        '<button class="hq-chat-card" data-hq-chat-thread="'+x(t.id)+'">'+
+          '<span class="hq-chat-icon">'+(t.is_pinned?'📌':'💬')+'</span>'+
+          '<span class="hq-chat-copy"><strong>'+x(t.title)+(isUnread(t)?'<span class="hq-chat-new">NEW</span>':'')+'</strong><small>'+x(folderName(t.category_id))+' · '+x(t.author_name||'Christmas HQ member')+' · '+x(when(t.updated_at||t.created_at))+'</small><em>'+x((t.body||'').slice(0,130))+'</em></span>'+
+          '<span class="hq-chat-chevron">›</span>'+
+        '</button>'
+      ).join('') : '<div class="empty"><div class="big">🎄</div><b>No community topics yet</b><p>'+(session()?'Be the first — start a topic above.':'Sign in above to start the very first one.')+'</p></div>')+'</div>'+
+      '<div class="section-line"><h2>Browse folders</h2><span class="pill">'+chat.categories.length+'</span></div>'+
+      cards();
   }
 
   function currentCategory(){
     return chat.categories.find(c=>c.id===chat.categoryId)||null;
   }
 
-  function threadForm(){
+  function threadForm(pickFolder){
     if(!session()) return settingsCallout(false);
     if(chat.mode==='family' && !familyId()) return settingsCallout(true);
-    return '<details class="hq-chat-create"><summary>＋ Start a new topic</summary>'+
-      '<form data-hq-chat-thread-form>'+
+    const picker=pickFolder && chat.categories.length
+      ? '<label>Folder<select class="field" name="category_id" required>'+chat.categories.map(c=>'<option value="'+x(c.id)+'">'+x(c.name)+'</option>').join('')+'</select></label>'
+      : '';
+    return '<details class="hq-chat-create"'+(pickFolder?' open':'')+'><summary>＋ Start a new topic</summary>'+
+      '<form data-hq-chat-thread-form>'+picker+
         '<label>Topic title<input class="field" name="title" maxlength="120" required></label>'+
         '<label>First post<textarea class="field" name="body" rows="5" maxlength="5000" required></textarea></label>'+
         '<button class="btn full" type="submit">Post topic</button>'+
@@ -272,7 +319,7 @@
   function categoryPage(){
     const c=currentCategory();
     if(!c) return hub();
-    const rows=chat.threads.filter(t=>t.category_id===c.id);
+    const rows=visibleThreads().filter(t=>t.category_id===c.id);
     return switcher()+
       '<button class="btn alt hq-chat-back" data-hq-chat-back="hub">← All folders</button>'+
       '<div class="hq-chat-folder-head"><span>'+(chat.mode==='family'?'🔒':'🎄')+'</span><div><h2>'+x(c.name)+'</h2><p>'+x(c.description||'')+'</p></div></div>'+
@@ -296,6 +343,137 @@
     '</form>';
   }
 
+  function shownMessages(){
+    return chat.mode==='community'?chat.messages.filter(m=>!isHiddenUser(m.created_by)):chat.messages;
+  }
+  function hiddenReplyCount(){
+    return chat.messages.length-shownMessages().length;
+  }
+
+  /* ---- Chat members: remove (organiser) / leave (yourself) ---- */
+  function initial(name){
+    return x(String(name||'?').trim().charAt(0).toUpperCase()||'?');
+  }
+
+  function memberRow(name, tags, actions){
+    return '<li class="hq-chat-member"><span class="hq-chat-avatar">'+initial(name)+'</span>'+
+      '<span class="hq-chat-member-name"><b>'+x(name)+'</b>'+(tags?'<small>'+tags+'</small>':'')+'</span>'+
+      '<span class="hq-chat-member-actions">'+actions+'</span></li>';
+  }
+
+  function familyMembersPanel(){
+    const me=session()?.user?.id||'';
+    const owner=!!cloud()?.isOwner;
+    const list=chat.members||[];
+    const rows=list.map(m=>{
+      const name=m.display_name||'Family member';
+      const self=m.user_id===me;
+      const tags=[m.role==='owner'?'★ Organiser':'',self?'You':''].filter(Boolean).join(' · ');
+      let act='';
+      if(self) act='<button type="button" class="btn small warn" data-hq-chat-leave="family" aria-label="Leave Family Chat">🚪 Leave chat</button>';
+      else if(owner) act='<button type="button" class="btn small warn" data-hq-chat-remove-member="'+x(m.user_id)+'" data-name="'+x(name)+'" aria-label="Remove '+x(name)+' from Family Chat">✕ Remove</button>';
+      return memberRow(name,tags,act);
+    }).join('');
+    const note=owner
+      ? 'You created this family, so you can remove people. Removing someone takes them out of Family Chat and shared family plans.'
+      : 'Only the family organiser (★) can remove people. You can leave at any time.';
+    return '<details class="hq-chat-members" data-hq-chat-panel="family"'+(chat.panelOpen.family?' open':'')+'><summary>👥 Family Chat members <span class="pill green">'+list.length+'</span></summary>'+
+      (chat.membersError?'<p class="hq-chat-members-error">'+x(chat.membersError)+'</p>':'')+
+      (rows?'<ul class="hq-chat-member-list">'+rows+'</ul>':'<p class="hq-chat-members-note">Loading family members…</p>')+
+      '<p class="hq-chat-members-note">'+note+'</p>'+
+      (rows && !list.some(m=>m.user_id===me)?'<button type="button" class="btn small warn" data-hq-chat-leave="family" aria-label="Leave Family Chat">🚪 Leave Family Chat</button>':'')+
+    '</details>';
+  }
+
+  function communityMembersPanel(){
+    const me=session()?.user?.id||'';
+    const seen={};
+    chat.threads.forEach(t=>{if(t.created_by && t.created_by!==me && !seen[t.created_by]) seen[t.created_by]=t.author_name||'Christmas HQ member';});
+    const people=Object.keys(seen).filter(id=>!prefs.hidden[id]).slice(0,12);
+    const hidden=Object.keys(prefs.hidden);
+    const rows=people.map(id=>memberRow(seen[id],'Posts in Community',
+      '<button type="button" class="btn small warn" data-hq-chat-hide-user="'+x(id)+'" data-name="'+x(seen[id])+'" aria-label="Remove '+x(seen[id])+' from my Community Chat">✕ Remove</button>')).join('');
+    const hiddenRows=hidden.map(id=>memberRow(prefs.hidden[id]||'Christmas HQ member','Removed from your chat',
+      '<button type="button" class="btn small alt" data-hq-chat-unhide-user="'+x(id)+'" aria-label="Show '+x(prefs.hidden[id]||'this person')+' again">↺ Show again</button>')).join('');
+    return '<details class="hq-chat-members" data-hq-chat-panel="community"'+(chat.panelOpen.community?' open':'')+'><summary>👥 Community people <span class="pill">'+people.length+'</span></summary>'+
+      (rows?'<ul class="hq-chat-member-list">'+rows+'</ul>':'<p class="hq-chat-members-note">No other people have posted in the folders loaded here yet.</p>')+
+      (hiddenRows?'<div class="hq-chat-members-sub">Removed from your chat</div><ul class="hq-chat-member-list">'+hiddenRows+'</ul>':'')+
+      '<p class="hq-chat-members-note">Community Chat is open to every Christmas HQ user, so nobody can be kicked out of it. “Remove” hides that person’s topics and replies on this phone. Use ⚑ Report on a post for anything that breaks the rules.</p>'+
+      '<button type="button" class="btn small warn" data-hq-chat-leave="community" aria-label="Leave Community Chat on this phone">🚪 Leave Community Chat</button>'+
+    '</details>';
+  }
+
+  function leftCommunityCallout(){
+    return '<div class="hq-chat-callout"><b>🚪 You left Community Chat</b>'+
+      '<p>Community topics are hidden on this phone. Your Family Chat still works.</p>'+
+      '<button type="button" class="btn" data-hq-chat-rejoin="community">Rejoin Community Chat</button></div>';
+  }
+
+  function hiddenFamilyCallout(){
+    return '<div class="hq-chat-callout"><b>🙈 Family Chat is hidden on this phone</b>'+
+      '<p>You are still a member of this family on the server. Ask the family organiser to remove you if you want to leave completely.</p>'+
+      '<button type="button" class="btn" data-hq-chat-rejoin="family">Show Family Chat again</button></div>';
+  }
+
+  async function loadMembers(){
+    chat.membersError='';
+    const c=cloud();
+    if(!c || !familyId()){chat.members=[];return;}
+    try{
+      chat.members=typeof c.refreshMembers==='function' ? await c.refreshMembers() : (c.members||[]);
+    }catch(e){
+      chat.members=c.members||[];
+      chat.membersError='Could not load the member list right now.';
+    }
+  }
+
+  async function removeChatMember(userId, name){
+    const c=cloud();
+    if(!c || typeof c.removeMember!=='function'){notice('Family Cloud is still connecting.');return;}
+    if(!confirm('Remove '+name+' from Family Chat?\n\nThey’ll be taken out of your connected family, so they lose access to Family Chat and shared family plans. They can only come back with a new invite.')) return;
+    try{
+      await c.removeMember(userId);
+      chat.members=(c.members||[]).filter(m=>m.user_id!==userId);
+      notice(name+' removed from Family Chat');
+    }catch(err){
+      notice(err.message||'Could not remove that member.');
+    }
+    chat.loadedKey='';
+    await loadHub(true);
+  }
+
+  async function leaveChat(kind){
+    if(kind==='community'){
+      if(!confirm('Leave Community Chat?\n\nCommunity topics will be hidden on this phone. You can rejoin any time, and your Family Chat isn’t affected.')) return;
+      prefs.communityLeft=true;savePrefs();
+      chat.categoryId='';chat.threadId='';chat.currentThread=null;chat.messages=[];
+      draw(true);notice('You left Community Chat');
+      return;
+    }
+    const c=cloud();
+    if(!c || !familyId() || typeof c.leaveFamily!=='function'){notice('You are not connected to a family.');return;}
+    const familyName=c.family?.name||'your family';
+    const owner=!!c.isOwner && (chat.members||[]).length>1;
+    if(!confirm('Leave Family Chat?\n\nFamily Chat belongs to your connected family, so this takes you out of “'+familyName+'”. You’ll stop seeing family topics and shared plans until someone invites you again.'+(owner?'\n\n⚠️ You created this family. After you leave, nobody will be able to remove members.':''))) return;
+    const fid=familyId();
+    try{
+      await c.leaveFamily();
+      chat.members=[];chat.categoryId='';chat.threadId='';chat.currentThread=null;chat.messages=[];chat.loadedKey='';
+      notice('You left '+familyName);
+    }catch(err){
+      if(err && err.code==='HQ_NOT_ALLOWED'){
+        if(confirm('The family server didn’t let you leave (it may only allow the organiser to change members).\n\nHide Family Chat on this phone instead?')){
+          prefs.familyHidden[fid]=true;savePrefs();
+          chat.categoryId='';chat.threadId='';chat.currentThread=null;chat.messages=[];
+          notice('Family Chat hidden on this phone');
+        }
+      }else{
+        notice((err && err.message)||'Could not leave the family.');
+      }
+    }
+    await loadHub(true);
+  }
+
   function threadPage(){
     const t=chat.currentThread;
     if(!t) return categoryPage();
@@ -310,8 +488,9 @@
           (!mine && chat.mode==='community'?'<button class="btn small alt" data-hq-chat-report-thread="'+x(t.id)+'">⚑ Report</button>':'')+
         '</div>'+
       '</article>'+
-      '<div class="section-line"><h2>Replies</h2><span class="pill">'+chat.messages.length+'</span></div>'+
-      '<div class="hq-chat-messages">'+(chat.messages.length ? chat.messages.map(m=>{
+      '<div class="section-line"><h2>Replies</h2><span class="pill">'+shownMessages().length+'</span></div>'+
+      (hiddenReplyCount()?'<p class="hq-chat-hidden-note">'+hiddenReplyCount()+' '+(hiddenReplyCount()===1?'reply':'replies')+' from people you hid aren\'t shown.</p>':'')+
+      '<div class="hq-chat-messages">'+(shownMessages().length ? shownMessages().map(m=>{
         const myReply=session()?.user?.id && m.created_by===session().user.id;
         return '<div class="hq-chat-message"><span class="hq-chat-avatar">'+x((m.author_name||'C').charAt(0).toUpperCase())+'</span>'+
           '<div class="hq-chat-message-body"><div class="hq-chat-meta"><b>'+x(m.author_name||'Christmas HQ member')+'</b> · '+x(when(m.created_at))+(m.edited_at?' · edited':'')+'</div>'+
@@ -335,7 +514,8 @@
       intro+
       (chat.error?'<div class="callout">'+x(chat.error)+'</div>':'')+
       (chat.loading?'<div class="hq-chat-loading">🎄<b>Loading Christmas Chat…</b></div>':
-        chat.threadId?threadPage():chat.categoryId?categoryPage():hub())+
+        ((chat.mode==='community'&&prefs.communityLeft)||(chat.mode==='family'&&familyChatHidden()))?hub():
+        chat.threadId?threadPage():chat.categoryId==='__all__'?allTopicsPage():chat.categoryId?categoryPage():hub())+
     '</div>';
     if(top) window.scrollTo({top:0,behavior:'instant'});
   }
@@ -359,10 +539,11 @@
       const [cr,tr,rr]=await Promise.all([cq,tq,readPromise]);
       if(cr.error) throw cr.error;
       if(tr.error) throw tr.error;
-      if(rr.error) throw rr.error;
+      if(rr.error) console.warn('Christmas Chat: unread markers unavailable',rr.error);
       chat.categories=cr.data||[];
       chat.threads=tr.data||[];
-      chat.reads=Object.fromEntries((rr.data||[]).map(r=>[r.thread_id,r.last_read_at]));
+      chat.reads=Object.fromEntries((rr.error?[]:(rr.data||[])).map(r=>[r.thread_id,r.last_read_at]));
+      if(chat.mode==='family') await loadMembers();
       chat.loadedKey=key;
       updateNavBadge();
     }catch(e){chat.error=e.message||'Could not load Christmas Chat.';}
@@ -428,7 +609,16 @@
     if(t){e.preventDefault();await loadThread(t.dataset.hqChatThread);return;}
     const b=e.target.closest('[data-hq-chat-back]');
     if(b){e.preventDefault();if(b.dataset.hqChatBack==='category'){chat.threadId='';chat.currentThread=null;chat.messages=[];}else{chat.categoryId='';chat.threadId='';chat.currentThread=null;chat.messages=[];}draw(true);return;}
-    if(e.target.closest('[data-hq-chat-settings]')){e.preventDefault();go('settings');return;}
+    if(e.target.closest('[data-hq-chat-settings]')){
+      e.preventDefault();go('settings');
+      setTimeout(()=>{
+        const target=document.getElementById('cloudAuthForm')||document.getElementById('cloudCreateFamilyForm')||document.querySelector('.cloud-card');
+        if(target){target.scrollIntoView({block:'center',behavior:'smooth'});target.querySelector('input[name="email"]')?.focus({preventScroll:true});}
+      },150);
+      return;
+    }
+    const openCommunity=e.target.closest('[data-hq-chat-open-community]');
+    if(openCommunity){e.preventDefault();chat.mode='community';chat.categoryId='__all__';chat.threadId='';chat.currentThread=null;chat.messages=[];draw(true);return;}
 
     if(e.target.closest('[data-hq-chat-modal-close]') || e.target.id==='hqChatModal'){
       e.preventDefault(); closeChatModal(); return;
@@ -469,11 +659,44 @@
       return;
     }
 
+    const removeMember=e.target.closest('[data-hq-chat-remove-member]');
+    if(removeMember){e.preventDefault();await removeChatMember(removeMember.dataset.hqChatRemoveMember,removeMember.dataset.name||'this member');return;}
+
+    const leave=e.target.closest('[data-hq-chat-leave]');
+    if(leave){e.preventDefault();await leaveChat(leave.dataset.hqChatLeave);return;}
+
+    const rejoin=e.target.closest('[data-hq-chat-rejoin]');
+    if(rejoin){
+      e.preventDefault();
+      if(rejoin.dataset.hqChatRejoin==='community') prefs.communityLeft=false;
+      else if(familyId()) delete prefs.familyHidden[familyId()];
+      savePrefs();chat.loadedKey='';await loadHub(true);notice('Welcome back to Christmas Chat');
+      return;
+    }
+
+    const hideUser=e.target.closest('[data-hq-chat-hide-user]');
+    if(hideUser){
+      e.preventDefault();
+      const name=hideUser.dataset.name||'this person';
+      if(confirm('Remove '+name+' from your Community Chat?\n\nTheir topics and replies will be hidden on this phone. Community Chat is open to everyone, so this doesn’t delete their account or posts for other people.')){
+        prefs.hidden[hideUser.dataset.hqChatHideUser]=name;savePrefs();draw();notice(name+' removed from your chat');
+      }
+      return;
+    }
+
+    const unhideUser=e.target.closest('[data-hq-chat-unhide-user]');
+    if(unhideUser){e.preventDefault();delete prefs.hidden[unhideUser.dataset.hqChatUnhideUser];savePrefs();draw();notice('Showing their posts again');return;}
+
     const reportThread=e.target.closest('[data-hq-chat-report-thread]');
     if(reportThread){e.preventDefault();openReport('thread',reportThread.dataset.hqChatReportThread);return;}
 
     const reportMessage=e.target.closest('[data-hq-chat-report-message]');
     if(reportMessage){e.preventDefault();openReport('message',reportMessage.dataset.hqChatReportMessage);return;}
+  },true);
+
+  document.addEventListener('toggle',e=>{
+    const panel=e.target;
+    if(panel && panel.matches && panel.matches('[data-hq-chat-panel]')) chat.panelOpen[panel.dataset.hqChatPanel]=panel.open;
   },true);
 
   document.addEventListener('submit',async e=>{
@@ -504,7 +727,7 @@
         if(!session()?.user){notice('Sign in through Settings first.');return;}
         const d=new FormData(e.target);
         const r=await db().from('chat_threads').insert({
-          category_id:chat.categoryId,
+          category_id:String(d.get('category_id')||'')||chat.categoryId,
           title:String(d.get('title')||'').trim(),
           body:String(d.get('body')||'').trim()
         }).select('id').single();
@@ -551,7 +774,7 @@
     '.hq-chat-list,.hq-chat-messages{display:grid;gap:9px}.hq-chat-card{width:100%;display:flex;align-items:center;gap:11px;text-align:left;border:1px solid #e0e6de;border-radius:17px;background:#fff;padding:13px;box-shadow:0 7px 20px rgba(18,61,47,.045);color:#25372e}.hq-chat-icon{width:43px;height:43px;min-width:43px;display:grid;place-items:center;border-radius:13px;background:#f1f5ed;font-size:22px}.hq-chat-copy{flex:1;min-width:0}.hq-chat-copy strong{display:block;color:#103b31;font-size:14px}.hq-chat-copy small,.hq-chat-copy em{display:block;margin-top:3px;color:#728077;font-size:11px;line-height:1.4}.hq-chat-copy em{color:#9b783c;font-size:10px;font-style:normal;font-weight:850}.hq-chat-chevron{color:#3d765d;font-size:28px}'+
     '.hq-chat-callout{border:1px solid #e6dcc5;border-radius:17px;background:#fff9ed;padding:15px}.hq-chat-callout b{color:#103b31}.hq-chat-callout p{margin:6px 0 12px;color:#68776d;font-size:12px}.hq-chat-rules{display:flex;gap:8px;padding:12px;border-radius:14px;background:#f8f4e8;color:#715f3c;font-size:11px}.hq-chat-folder-head h2{margin:0;color:#103b31}.hq-chat-back{width:max-content}'+
     '.hq-chat-topic{padding:18px;border-radius:20px;background:#fff;border:1px solid #e0e6de;box-shadow:0 8px 24px rgba(18,61,47,.05)}.hq-chat-topic h2{margin:10px 0 6px;color:#103b31}.hq-chat-topic>p{margin:14px 0 0;line-height:1.65}.hq-chat-meta{color:#8a958d;font-size:11px}.hq-chat-message{display:flex;gap:10px;padding:13px;border:1px solid #e2e7df;border-radius:16px;background:#fff}.hq-chat-avatar{width:38px;height:38px;min-width:38px;display:grid;place-items:center;border-radius:50%;background:#eaf3e8;color:#1d6045;font-weight:900}.hq-chat-message p{margin:5px 0 0;line-height:1.55;overflow-wrap:anywhere}'+
-    '.hq-chat-reply{position:sticky;bottom:calc(82px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;padding:11px;border:1px solid #dce4dc;border-radius:17px;background:rgba(255,254,250,.96);backdrop-filter:blur(12px)}.hq-chat-loading{min-height:180px;display:grid;place-items:center;align-content:center;gap:8px;font-size:34px;color:#526658}.hq-chat-loading b{font-size:13px}.hq-chat-new{display:inline-block;margin-left:7px;padding:2px 6px;border-radius:999px;background:#ba3446;color:#fff;font-size:8px;letter-spacing:.4px;vertical-align:2px}.hq-chat-nav-badge{position:absolute;top:3px;right:5px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:#ba3446;color:#fff;display:grid;place-items:center;font-size:8px;font-weight:900}.nav button{position:relative}.hq-chat-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.hq-chat-text-btn{border:0;background:transparent;color:#2c7554;font-size:10px;font-weight:900;padding:3px 0}.hq-chat-text-btn.danger{color:#a43c46}.hq-chat-message-body{flex:1;min-width:0}#hqChatModal{position:fixed;inset:0;z-index:10000;display:flex;align-items:flex-end;justify-content:center;padding:18px 12px calc(18px + env(safe-area-inset-bottom));background:rgba(2,20,16,.72);backdrop-filter:blur(8px)}.hq-chat-modal-card{width:min(100%,540px);max-height:88dvh;overflow:auto;border-radius:23px;background:#fffefa;padding:15px;box-shadow:0 24px 70px rgba(0,0,0,.35)}.hq-chat-modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;color:#103b31;font-size:17px}.hq-chat-modal-head button{width:34px;height:34px;border:0;border-radius:10px;background:#f4eeee;color:#9a3340;font-size:22px}.hq-chat-modal-card form{display:grid;gap:11px}.hq-chat-modal-card label{font-size:12px;font-weight:850;color:#526658}.hq-chat-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}@media(max-width:430px){.nav button{font-size:9px!important}.nav button i{font-size:20px!important}.hq-chat-reply{grid-template-columns:1fr}}';
+    '.hq-chat-reply{position:sticky;bottom:calc(82px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;padding:11px;border:1px solid #dce4dc;border-radius:17px;background:rgba(255,254,250,.96);backdrop-filter:blur(12px)}.hq-chat-loading{min-height:180px;display:grid;place-items:center;align-content:center;gap:8px;font-size:34px;color:#526658}.hq-chat-loading b{font-size:13px}.hq-chat-new{display:inline-block;margin-left:7px;padding:2px 6px;border-radius:999px;background:#ba3446;color:#fff;font-size:8px;letter-spacing:.4px;vertical-align:2px}.hq-chat-nav-badge{position:absolute;top:3px;right:5px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:#ba3446;color:#fff;display:grid;place-items:center;font-size:8px;font-weight:900}.nav button{position:relative}.hq-chat-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.hq-chat-text-btn{border:0;background:transparent;color:#2c7554;font-size:10px;font-weight:900;padding:3px 0}.hq-chat-text-btn.danger{color:#a43c46}.hq-chat-message-body{flex:1;min-width:0}#hqChatModal{position:fixed;inset:0;z-index:10000;display:flex;align-items:flex-end;justify-content:center;padding:18px 12px calc(18px + env(safe-area-inset-bottom));background:rgba(2,20,16,.72);backdrop-filter:blur(8px)}.hq-chat-modal-card{width:min(100%,540px);max-height:88dvh;overflow:auto;border-radius:23px;background:#fffefa;padding:15px;box-shadow:0 24px 70px rgba(0,0,0,.35)}.hq-chat-modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;color:#103b31;font-size:17px}.hq-chat-modal-head button{width:34px;height:34px;border:0;border-radius:10px;background:#f4eeee;color:#9a3340;font-size:22px}.hq-chat-modal-card form{display:grid;gap:11px}.hq-chat-modal-card label{font-size:12px;font-weight:850;color:#526658}.hq-chat-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}.hq-chat-intro-btn{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer;align-items:center}.hq-chat-intro-btn>div{flex:1;min-width:0}.hq-chat-intro-btn em{display:block;margin-top:6px;color:#9b783c;font-size:11px;font-style:normal;font-weight:900}.hq-chat-intro-btn:active{transform:scale(.99)}.hq-chat-members{border:1px solid #dce5dc;border-radius:17px;background:#fff;padding:0 14px 14px;box-shadow:0 7px 20px rgba(18,61,47,.045)}.hq-chat-members summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 0 10px;color:#195342;font-size:13px;font-weight:900;cursor:pointer}.hq-chat-member-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}.hq-chat-member{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid #edf0e9;border-radius:14px;background:#fbfcf9}.hq-chat-member-name{flex:1;min-width:0}.hq-chat-member-name b{display:block;color:#103b31;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hq-chat-member-name small{display:block;color:#7b887f;font-size:10.5px;font-weight:800;margin-top:2px}.hq-chat-member-actions{display:flex;gap:6px;flex-shrink:0}.hq-chat-member-actions .btn.small,.hq-chat-members>.btn.small{min-height:34px;font-size:11.5px;padding:6px 10px;width:auto}.hq-chat-members>.btn.small{margin-top:10px}.hq-chat-members-note,.hq-chat-hidden-note{margin:10px 0 0;color:#6d7b72;font-size:11px;line-height:1.5}.hq-chat-members-error{margin:0 0 8px;color:#9a3340;font-size:11.5px}.hq-chat-members-sub{margin:12px 0 6px;color:#8a6a33;font-size:10.5px;font-weight:900;letter-spacing:.4px;text-transform:uppercase}@media(max-width:430px){.nav button{font-size:9px!important}.nav button i{font-size:20px!important}.hq-chat-reply{grid-template-columns:1fr}}';
   document.head.appendChild(style);
 
   ensureNav();

@@ -60,8 +60,81 @@
   },
   get family() {
     return activeFamily;
+  },
+  get members() {
+    return familyMembers.slice();
+  },
+  get isOwner() {
+    return isFamilyOwner();
+  },
+  async refreshMembers() {
+    await refreshMembers();
+    return familyMembers.slice();
+  },
+  removeMember(userId) {
+    return removeFamilyMember(userId);
+  },
+  leaveFamily() {
+    return leaveActiveFamily();
   }
 };
+
+  function isFamilyOwner() {
+    const uid = session?.user?.id;
+    if (!uid || !activeFamily) return false;
+    if (activeFamily.role === 'owner' || activeFamily.ownerUserId === uid) return true;
+    return familyMembers.some(m => m.user_id === uid && m.role === 'owner');
+  }
+
+  /* Uses the existing family_members table only (no schema change).
+     Supabase returns no error when row-level security silently filters a delete,
+     so we ask for the deleted rows back and treat "0 rows" as "not allowed". */
+  async function deleteMembership(userId) {
+    const { data, error } = await db
+      .from('family_members')
+      .delete()
+      .eq('family_id', activeFamily.id)
+      .eq('user_id', userId)
+      .select('user_id');
+
+    if (error) throw error;
+    if (!data || !data.length) {
+      const err = new Error(
+        "The family server didn't allow that change, so nobody was removed. Your Family Cloud permissions may only let people be removed from the Supabase dashboard."
+      );
+      err.code = 'HQ_NOT_ALLOWED';
+      throw err;
+    }
+  }
+
+  async function removeFamilyMember(userId) {
+    if (!session?.user || !activeFamily) throw new Error('Connect Family Cloud in Settings first.');
+    if (!userId) throw new Error('That family member could not be found.');
+    if (userId === session.user.id) return leaveActiveFamily();
+    if (!isFamilyOwner()) throw new Error('Only the person who created this family can remove members.');
+
+    await deleteMembership(userId);
+    familyMembers = familyMembers.filter(m => m.user_id !== userId);
+    await refreshMembers();
+    render(false);
+    return true;
+  }
+
+  async function leaveActiveFamily() {
+    if (!session?.user || !activeFamily) throw new Error('You are not connected to a family.');
+
+    await deleteMembership(session.user.id);
+
+    unsubscribeRealtime();
+    activeFamily = null;
+    familyMembers = [];
+    cloudReady = false;
+    localStorage.removeItem('christmas-hq-family-id');
+
+    /* Falls back to another family you still belong to, or the setup panel */
+    await selectFamily('');
+    return true;
+  }
 
   const clone = value => {
     try {
@@ -211,7 +284,8 @@
       ? {
           id: row.family_id,
           name: row.families?.name || 'Christmas HQ Family',
-          role: row.role
+          role: row.role,
+          ownerUserId: row.families?.owner_user_id || ''
         }
       : null;
 
