@@ -2354,7 +2354,6 @@ renderFestiveAfter();
   const giftsApprovedStyle = document.createElement('style');
   giftsApprovedStyle.textContent = `
     /* Gifts hero only — Home remains untouched */
-    .mast[data-hq-page="gifts"] .hq-page-brand,
 .mast[data-hq-page="plan"] .hq-page-brand,
 .mast[data-hq-page="kitchen"] .hq-page-brand,
 .mast[data-hq-page="magic"] .hq-page-brand,
@@ -2369,6 +2368,13 @@ renderFestiveAfter();
       display:inline-block!important;
       width:auto!important;
       padding:0 20px!important;
+    }
+
+    .mast[data-hq-page="gifts"] .hq-page-title{
+      color:#ffe6a0!important;
+      -webkit-text-fill-color:#ffe6a0!important;
+      background:none!important;
+      filter:none!important;
     }
 
     /* Santa hat hanging from GIFTS */
