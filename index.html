@@ -1252,7 +1252,7 @@ setTimeout(refreshInstallUI,0);
 <script src="./christmas-upgrades.js?v=5"></script>
 <script src="./gift-library-2600.js"></script>
 <script src="./checklist-links-fix.js"></script>
-<script src="./christmas-hq-festive-live.js?v=10"></script><script src="./christmas-chat.js?v=2"></script>
+<script src="./christmas-hq-festive-live.js?v=11"></script><script src="./christmas-chat.js?v=2"></script>
 <script src="./recipe-food-tiles.js?v=2"></script>
 <script src="./panel-transitions.js?v=7"></script>
 <script src="./exact-recipe-photos.js?v=1"></script>
@@ -1638,11 +1638,14 @@ return Math.max(0,treeBox.top-(settingsBox.bottom-offset)-4); }
  window.__hqAmbient=true;
  const KEY='christmasHQ_ambient';
  let on=localStorage.getItem(KEY)!=='off';
+ let ducked=false;
  const music=new Audio('./nutcracker.ogg');
  music.preload='auto';
  music.loop=true;
  music.volume=0.85;
  let started=false;
+ window.hqAmbientPause=function(){ducked=true;music.pause();started=false;};
+ window.hqAmbientResume=function(){ducked=false;if(on)start();};
  function paint(){
   const btn=document.getElementById('soundToggle');
   if(!btn)return;
@@ -1651,11 +1654,11 @@ return Math.max(0,treeBox.top-(settingsBox.bottom-offset)-4); }
  }
  paint();
  function start(){
-  if(!on)return;
+  if(!on||ducked)return;
   started=true;
   music.play().catch(()=>{});
  }
- document.addEventListener('pointerdown',function(){if(on&&!started)start();});
+ document.addEventListener('pointerdown',function(){if(on&&!ducked&&!started)start();});
  document.getElementById('bottomNav').addEventListener('click',function(e){
   const btn=e.target.closest('#soundToggle');
   if(!btn)return;

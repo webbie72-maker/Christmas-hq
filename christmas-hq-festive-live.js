@@ -1939,8 +1939,9 @@ I
 
     hqAudio = document.createElement('audio');
     hqAudio.id = 'hqPersistentChristmasAudio';
-    hqAudio.loop = true;
+    hqAudio.loop = false;
     hqAudio.preload = 'metadata';
+    hqAudio.addEventListener('ended', onSongEnded);
     hqAudio.volume = Math.min(1,Math.max(0,hqMusicVolume));
     document.body.appendChild(hqAudio);
     return hqAudio;
@@ -1974,6 +1975,57 @@ I
 audio.volume = hqMusicVolume;
   }
 
+  let hqQueue = [];
+  let ambientBackTimer = null;
+
+  function playableSongs() {
+    return hqMusicSongs.filter(song =>
+      song?.file instanceof Blob || (song?.cloudAudio && song?.url)
+    );
+  }
+
+  function holdAmbient() {
+    clearTimeout(ambientBackTimer);
+    ambientBackTimer = null;
+    if (window.hqAmbientPause) window.hqAmbientPause();
+  }
+
+  function releaseAmbient() {
+    clearTimeout(ambientBackTimer);
+    ambientBackTimer = setTimeout(() => {
+      if (window.hqAmbientResume) window.hqAmbientResume();
+    }, 10000);
+  }
+
+  function startQueue(list) {
+    hqQueue = list.map(song => song.id);
+    if (!hqQueue.length) {
+      notice('Add a song to the library first');
+      return;
+    }
+    hqSelectedSongId = hqQueue[0];
+    localStorage.setItem('christmas-hq-music-song', hqSelectedSongId);
+    loadSelectedSong();
+    playMusic();
+  }
+
+  function onSongEnded() {
+    const index = hqQueue.indexOf(hqSelectedSongId);
+    const nextId = index >= 0 ? hqQueue[index + 1] : '';
+    if (nextId) {
+      hqSelectedSongId = nextId;
+      localStorage.setItem('christmas-hq-music-song', hqSelectedSongId);
+      loadSelectedSong();
+      playMusic();
+      return;
+    }
+    hqQueue = [];
+    hqMusicEnabled = false;
+    localStorage.setItem('christmas-hq-music-enabled', '0');
+    releaseAmbient();
+    ensureMusicDock();
+  }
+
   async function playMusic() {
     const song = selectedSong();
 
@@ -1984,6 +2036,7 @@ audio.volume = hqMusicVolume;
     
 
     const audio = ensureAudio();
+    holdAmbient();
     hqMusicEnabled = true;
     localStorage.setItem('christmas-hq-music-enabled','1');
 
@@ -2000,6 +2053,7 @@ audio.volume = hqMusicVolume;
     ensureAudio().pause();
     hqMusicEnabled = false;
     localStorage.setItem('christmas-hq-music-enabled','0');
+    releaseAmbient();
     ensureMusicDock();
   }
 
@@ -2043,6 +2097,8 @@ audio.volume = hqMusicVolume;
         </select>
         <span>🔈</span>
         <input data-hq-volume type="range" min="0" max="1" step=".05" value="${hqMusicVolume}">
+        <button class="hq-music-btn" data-hq-music="all" style="font-size:12px;white-space:nowrap">Play all</button>
+        <button class="hq-music-btn" data-hq-music="shuffle" style="font-size:12px;white-space:nowrap">Shuffle</button>
         <button class="hq-music-btn" data-hq-music="add" style="font-size:12px;white-space:nowrap">+ Add song</button>
       </div>`;
   }
@@ -2208,6 +2264,15 @@ renderFestiveAfter();
       if (action === 'play') await playMusic();
       if (action === 'pause') pauseMusic();
       if (action === 'expand') dock?.classList.toggle('open');
+      if (action === 'all') startQueue(playableSongs());
+      if (action === 'shuffle') {
+        const list = playableSongs();
+        for (let i = list.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [list[i], list[j]] = [list[j], list[i]];
+        }
+        startQueue(list);
+      }
       if (action === 'add') {
   ui.tab = 'magic';
   ui.sub.magic = 'Music';
