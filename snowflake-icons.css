@@ -1,0 +1,42 @@
+/* Fixed SVG snowflakes look the same on Samsung, iPhone and iPad. */
+:root { --hq-blue-snowflake: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%20fill%3D%22none%22%20stroke%3D%22%23a5ecff%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M16%202v28M3.9%209l24.2%2014M3.9%2023L28.1%209M12%205l4%204%204-4M12%2027l4-4%204%204M5.2%2014.1l5.5-1.5-1.5-5.5M22.8%2024.9l-1.5-5.5%205.5-1.5M5.2%2017.9l5.5%201.5-1.5%205.5M22.8%207.1l-1.5%205.5%205.5%201.5%22%2F%3E%3C%2Fsvg%3E"); }
+#app .summary .metric::before {
+  content: "" !important;
+  width: 32px !important;
+  height: 32px !important;
+  top: 7px !important;
+  right: 8px !important;
+  background-image: var(--hq-blue-snowflake) !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  opacity: 1 !important;
+  filter: drop-shadow(0 0 3px rgba(165,236,255,.5));
+  pointer-events: none !important;
+}
+#app .gift-intro::before,
+#app .hq-music-dock::before,
+#app form[data-form="gift"]::before {
+  content: "\2726\FE0E" !important;
+  display: block !important;
+  width: 76px !important;
+  height: 20px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  background-image: var(--hq-blue-snowflake), var(--hq-blue-snowflake) !important;
+  background-position: left center, right center !important;
+  background-size: 19px 19px !important;
+  background-repeat: no-repeat !important;
+  color: #f2cf78 !important;
+  font: 14px/20px Georgia, serif !important;
+  text-align: center !important;
+  letter-spacing: 0 !important;
+  opacity: 1 !important;
+  pointer-events: none !important;
+}
+#app .advent button:not(.opened)::before {
+  content: "" !important;
+  width: 12px !important;
+  height: 12px !important;
+  background: var(--hq-blue-snowflake) center / contain no-repeat !important;
+  opacity: 1 !important;
+}
