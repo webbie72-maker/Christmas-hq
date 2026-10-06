@@ -444,6 +444,13 @@ form[data-form="gift"] .btn{
 .cloud-list-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px!important;align-items:stretch}
 .cloud-list-actions>.btn{min-width:0!important;width:100%;padding:10px 6px!important;font-size:12px!important;line-height:1.25!important;white-space:normal!important}
 </style>
+<style>
+/* Light sidebar movement: finger tracking plus a brief release glide. */
+#bottomNav.nav-open{transition:none!important;animation:hqMenuSlide .32s cubic-bezier(.22,.7,.3,1) both}
+#bottomNav.nav-open button{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:0 2px 5px rgba(0,0,0,.12)!important}
+@keyframes hqMenuSlide{from{opacity:0;translate:-58px 0}to{opacity:1;translate:0 0}}
+@media(prefers-reduced-motion:reduce){#bottomNav.nav-open{animation:none!important}}
+</style>
 </head>
 <body>
 <div class="app" id="app">
@@ -1576,6 +1583,23 @@ const toggle=document.getElementById('navToggle'); let dragging=false;
    /* Settings stops 4px above the Christmas tree */
 return Math.max(0,treeBox.top-(settingsBox.bottom-offset)-4); }
 
+ let glideFrame=0, lastY=0, lastTime=0, velocity=0;
+ function stopGlide(){cancelAnimationFrame(glideFrame);glideFrame=0;}
+ function glide(){
+   stopGlide();
+   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+   let previous=performance.now();
+   const end=previous+340;
+   function step(now){
+     const dt=Math.min(32,now-previous); previous=now;
+     velocity*=Math.pow(.90,dt/16.67);
+     const next=clamp(offset+velocity*dt,0,dragMax);
+     if(now>=end || Math.abs(velocity)<.025 || next===offset){glideFrame=0;return;}
+     offset=next;nav.style.setProperty('--nav-drag-y',offset+'px');
+     glideFrame=requestAnimationFrame(step);
+   }
+   glideFrame=requestAnimationFrame(step);
+ }
  let dragMax=0;
  let paintQueued=false;
  function paintOffset(){
@@ -1588,6 +1612,7 @@ return Math.max(0,treeBox.top-(settingsBox.bottom-offset)-4); }
  }
 
  function resetMenuPosition(){
+   stopGlide();
    offset=0;
    nav.style.setProperty('--nav-drag-y','0px');
  }
@@ -1605,6 +1630,8 @@ return Math.max(0,treeBox.top-(settingsBox.bottom-offset)-4); }
    if(!nav.classList.contains('nav-open')) return;
    if(!e.target.closest('button[data-nav]')) return;
 
+   stopGlide();
+   velocity=0;lastY=e.clientY;lastTime=performance.now();
    dragging=true;
    nav.classList.add('nav-dragging');
    moved=false;
@@ -1624,6 +1651,9 @@ return Math.max(0,treeBox.top-(settingsBox.bottom-offset)-4); }
      moved=true;
    }
 
+   const now=performance.now(),dt=now-lastTime;
+   if(dt>0) velocity=.65*clamp((e.clientY-lastY)/dt,-1.1,1.1)+.35*velocity;
+   lastY=e.clientY;lastTime=now;
    setOffset(startOffset+distance);
    e.preventDefault();
  });
@@ -1641,6 +1671,8 @@ return Math.max(0,treeBox.top-(settingsBox.bottom-offset)-4); }
      If the stack was dragged, don't accidentally open a page.
    */
    if(moved){
+     if(performance.now()-lastTime>80) velocity=0;
+     glide();
      e.preventDefault();
      e.stopPropagation();
    }
