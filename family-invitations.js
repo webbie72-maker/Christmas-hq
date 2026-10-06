@@ -21,7 +21,7 @@
    document.body.appendChild(button);
   }
   const count=signedIn()?unread+inbox.length:0;
-  button.hidden=ui.tab!=='home';button.classList.toggle('has-unread',count>0);
+  button.hidden=ui.tab!=='home'||count===0;button.classList.toggle('has-unread',count>0);
   button.setAttribute('aria-label',count?`Open Chat: ${count} unread topics or family invitations`:'Open Christmas Chat');
   const badge=button.querySelector('.hq-bubble-count');badge.hidden=!count;badge.textContent=count>99?'99+':String(count);
  }
@@ -42,8 +42,8 @@
   const old=document.getElementById('hqFamilyInvitations');
   if(old?.dataset.user===key){const label=document.getElementById('hqInviteIdentity');if(label&&identity?.display_name)label.textContent='You are '+identity.display_name+' · '+identity.user_code+'. Accept to join, or decline to keep your current HQ. Your personal lists are kept.';renderInbox();return;}
   old?.remove();
-  const card=document.createElement('section');card.id='hqFamilyInvitations';card.className='card';card.dataset.user=key;
-  card.innerHTML='<h3>💌 Family invitations</h3>'+(!signedIn()?'<p>Sign in to receive family invitations, even when you are not in an HQ.</p><button class="btn" type="button" data-hq-chat-settings>Sign in →</button>':
+  const card=document.createElement('details');card.id='hqFamilyInvitations';card.className='card';card.dataset.user=key;
+  card.innerHTML='<summary class="hq-invitations-toggle"><span>💌 Family invitations</span><span class="hq-invitations-arrow" aria-hidden="true">▾</span></summary>'+(!signedIn()?'<p>Sign in to receive family invitations, even when you are not in an HQ.</p><button class="btn" type="button" data-hq-chat-settings>Sign in →</button>':
    `<p id="hqInviteIdentity" class="muted-note">${identity?.display_name?`You are ${esc(identity.display_name)} · ${esc(identity.user_code)}.`:'Invitations are sent to your signed-in account.'} Accept to join, or decline to keep your current HQ. Your personal lists are kept.</p><div id="hqFamilyInviteList"></div><p id="hqInviteInboxNote" class="muted-note" role="status"></p>`+
    (cloud()?.familyId?`<details><summary>Invite someone by name</summary><form id="hqNameInviteForm"><label>Find a person<input class="field" name="name" minlength="2" maxlength="70" required placeholder="Their name…" value="${esc(query)}"></label><button class="btn" type="submit">Search names</button></form><p class="muted-note">Choose their name and HQ code to identify the right person. Their invite will appear in Chat.</p><div id="hqInviteNameResults"></div><p id="hqInviteSearchNote" class="muted-note" role="status"></p></details>`:'<p class="muted-note">Join or create an HQ in Settings to invite other people.</p>'));
   shell.prepend(card);renderInbox();if(cloud()?.familyId)renderSearch();
@@ -106,7 +106,7 @@
   catch(err){matches=[];searchNote=err.message||'Could not search names.';}finally{button.disabled=false;renderSearch();}
  },true);
  document.addEventListener('click',async e=>{
-  const open=e.target.closest('[data-hq-inbox-open]');if(open){e.preventDefault();go('chat');await refresh();document.getElementById('hqFamilyInvitations')?.scrollIntoView({block:'start'});return;}
+  const open=e.target.closest('[data-hq-inbox-open]');if(open){e.preventDefault();go('chat');await refresh();const invitations=document.getElementById('hqFamilyInvitations');if(invitations){invitations.open=true;invitations.scrollIntoView({block:'start'});}return;}
   const send=e.target.closest('[data-hq-invite-send]');
   if(send){e.preventDefault();const person=matches.find(p=>p.user_id===send.dataset.hqInviteSend);if(!person)return;
    if(!confirm(`Invite ${person.display_name} (${person.user_code}) to ${cloud()?.family?.name||'your family HQ'}? The invitation will appear in their Chat.`))return;
@@ -131,7 +131,7 @@
  #hqHomeChatBubble{position:fixed;top:calc(12px + env(safe-area-inset-top));right:max(12px,calc((100vw - 580px)/2 + 12px));z-index:75;width:49px;height:49px;border:2px solid #b58429;border-radius:17px;background:#fff1ab;box-shadow:0 4px 0 #92661f,0 5px 15px #103b3130;padding:7px;color:#493514}
  #hqHomeChatBubble[hidden]{display:none!important}#hqHomeChatBubble svg{display:block;width:100%;height:100%}.hq-bubble-count{position:absolute;top:-7px;right:-7px;min-width:20px;height:20px;border-radius:12px;background:#a41c2e;color:#fff;font-size:10px;font-weight:900;padding:2px 4px;border:2px solid #fff8d5}.hq-bubble-count[hidden]{display:none}
  #hqHomeChatBubble.has-unread{animation:hqChatWiggle 6s ease-in-out infinite}@keyframes hqChatWiggle{0%,17%,100%{transform:rotate(0)}3%,9%{transform:rotate(-9deg)}6%,12%{transform:rotate(9deg)}15%{transform:rotate(-4deg)}}
- #hqFamilyInvitations{scroll-margin-top:15px}#hqNameInviteForm{display:grid;gap:10px;margin-top:12px}.hq-invite-item{padding:12px;background:#fff8e9;border:1px solid #e5cd94;border-radius:14px;margin:9px 0}.hq-invite-item p{margin:5px 0 10px}.hq-invite-match{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e7e5dd}.hq-invite-match small{display:block;color:#66766c}#hqFamilyLeaveModal{position:fixed;inset:0;z-index:10010;background:#08261dc9;display:flex;align-items:center;justify-content:center;padding:18px}.hq-exit-card{position:relative;background:#fffdf6;padding:24px;border-radius:24px;max-width:500px;max-height:90dvh;overflow:auto}.hq-exit-close{position:absolute;right:10px;top:7px;font-size:27px;border:0;background:transparent;color:#653921}.hq-exit-card form{display:grid;gap:12px}#hqExitError{color:#a41c2e}@media(prefers-reduced-motion:reduce){#hqHomeChatBubble.has-unread{animation:none}}
+ #hqFamilyInvitations{scroll-margin-top:15px}#hqFamilyInvitations>.hq-invitations-toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none;cursor:pointer;font-size:20px;font-weight:850;color:#103b31;margin:0}#hqFamilyInvitations>.hq-invitations-toggle::-webkit-details-marker{display:none}#hqFamilyInvitations[open]>.hq-invitations-toggle{margin-bottom:14px}.hq-invitations-arrow{transition:transform .2s}#hqFamilyInvitations[open]>.hq-invitations-toggle .hq-invitations-arrow{transform:rotate(180deg)}#hqNameInviteForm{display:grid;gap:10px;margin-top:12px}.hq-invite-item{padding:12px;background:#fff8e9;border:1px solid #e5cd94;border-radius:14px;margin:9px 0}.hq-invite-item p{margin:5px 0 10px}.hq-invite-match{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e7e5dd}.hq-invite-match small{display:block;color:#66766c}#hqFamilyLeaveModal{position:fixed;inset:0;z-index:10010;background:#08261dc9;display:flex;align-items:center;justify-content:center;padding:18px}.hq-exit-card{position:relative;background:#fffdf6;padding:24px;border-radius:24px;max-width:500px;max-height:90dvh;overflow:auto}.hq-exit-close{position:absolute;right:10px;top:7px;font-size:27px;border:0;background:transparent;color:#653921}.hq-exit-card form{display:grid;gap:12px}#hqExitError{color:#a41c2e}@media(prefers-reduced-motion:reduce){#hqHomeChatBubble.has-unread{animation:none}}
  `;document.head.appendChild(style);paintBubble();decorateChat();
  setInterval(refresh,15000);setTimeout(refresh,1200);
  window.addEventListener('focus',refresh);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
