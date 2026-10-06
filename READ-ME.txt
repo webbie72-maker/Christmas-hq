@@ -1,1 +1,1 @@
-Replace index.html and commit. After deployment refresh the app. Groceries has Delete all and Delete ticked items, both with confirmation. Use the existing grocery checkboxes to select items for deletion. My Menu fixes included.
+Replace index.html and commit, then refresh after deployment. Planner checklist now has Delete all and Delete ticked items. Both ask for confirmation and apply across all categories, including starter tasks. Grocery deletion and My Menu fixes included.
