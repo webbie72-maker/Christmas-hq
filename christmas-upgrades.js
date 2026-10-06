@@ -405,6 +405,41 @@ function familyMusicReady() {
     });
   }
 
+  window.ChristmasHQMusicBackup = {
+    async exportSongs() {
+      const songs = await listLocalSongs();
+      return Promise.all(songs.map(async song => {
+        let audio = null;
+        if (song.file) {
+          const bytes = new Uint8Array(await song.file.arrayBuffer());
+          let binary = '';
+          for (let i = 0; i < bytes.length; i += 32768) binary += String.fromCharCode(...bytes.subarray(i, i + 32768));
+          audio = { type: song.file.type || 'audio/mpeg', base64: btoa(binary) };
+        }
+        return { id: String(song.id), title: song.title || '', artist: song.artist || '',
+          url: song.url || '', fileName: song.fileName || '', createdAt: song.createdAt || '', audio };
+      }));
+    },
+    async importSongs(songs) {
+      if (!Array.isArray(songs)) throw new Error('Invalid music backup');
+      // Decode everything before opening a write transaction: malformed audio writes nothing.
+      const restored = songs.map(song => {
+        if (!song || typeof song.id !== 'string' || typeof song.title !== 'string') throw new Error('Invalid music backup');
+        const file = song.audio ? new Blob([Uint8Array.from(atob(song.audio.base64), ch => ch.charCodeAt(0))],
+          { type: song.audio.type || 'audio/mpeg' }) : null;
+        return { id: 'backup:' + song.id.replace(/^backup:/, ''), title: song.title, artist: String(song.artist || ''),
+          url: String(song.url || ''), fileName: String(song.fileName || ''), createdAt: String(song.createdAt || ''), file };
+      });
+      if (!restored.length) return;
+      const db = await openSongDb();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, 'readwrite');
+        restored.forEach(song => tx.objectStore(STORE).put(song));
+        tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error || new Error('Music restore cancelled'));
+      });
+    }
+  };
+
   function hiddenSongsKey() {
     return 'christmas-hq-hidden-personal-songs:' + (familyMusicCloud()?.session?.user?.id || 'device');
   }

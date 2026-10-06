@@ -72,6 +72,13 @@
   },
   get scope() { return scope; },
   setScope(value) { return changeScope(value); },
+  exportPlans() {
+    if (!personal) throw new Error('Family lists are still loading. Try your backup again shortly.');
+    captureLists();
+    const personalPlan = { ...clone(state), ...clone(personal), santa: { ...clone(state.santa), ...clone(personal.santa) } };
+    return { personalPlan, sharedPlan: activeFamily && sharedDraft ? clone(sharedDraft) : null,
+      family: activeFamily ? { id: activeFamily.id, name: activeFamily.name } : null };
+  },
   async refreshMembers() {
     await refreshMembers();
     return familyMembers.slice();
