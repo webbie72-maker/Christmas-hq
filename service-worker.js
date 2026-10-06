@@ -1,4 +1,4 @@
-const CACHE = 'christmas-hq-pwa-v76';
+const CACHE = 'christmas-hq-pwa-v77';
 const CACHE_PREFIX = 'christmas-hq-pwa-';
 
 const CORE = [
@@ -9,6 +9,7 @@ const CORE = [
 
 // Preload the remaining local features without letting one missing file block installation.
 const FEATURES = [
+  './account-deletion.js?v=1', './delete-account.html', './privacy.html',
   './gift-library-2600.js', './checklist-links-fix.js',
   './christmas-hq-festive-live.js?v=24', './christmas-chat.js?v=7',
   './recipe-food-tiles.js?v=2', './panel-transitions.js?v=7',
