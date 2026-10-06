@@ -15,6 +15,10 @@
   'use strict';
 
   var KEY = 'christmasHQ_pin';
+  var ENABLE_KEY='christmasHQ_patternEnabled';
+  var patternEnabled=false;
+  try { var preference=localStorage.getItem(ENABLE_KEY); patternEnabled=preference===null?!!localStorage.getItem(KEY):preference==='on'; } catch(e) {}
+
   // A one-use handoff for a refresh of an already unlocked page.
   var REFRESH_KEY = 'christmasHQ_pin_refresh';
   var resumeRefresh = false;
@@ -321,7 +325,7 @@
   (document.head || root).appendChild(styleEl);
 
   /* Lock immediately: the app is hidden from the very first paint. */
-  if (!resumeRefresh) root.classList.add('hq-pin-locked');
+  if (patternEnabled && !resumeRefresh) root.classList.add('hq-pin-locked');
 
   /* ---------- overlay markup (plain strings, no code inside) ---------- */
   var HOLLY_SVG =
@@ -428,7 +432,7 @@
     seq: [],
     first: '',
     busy: false,
-    locked: !resumeRefresh,
+    locked: patternEnabled && !resumeRefresh,
     timer: null,
     drawing: false,
     pid: null,
@@ -848,6 +852,7 @@
 
   /* ---------- show / hide ---------- */
   function showLock(mode) {
+    if (!patternEnabled) return;
     S.mode = mode || (readRecord() ? 'unlock' : 'create1');
     S.first = '';
     S.busy = false;
@@ -1081,6 +1086,7 @@
      snapshot shows the lock screen, and there is no flash of
      content when the app comes back. */
   function relock() {
+    if (!patternEnabled) return;
     if (S.locked && !isChangeMode()) {
       S.drawing = false;
       S.pid = null;
@@ -1147,16 +1153,17 @@
 
   /* Lock changed in another tab (e.g. reset there). */
   window.addEventListener('storage', function (e) {
-    if (e.key === KEY && !S.locked) showLock();
+    if(e.key===ENABLE_KEY){patternEnabled=e.newValue==='on';if(patternEnabled)showLock();else hideLock();var box=document.getElementById('hqPatternEnabled');if(box)box.checked=patternEnabled;}
+    if (e.key === KEY && !S.locked && patternEnabled) showLock();
   });
 
   /* ---------- Settings: "Change pattern" card (injected after render) ---------- */
   var CARD_HTML =
     '<h3>&#128274; Christmas pattern lock</h3>' +
-    '<p class="muted-note">Christmas HQ asks for your pattern when it opens and whenever it comes back from the background. Refreshing an unlocked page keeps it open, so little eyes can&rsquo;t peek at gifts or Secret Santa.</p>' +
-    '<div class="btnrow" style="margin-top:12px"><button class="btn" type="button" data-hq-pin-action="change">&#127876; Change pattern</button></div>' +
-    '<p class="muted-note" style="margin-top:10px">You&rsquo;ll draw your current pattern, then the new one twice. Forgot it? Tap &ldquo;Forgot pattern?&rdquo; on the lock screen: it clears only the lock, never your Christmas plan.</p>' +
-    '<p class="muted-note" style="margin-top:8px">This is a simple lock on this phone, not account security. Only a salted fingerprint (hash) of the pattern is kept on this device, never the pattern itself, and it is not sent to Family Cloud.</p>' +
+    '<label class="switch-label" for="hqPatternEnabled"><input type="checkbox" id="hqPatternEnabled"> Use pattern lock</label>' +
+    '<p class="muted-note" style="margin-top:10px">When on, draw your pattern when opening the app or returning from the background. Turn it off to open Christmas HQ directly.</p>' +
+    '<div class="btnrow"><button class="btn" type="button" data-hq-pin-action="change">Change pattern</button></div>' +
+    '<p class="muted-note" style="margin-top:10px">Your choice is saved on this device. Switching off keeps your saved pattern and Christmas lists. This is a local privacy lock, not your account password.</p>' +
     '<p class="pill green" id="hqPinCardMsg" aria-live="polite" style="display:none;margin-top:10px"></p>';
 
   var cardNote = '';
@@ -1181,6 +1188,8 @@
     card.className = 'card';
     card.id = 'hqPinCard';
     card.innerHTML = CARD_HTML;
+    card.querySelector('#hqPatternEnabled').checked=patternEnabled;
+    card.querySelector('[data-hq-pin-action="change"]').disabled=!patternEnabled;
     var firstCard = screen.querySelector('.card');
     if (firstCard && firstCard.parentNode) {
       firstCard.parentNode.insertBefore(card, firstCard.nextSibling);
@@ -1208,6 +1217,15 @@
     e.preventDefault();
     updateCardMsg('');
     showLock(readRecord() ? 'chg-verify' : 'create1');
+  });
+
+  document.addEventListener('change',function(e){
+    if(e.target.id!=='hqPatternEnabled')return;
+    var next=e.target.checked;
+    try{localStorage.setItem(ENABLE_KEY,next?'on':'off');}catch(err){e.target.checked=patternEnabled;updateCardMsg('Could not save this setting on this device.');return;}
+    patternEnabled=next;
+    var change=document.querySelector('[data-hq-pin-action="change"]');if(change)change.disabled=!next;
+    if(next)showLock(readRecord()?'unlock':'create1');else hideLock('Pattern lock is off on this device.');
   });
 
   /* Small API for debugging / other scripts (no secrets exposed). */
