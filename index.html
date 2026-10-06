@@ -1639,7 +1639,6 @@ return Math.max(0,treeBox.top-(settingsBox.bottom-offset)-4); }
    startOffset=offset;
    dragMax=maxDown();
 
-   try{nav.setPointerCapture(e.pointerId);}catch(_){}
  });
 
  nav.addEventListener('pointermove',function(e){
@@ -1648,6 +1647,7 @@ return Math.max(0,treeBox.top-(settingsBox.bottom-offset)-4); }
    const distance=e.clientY-startY;
 
    if(Math.abs(distance)>5){
+     if(!moved){try{nav.setPointerCapture(e.pointerId);}catch(_){}}
      moved=true;
    }
 
