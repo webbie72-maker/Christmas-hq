@@ -15,6 +15,17 @@
   'use strict';
 
   var KEY = 'christmasHQ_pin';
+  // A one-use handoff for a refresh of an already unlocked page.
+  var REFRESH_KEY = 'christmasHQ_pin_refresh';
+  var resumeRefresh = false;
+  try {
+    var refreshedAt = Number(sessionStorage.getItem(REFRESH_KEY));
+    sessionStorage.removeItem(REFRESH_KEY);
+    var navigation = performance.getEntriesByType('navigation')[0];
+    resumeRefresh = navigation && navigation.type === 'reload' &&
+      refreshedAt > 0 && Date.now() - refreshedAt >= 0 && Date.now() - refreshedAt < 30000;
+  } catch (e) {}
+
   var MIN_DOTS = 4;
   var MAX_TRIES = 5;
   var LOCKOUT_MS = 30000;
@@ -310,7 +321,7 @@
   (document.head || root).appendChild(styleEl);
 
   /* Lock immediately: the app is hidden from the very first paint. */
-  root.classList.add('hq-pin-locked');
+  if (!resumeRefresh) root.classList.add('hq-pin-locked');
 
   /* ---------- overlay markup (plain strings, no code inside) ---------- */
   var HOLLY_SVG =
@@ -417,7 +428,7 @@
     seq: [],
     first: '',
     busy: false,
-    locked: true,
+    locked: !resumeRefresh,
     timer: null,
     drawing: false,
     pid: null,
@@ -1089,6 +1100,13 @@
       fxStart();
     }
   });
+
+  window.addEventListener('beforeunload', function () {
+    try {
+      if (!S.locked && !isChangeMode()) sessionStorage.setItem(REFRESH_KEY, String(Date.now()));
+      else sessionStorage.removeItem(REFRESH_KEY);
+    } catch (e) {}
+  });
   window.addEventListener('pagehide', relock);
   window.addEventListener('pageshow', function (e) {
     if (e.persisted) relock();
@@ -1135,7 +1153,7 @@
   /* ---------- Settings: "Change pattern" card (injected after render) ---------- */
   var CARD_HTML =
     '<h3>&#128274; Christmas pattern lock</h3>' +
-    '<p class="muted-note">Christmas HQ asks for your pattern every time it opens and whenever it comes back from the background, so little eyes can&rsquo;t peek at gifts or Secret Santa.</p>' +
+    '<p class="muted-note">Christmas HQ asks for your pattern when it opens and whenever it comes back from the background. Refreshing an unlocked page keeps it open, so little eyes can&rsquo;t peek at gifts or Secret Santa.</p>' +
     '<div class="btnrow" style="margin-top:12px"><button class="btn" type="button" data-hq-pin-action="change">&#127876; Change pattern</button></div>' +
     '<p class="muted-note" style="margin-top:10px">You&rsquo;ll draw your current pattern, then the new one twice. Forgot it? Tap &ldquo;Forgot pattern?&rdquo; on the lock screen: it clears only the lock, never your Christmas plan.</p>' +
     '<p class="muted-note" style="margin-top:8px">This is a simple lock on this phone, not account security. Only a salted fingerprint (hash) of the pattern is kept on this device, never the pattern itself, and it is not sent to Family Cloud.</p>' +

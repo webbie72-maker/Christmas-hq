@@ -890,9 +890,10 @@
           Last cloud change: <b>${cloudEsc(when)}</b>.
         </div>
 
-        <div class="cloud-row" style="margin-top:12px" aria-label="Choose which lists to use">
+        <div class="cloud-row cloud-list-actions" style="margin-top:12px" aria-label="Choose which lists to use">
           <button class="btn ${scope === 'personal' ? '' : 'alt'}" type="button" data-cloud-action="personal" aria-pressed="${scope === 'personal'}">🔒 My personal lists</button>
           <button class="btn ${scope === 'shared' ? '' : 'alt'}" type="button" data-cloud-action="shared" aria-pressed="${scope === 'shared'}">👪 Family HQ lists</button>
+          <button class="btn warn" type="button" data-cloud-action="leavefamily">${isFamilyOwner()?'Hand over / close HQ':'Leave family HQ'}</button>
         </div>
         <p class="cloud-note">${scope === 'personal' ? 'Your personal lists are open. Changes stay on this phone.' : 'Family HQ lists are open. Items you add are also kept in your personal lists.'}</p>
 
@@ -904,7 +905,6 @@
           <button class="btn" type="button" data-cloud-action="invite">Invite family</button>
           <button class="btn alt" type="button" data-cloud-action="syncnow">Sync now</button>
           <button class="btn" type="button" data-cloud-action="signout">Sign out</button>
-          <button class="btn warn" type="button" data-cloud-action="leavefamily">${isFamilyOwner()?'Hand over / close HQ':'Leave family HQ'}</button>
         </div>
 
         <div id="cloudInviteBox"></div>
