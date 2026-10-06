@@ -86,9 +86,10 @@
   removeMember(userId) {
     return removeFamilyMember(userId);
   },
-  leaveFamily() {
-    return leaveActiveFamily();
-  }
+  leaveFamily(nextOwner = null, closeConfirmed = false) {
+    return leaveActiveFamily(nextOwner, closeConfirmed);
+  },
+  openFamily(familyId) { return selectFamily(familyId); }
 };
 
   function isFamilyOwner() {
@@ -116,10 +117,15 @@
     return data;
   }
 
-  async function leaveActiveFamily() {
+  async function leaveActiveFamily(nextOwner = null, closeConfirmed = false) {
     if (!session?.user || !activeFamily) throw new Error('You are not connected to a family.');
 
-    if (isFamilyOwner()) throw new Error('The family owner cannot leave this family.');
+    if (isFamilyOwner()) {
+      await pushCloudState();
+      const { error } = await db.rpc('hq_family_actions', {p_action:'owner_leave',p_payload:{family_id:activeFamily.id,next_owner:nextOwner,close_confirmed:closeConfirmed}});
+      if(error)throw error;
+      detachFamily();notice('You left the HQ. Your personal lists and music are kept.');return;
+    }
     await pushCloudState();
     const { data, error } = await db.rpc('hq_remove_family_member', {
       p_family_id: activeFamily.id, p_user_id: session.user.id
@@ -898,7 +904,7 @@
           <button class="btn" type="button" data-cloud-action="invite">Invite family</button>
           <button class="btn alt" type="button" data-cloud-action="syncnow">Sync now</button>
           <button class="btn" type="button" data-cloud-action="signout">Sign out</button>
-          ${!isFamilyOwner() ? '<button class="btn warn" type="button" data-cloud-action="leavefamily">Leave family HQ</button>' : ''}
+          <button class="btn warn" type="button" data-cloud-action="leavefamily">${isFamilyOwner()?'Hand over / close HQ':'Leave family HQ'}</button>
         </div>
 
         <div id="cloudInviteBox"></div>
@@ -945,7 +951,7 @@
 
     if (error) throw error;
 
-    history.replaceState({}, '', location.pathname + location.hash);
+    history.replaceState(history.state, '', location.pathname + location.hash);
     await selectFamily(data);
     notice('Joined the family');
   }
@@ -1304,6 +1310,7 @@
       }
 
       if (action === 'leavefamily') {
+        if(isFamilyOwner()){if(window.ChristmasHQInvites)await window.ChristmasHQInvites.openLeave();else notice('Family handover is still loading. Refresh and try again.');return;}
         if (!confirm('Leave this family HQ? Your recorded contributions will be removed from its shared lists. All your personal phone data will be kept. Older unclaimed shared entries will stay.')) return;
         button.disabled = true;
         try { await leaveActiveFamily(); } finally { button.disabled = false; }

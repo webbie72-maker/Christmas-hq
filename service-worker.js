@@ -1,8 +1,8 @@
-const CACHE = 'christmas-hq-pwa-v65';
+const CACHE = 'christmas-hq-pwa-v66';
 const CACHE_PREFIX = 'christmas-hq-pwa-';
 
 const CORE = [
-  './', './index.html', './snowflake-icons.css?v=1', './hq-family-data.js?v=1', './family-cloud.js?v=8',
+  './', './index.html', './snowflake-icons.css?v=1', './hq-family-data.js?v=1', './family-cloud.js?v=9',
   './christmas-upgrades.js?v=7', './pin-lock.js?v=3', './lock-village.jpg',
   './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'
 ];
@@ -10,13 +10,13 @@ const CORE = [
 // Preload the remaining local features without letting one missing file block installation.
 const FEATURES = [
   './gift-library-2600.js', './checklist-links-fix.js',
-  './christmas-hq-festive-live.js?v=23', './christmas-chat.js?v=5',
+  './christmas-hq-festive-live.js?v=23', './christmas-chat.js?v=6',
   './recipe-food-tiles.js?v=2', './panel-transitions.js?v=7',
   './exact-recipe-photos.js?v=2', './christmas-hq-kitchen-v5.js?v=1',
   './christmas-hq-panel-theme.js?v=8', './gift-detail-sheet.js?v=1',
   './explore-detail-sheet.js?v=1', './metric-links.js?v=1',
   './tap-fixes.js?v=1', './countdown-reminders.js?v=1',
-  './kitchen-fixes.js?v=5', './welcome-tour.js?v=3', './phone-back.js?v=1'
+  './kitchen-fixes.js?v=5', './welcome-tour.js?v=3', './phone-back.js?v=2', './family-invitations.js?v=1'
 ];
 
 function usable(response, url) {

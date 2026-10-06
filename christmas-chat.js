@@ -370,12 +370,12 @@
       const self=m.user_id===me;
       const tags=[m.role==='owner'?'★ Organiser':'',self?'You':''].filter(Boolean).join(' · ');
       let act='';
-      if(self && !owner) act='<button type="button" class="btn small warn" data-hq-chat-leave="family" aria-label="Leave Family HQ">🚪 Leave HQ</button>';
+      if(self) act='<button type="button" class="btn small warn" data-hq-chat-leave="family" aria-label="Leave Family HQ">🚪 Leave HQ</button>';
       else if(owner && !self) act='<button type="button" class="btn small warn" data-hq-chat-remove-member="'+x(m.user_id)+'" data-name="'+x(name)+'" aria-label="Remove '+x(name)+' from Family HQ">✕ Remove from HQ</button>';
       return memberRow(name,tags,act);
     }).join('');
     const note=owner
-      ? 'Removing someone from HQ removes their family access and recorded shared list contributions. Their personal data is kept; their shared music becomes private to them. Older items without a recorded creator stay. The organiser cannot leave the family.'
+      ? 'Removing someone from HQ removes their family access and recorded shared list contributions. Their personal data is kept; their shared music becomes private to them. Older items without a recorded creator stay. The organiser can hand over this HQ to another member, or close it when alone, before leaving.'
       : 'Only the family organiser (★) can remove people. Leaving HQ also removes your recorded shared list contributions. Your personal data is kept.';
     return '<details class="hq-chat-members" data-hq-chat-panel="family"'+(chat.panelOpen.family?' open':'')+'><summary>👥 Family Chat members <span class="pill green">'+list.length+'</span></summary>'+
       (chat.membersError?'<p class="hq-chat-members-error">'+x(chat.membersError)+'</p>':'')+
@@ -453,7 +453,7 @@
     const c=cloud();
     if(!c || !familyId() || typeof c.leaveFamily!=='function'){notice('You are not connected to a family.');return;}
     const familyName=c.family?.name||'your family';
-    if(c.isOwner){notice('The family organiser cannot leave this HQ.');return;}
+    if(c.isOwner){if(window.ChristmasHQInvites)await window.ChristmasHQInvites.openLeave();else notice('Family handover is still loading.');return;}
     if(!confirm('Leave Family HQ?\n\nYou will lose access to Family Chat and shared plans in “'+familyName+'”. Your recorded shared list contributions will be removed, and your shared music will become private to you.\n\nYour personal lists, gifts, budget, music and other phone data will be kept. Older shared items without a recorded creator will stay. You will need a new invite to rejoin.')) return;
     const fid=familyId();
     try{
@@ -518,6 +518,8 @@
         chat.threadId?threadPage():chat.categoryId==='__all__'?allTopicsPage():chat.categoryId?categoryPage():hub())+
     '</div>';
     if(top) window.scrollTo({top:0,behavior:'instant'});
+    window.ChristmasHQInvites?.decorateChat();
+    window.ChristmasHQPhoneBack?.record();
   }
 
   async function loadHub(force){
@@ -608,7 +610,7 @@
     const t=e.target.closest('[data-hq-chat-thread]');
     if(t){e.preventDefault();await loadThread(t.dataset.hqChatThread);return;}
     const b=e.target.closest('[data-hq-chat-back]');
-    if(b){e.preventDefault();if(b.dataset.hqChatBack==='category'){chat.threadId='';chat.currentThread=null;chat.messages=[];}else{chat.categoryId='';chat.threadId='';chat.currentThread=null;chat.messages=[];}draw(true);return;}
+    if(b){e.preventDefault();if(window.ChristmasHQPhoneBack?.canBack){back();return;}if(b.dataset.hqChatBack==='category'){chat.threadId='';chat.currentThread=null;chat.messages=[];}else{chat.categoryId='';chat.threadId='';chat.currentThread=null;chat.messages=[];}draw(true);return;}
     if(e.target.closest('[data-hq-chat-settings]')){
       e.preventDefault();go('settings');
       setTimeout(()=>{
@@ -750,6 +752,19 @@
       }
     }catch(err){console.warn('Christmas Chat action failed',err);notice(err.message||'Christmas Chat action failed');}
   });
+
+  window.ChristmasHQChatNavigation = {
+    snapshot(){return {mode:chat.mode,categoryId:chat.categoryId,threadId:chat.threadId};},
+    restore(saved){
+      chat.mode=saved.mode==='family'?'family':'community';
+      chat.categoryId=String(saved.categoryId||'');chat.threadId=String(saved.threadId||'');
+      chat.currentThread=null;chat.messages=[];chat.loadedKey='';
+      const target=chat.threadId,mode=chat.mode;
+      loadHub(true).then(()=>{
+        if(target && ui.tab==='chat' && chat.mode===mode && chat.threadId===target)return loadThread(target);
+      }).catch(err=>{notice(err.message||'Could not reopen this chat page.');});
+    }
+  };
 
   const previousRender=render;
   render=function(top=true){

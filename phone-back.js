@@ -5,6 +5,7 @@
   const KEY = 'christmasHQNavigation';
   const clone = value => JSON.parse(JSON.stringify(value));
   const overlays = [
+    ['#hqFamilyLeaveModal', '[data-hq-exit-close]'],
     ['#hqBarcodeModal', '[data-hq-barcode-close]'],
     ['#hqChatModal', '[data-hq-chat-modal-close]'],
     ['.gd-backdrop', '.gd-close'], ['.ed-backdrop', '.ed-close'],
