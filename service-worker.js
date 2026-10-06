@@ -1,8 +1,11 @@
-const CACHE = 'christmas-hq-pwa-v61';
+const CACHE = 'christmas-hq-pwa-v62';
 
 const CORE = [
   './',
   './index.html',
+  './hq-family-data.js?v=1',
+  './family-cloud.js?v=8',
+  './christmas-upgrades.js?v=7',
   './pin-lock.js?v=3',
   './lock-village.jpg',
   './manifest.webmanifest',

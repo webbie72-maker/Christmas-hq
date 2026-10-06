@@ -374,7 +374,8 @@ function familyMusicReady() {
     cloud &&
     cloud.client &&
     cloud.session &&
-    cloud.familyId
+    cloud.familyId &&
+    cloud.scope === 'shared'
   );
 }
 
@@ -395,46 +396,44 @@ function familyMusicReady() {
     });
   }
 
+  async function listLocalSongs() {
+    const db = await openSongDb();
+    return new Promise((resolve, reject) => {
+      const req = db.transaction(STORE, 'readonly').objectStore(STORE).getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  function hiddenSongsKey() {
+    return 'christmas-hq-hidden-personal-songs:' + (familyMusicCloud()?.session?.user?.id || 'device');
+  }
+
   async function listSongs() {
   /* Give Family Cloud time to restore the signed-in family on this device */
-  if (!familyMusicReady()) {
+  if (!familyMusicCloud()?.session && !familyMusicCloud()?.familyId) {
     for (let i = 0; i < 20 && !familyMusicReady(); i++) {
       await new Promise(resolve => setTimeout(resolve, 250));
     }
   }
 
-  if (!familyMusicReady()) {
-    const db = await openSongDb();
-
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE, 'readonly');
-      const req = tx.objectStore(STORE).getAll();
-
-      req.onsuccess = () => {
-        const songs = (req.result || []).sort((a, b) =>
-          String(b.createdAt || '').localeCompare(String(a.createdAt || ''))
-        );
-
-        resolve(songs);
-      };
-
-      req.onerror = () => reject(req.error);
-    });
-  }
-
   const cloud = familyMusicCloud();
+  const sharedMode = familyMusicReady();
+  const localSongs = sharedMode ? [] : await listLocalSongs();
+  if (!cloud?.session) return localSongs.sort((a,b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
   const client = cloud.client;
-
-  const { data, error } = await client
-    .from('family_music')
-    .select('*')
-    .eq('family_id', cloud.familyId)
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
+  let query = client.from('family_music').select('*');
+  query = sharedMode ? query.eq('family_id', cloud.familyId).eq('shared', true)
+    : query.eq('created_by', cloud.session.user.id);
+  const { data, error } = await query.order('created_at', { ascending: false });
+  if (error) {
+    if (!sharedMode) return localSongs;
+    throw error;
+  }
+  const hidden = JSON.parse(localStorage.getItem(hiddenSongsKey()) || '[]');
 
   const songs = await Promise.all(
-    (data || []).map(async row => {
+    (data || []).filter(row => sharedMode || !hidden.includes(row.id)).map(async row => {
       let signedUrl = '';
 
       if (row.storage_path) {
@@ -449,7 +448,7 @@ function familyMusicReady() {
       }
 
       return {
-        id: row.id,
+        id: sharedMode ? row.id : 'cloud:' + row.id,
         title: row.title,
         artist: row.artist,
         url: row.external_url || signedUrl,
@@ -460,7 +459,9 @@ function familyMusicReady() {
     })
   );
 
-  return songs;
+  const localIds = new Set(localSongs.map(song => song.id));
+  return [...localSongs.filter(song => !String(song.id).startsWith('cloud:') || !hidden.includes(String(song.id).slice(6))),
+    ...songs.filter(song => !localIds.has(song.id))].sort((a,b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
 }
 
   async function saveSong(song) {
@@ -505,7 +506,7 @@ function familyMusicReady() {
     if (uploadError) throw uploadError;
   }
 
-  const { error } = await client
+  const { data: saved, error } = await client
     .from('family_music')
     .insert({
       family_id: familyId,
@@ -516,7 +517,7 @@ function familyMusicReady() {
       mime_type: song.file?.type || '',
       size_bytes: song.file?.size || 0,
       created_by: userId
-    });
+    }).select('id').single();
 
   if (error) {
     if (storagePath) {
@@ -527,10 +528,23 @@ function familyMusicReady() {
 
     throw error;
   }
+  // Keep an actual local copy of newly uploaded audio, not an expiring signed URL.
+  const localDb = await openSongDb();
+  await new Promise((resolve, reject) => {
+    const tx = localDb.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).put({ ...song, id: 'cloud:' + saved.id });
+    tx.oncomplete = resolve; tx.onerror = () => reject(tx.error);
+  });
 }
 
   async function deleteSong(id) {
   if (!familyMusicReady()) {
+    if (String(id).startsWith('cloud:')) {
+      const hidden = JSON.parse(localStorage.getItem(hiddenSongsKey()) || '[]');
+      const cloudId = String(id).slice(6);
+      if (!hidden.includes(cloudId)) hidden.push(cloudId);
+      localStorage.setItem(hiddenSongsKey(), JSON.stringify(hidden));
+    }
     const db = await openSongDb();
 
     return new Promise((resolve, reject) => {
@@ -614,7 +628,7 @@ function familyMusicReady() {
         <button class="btn full" type="submit">🎵 Add to Christmas HQ</button>
 
         <p class="muted-note">
-  Songs added here are shared with your Family Christmas HQ so everyone in your family can see and play them.
+  ${familyMusicReady() ? 'Songs added here are shared with your Family Christmas HQ and retained in your personal library.' : 'Songs added here stay in your personal music library on this phone.'}
 </p>
       </form>`}
 

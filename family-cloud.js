@@ -21,18 +21,19 @@
     }
   });
 
-  const CLOUD_KEYS = [
-    'family',
-    'tasks',
-    'events',
-    'menu',
-    'shopping',
-    'places',
-    'guests',
-    'foodNeeds',
-    'activitiesDone',
-    'advent'
-  ];
+  const lists = window.HQFamilyData;
+  if (!lists) return;
+  const CLOUD_KEYS = lists.keys;
+  const VIEW_KEY = STORAGE + ':cloud-view-v2';
+  let preferredScope = readSaved(VIEW_KEY)?.scope || 'shared';
+  let scope = 'personal';
+  let personal = null;
+  let remoteBase = null;
+  let sharedDraft = null;
+  let viewSnapshot = null;
+  let pushInFlight = null;
+  let membershipTimer = null;
+  let membershipCheck = null;
 
   let session = null;
   let activeFamily = null;
@@ -67,6 +68,8 @@
   get isOwner() {
     return isFamilyOwner();
   },
+  get scope() { return scope; },
+  setScope(value) { return changeScope(value); },
   async refreshMembers() {
     await refreshMembers();
     return familyMembers.slice();
@@ -82,29 +85,7 @@
   function isFamilyOwner() {
     const uid = session?.user?.id;
     if (!uid || !activeFamily) return false;
-    if (activeFamily.role === 'owner' || activeFamily.ownerUserId === uid) return true;
-    return familyMembers.some(m => m.user_id === uid && m.role === 'owner');
-  }
-
-  /* Uses the existing family_members table only (no schema change).
-     Supabase returns no error when row-level security silently filters a delete,
-     so we ask for the deleted rows back and treat "0 rows" as "not allowed". */
-  async function deleteMembership(userId) {
-    const { data, error } = await db
-      .from('family_members')
-      .delete()
-      .eq('family_id', activeFamily.id)
-      .eq('user_id', userId)
-      .select('user_id');
-
-    if (error) throw error;
-    if (!data || !data.length) {
-      const err = new Error(
-        "The family server didn't allow that change, so nobody was removed. Your Family Cloud permissions may only let people be removed from the Supabase dashboard."
-      );
-      err.code = 'HQ_NOT_ALLOWED';
-      throw err;
-    }
+    return activeFamily.ownerUserId === uid;
   }
 
   async function removeFamilyMember(userId) {
@@ -113,27 +94,31 @@
     if (userId === session.user.id) return leaveActiveFamily();
     if (!isFamilyOwner()) throw new Error('Only the person who created this family can remove members.');
 
-    await deleteMembership(userId);
+    if (userId === activeFamily.ownerUserId) throw new Error('The family owner cannot be removed.');
+    await pushCloudState();
+    const { data, error } = await db.rpc('hq_remove_family_member', {
+      p_family_id: activeFamily.id, p_user_id: userId
+    });
+    if (error) throw error;
+    if (data?.data) receiveSnapshot(data.data, data.updated_at);
     familyMembers = familyMembers.filter(m => m.user_id !== userId);
     await refreshMembers();
     render(false);
-    return true;
+    return data;
   }
 
   async function leaveActiveFamily() {
     if (!session?.user || !activeFamily) throw new Error('You are not connected to a family.');
 
-    await deleteMembership(session.user.id);
-
-    unsubscribeRealtime();
-    activeFamily = null;
-    familyMembers = [];
-    cloudReady = false;
-    localStorage.removeItem('christmas-hq-family-id');
-
-    /* Falls back to another family you still belong to, or the setup panel */
-    await selectFamily('');
-    return true;
+    if (isFamilyOwner()) throw new Error('The family owner cannot leave this family.');
+    await pushCloudState();
+    const { data, error } = await db.rpc('hq_remove_family_member', {
+      p_family_id: activeFamily.id, p_user_id: session.user.id
+    });
+    if (error) throw error;
+    detachFamily();
+    notice('You left the family. Your personal lists are kept.');
+    return data;
   }
 
   const clone = value => {
@@ -213,6 +198,139 @@
     return out;
   }
 
+  function personalKey(userId = session?.user?.id || 'device') {
+    return STORAGE + ':personal-v2:' + userId;
+  }
+
+  function readSaved(key) {
+    try { return JSON.parse(localStorage.getItem(key) || 'null'); }
+    catch (e) { return null; }
+  }
+
+  function savePersonal() {
+    // A failed backup must stop us replacing personal lists with shared lists.
+    localStorage.setItem(personalKey(), JSON.stringify(personal));
+  }
+
+  function preparePersonal() {
+    const previousView = readSaved(VIEW_KEY);
+    if (previousView?.scope === 'shared') {
+      const saved = readSaved(personalKey(previousView.userId));
+      if (!saved) throw new Error('Your personal backup could not be loaded. Family sync was paused.');
+      applySharedSnapshot(saved);
+    }
+    const saved = readSaved(personalKey());
+    personal = saved || sharedSnapshot();
+    savePersonal();
+    scope = 'personal';
+    applySharedSnapshot(personal);
+    markView();
+  }
+
+  function markView() {
+    localStorage.setItem(VIEW_KEY, JSON.stringify({
+      scope, userId: session?.user?.id || 'device', familyId: activeFamily?.id || ''
+    }));
+  }
+
+  function draftKey() {
+    return STORAGE + ':family-draft-v2:' + session.user.id + ':' + activeFamily.id;
+  }
+
+  function saveDraft() {
+    if (activeFamily && remoteBase && sharedDraft) {
+      localStorage.setItem(draftKey(), JSON.stringify({ base: remoteBase, draft: sharedDraft }));
+    }
+  }
+
+  function captureLists() {
+    if (syncingRemote) return;
+    const current = sharedSnapshot();
+    if (scope === 'personal') {
+      personal = current;
+      savePersonal();
+      return;
+    }
+    const before = viewSnapshot || sharedDraft;
+    if (!before) return;
+    personal = lists.rememberOwn(personal, before, current, session.user.id);
+    savePersonal();
+    current._hq = clone(before._hq || { version: 2, revision: 0, authors: {} });
+    CLOUD_KEYS.forEach(key => {
+      const ids = new Set((before[key] || []).map(lists.identity));
+      current._hq.authors[key] ||= {};
+      current[key].forEach(item => {
+        if (!ids.has(lists.identity(item))) current._hq.authors[key][lists.identity(item)] = session.user.id;
+      });
+    });
+    sharedDraft = current;
+    viewSnapshot = clone(current);
+    saveDraft();
+  }
+
+  function receiveSnapshot(data, updatedAt) {
+    const incomingRevision = Number(data?._hq?.revision || 0);
+    if (remoteBase && incomingRevision < Number(remoteBase._hq?.revision || 0)) return;
+    if (sharedDraft && remoteBase) sharedDraft = lists.merge(remoteBase, sharedDraft, data);
+    else sharedDraft = clone(data);
+    remoteBase = clone(data);
+    lastCloudUpdatedAt = updatedAt || lastCloudUpdatedAt;
+    saveDraft();
+    if (scope === 'shared') {
+      viewSnapshot = clone(sharedDraft);
+      applySharedSnapshot(sharedDraft);
+    } else render(false);
+  }
+
+  async function changeScope(nextScope) {
+    if (!['personal', 'shared'].includes(nextScope) || nextScope === scope) return;
+    if (nextScope === 'shared' && (!activeFamily || !cloudReady)) throw new Error('Connect to a family first.');
+    captureLists();
+    if (nextScope === 'shared') {
+      await checkMembership();
+      if (!activeFamily) return;
+      await pullCloudState(false);
+    }
+    scope = nextScope;
+    preferredScope = nextScope;
+    markView();
+    viewSnapshot = clone(nextScope === 'shared' ? sharedDraft : personal);
+    applySharedSnapshot(viewSnapshot);
+  }
+
+  function detachFamily() {
+    clearTimeout(pushTimer);
+    unsubscribeRealtime();
+    // Keep any pending local contribution copies. Never apply the cleaned cloud to personal.
+    if (scope === 'shared') captureLists();
+    scope = 'personal';
+    markView();
+    if (personal) applySharedSnapshot(personal);
+    activeFamily = null;
+    familyMembers = [];
+    cloudReady = false;
+    remoteBase = sharedDraft = viewSnapshot = null;
+    localStorage.removeItem('christmas-hq-family-id');
+    markView();
+    render(false);
+  }
+
+  async function checkMembership() {
+    if (!activeFamily || !session?.user) return;
+    if (membershipCheck) return membershipCheck;
+    const familyId = activeFamily.id;
+    membershipCheck = (async () => {
+      const { data, error } = await db.from('family_members').select('user_id')
+        .eq('family_id', familyId).eq('user_id', session.user.id).maybeSingle();
+      if (error) throw error;
+      if (!data && activeFamily?.id === familyId) {
+        detachFamily();
+        notice('You are no longer connected to this family. Your personal lists are kept.');
+      }
+    })();
+    try { await membershipCheck; } finally { membershipCheck = null; }
+  }
+
   function applySharedSnapshot(data) {
     if (!data || typeof data !== 'object') return;
 
@@ -244,9 +362,7 @@
 
       render(false);
     } finally {
-      setTimeout(() => {
-        syncingRemote = false;
-      }, 80);
+      syncingRemote = false;
     }
   }
 
@@ -274,7 +390,16 @@
     if (!error) familyMembers = data || [];
   }
 
-  async function selectFamily(familyId) {
+  async function selectFamily(familyId, seedFromPersonal = false) {
+    clearTimeout(pushTimer);
+    unsubscribeRealtime();
+    if (activeFamily && scope === 'shared') {
+      captureLists();
+      scope = 'personal';
+      applySharedSnapshot(personal);
+    }
+    cloudReady = false;
+    remoteBase = sharedDraft = viewSnapshot = null;
     const memberships = await loadMemberships();
     const row =
       memberships.find(m => m.family_id === familyId) ||
@@ -292,100 +417,111 @@
     localStorage.setItem('christmas-hq-family-id', activeFamily?.id || '');
 
     if (!activeFamily) {
-      cloudReady = false;
-      unsubscribeRealtime();
+      scope = 'personal';
+      markView();
       render(false);
       return;
     }
 
+    const cached = readSaved(draftKey());
+    remoteBase = cached?.base || null;
+    sharedDraft = cached?.draft || null;
     await refreshMembers();
-    await pullCloudState(true);
+    await pullCloudState(seedFromPersonal);
     subscribeRealtime();
     cloudReady = true;
+    scope = preferredScope;
+    markView();
+    if (scope === 'shared') {
+      viewSnapshot = clone(sharedDraft);
+      applySharedSnapshot(sharedDraft);
+    }
     render(false);
   }
 
   async function pullCloudState(seedIfMissing = false) {
     if (!activeFamily) return;
+    const familyId = activeFamily.id;
 
     const { data, error } = await db
       .from('shared_items')
       .select('id,data,updated_at')
-      .eq('family_id', activeFamily.id)
+      .eq('family_id', familyId)
       .eq('section', 'notes')
       .eq('title', '__app_state__')
       .maybeSingle();
 
     if (error) throw error;
+    if (activeFamily?.id !== familyId) return;
 
     if (data?.data) {
-      lastCloudUpdatedAt = data.updated_at;
-      applySharedSnapshot(data.data);
-    } else if (seedIfMissing) {
-      await pushCloudState(true);
+      receiveSnapshot(data.data, data.updated_at);
+    } else {
+      remoteBase = { year: state.year, santa: sharedSnapshot().santa };
+      CLOUD_KEYS.forEach(key => { remoteBase[key] = []; });
+      sharedDraft = seedIfMissing ? clone(personal) : clone(remoteBase);
+      if (seedIfMissing) await pushCloudState(true);
     }
   }
 
   async function pushCloudState(force = false) {
     if (!session?.user || !activeFamily) return;
     if (!force && syncingRemote) return;
-
-    const snapshot = sharedSnapshot();
-
-    const { data: existing, error: findError } = await db
-      .from('shared_items')
-      .select('id')
-      .eq('family_id', activeFamily.id)
-      .eq('section', 'notes')
-      .eq('title', '__app_state__')
-      .maybeSingle();
-
-    if (findError) throw findError;
-
-    let result;
-
-    if (existing?.id) {
-      result = await db
-        .from('shared_items')
-        .update({
-          data: snapshot,
-          owner_user_id: session.user.id
-        })
-        .eq('id', existing.id)
-        .select('updated_at')
-        .single();
-    } else {
-      result = await db
-        .from('shared_items')
-        .insert({
-          family_id: activeFamily.id,
-          section: 'notes',
-          title: '__app_state__',
-          data: snapshot,
-          created_by: session.user.id,
-          owner_user_id: session.user.id
-        })
-        .select('updated_at')
-        .single();
+    if (scope === 'shared') captureLists();
+    if (pushInFlight) {
+      await pushInFlight;
+      return pushCloudState(force);
     }
-
-    if (result.error) throw result.error;
-    lastCloudUpdatedAt = result.data?.updated_at || new Date().toISOString();
+    if (!sharedDraft || !remoteBase) return;
+    if (!force && lists.equal(sharedDraft, remoteBase)) return;
+    const familyId = activeFamily.id;
+    pushInFlight = (async () => {
+      await checkMembership();
+      if (activeFamily?.id !== familyId) return;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const sent = clone(sharedDraft);
+        const { data, error } = await db.rpc('hq_save_family_state', {
+          p_family_id: familyId, p_revision: Number(remoteBase._hq?.revision || 0), p_data: sent
+        });
+        if (activeFamily?.id !== familyId) return;
+        if (error?.code === '40001') { await pullCloudState(false); continue; }
+        if (error) {
+          if (error.code === '42501') await checkMembership();
+          throw error;
+        }
+        // Rebase edits made while this request was in flight onto the accepted snapshot.
+        sharedDraft = lists.merge(sent, sharedDraft, data.data);
+        remoteBase = clone(data.data);
+        lastCloudUpdatedAt = data.updated_at;
+        saveDraft();
+        if (scope === 'shared') {
+          viewSnapshot = clone(sharedDraft);
+          applySharedSnapshot(sharedDraft);
+        }
+        if (!lists.equal(sharedDraft, remoteBase)) schedulePush();
+        return;
+      }
+      throw new Error('Family sync is busy. Your changes are saved on this phone; press Sync now to retry.');
+    })();
+    try { await pushInFlight; } finally { pushInFlight = null; }
   }
 
   function schedulePush() {
-    if (!cloudReady || syncingRemote) return;
+    if (!cloudReady || syncingRemote || scope !== 'shared') return;
 
     clearTimeout(pushTimer);
 
     pushTimer = setTimeout(() => {
-      pushCloudState().catch(err =>
-        console.warn('Christmas HQ cloud sync failed', err)
-      );
+      pushCloudState().catch(err => {
+        console.warn('Christmas HQ cloud sync failed', err);
+        notice(err.message || 'Family sync paused. Your changes are kept on this phone.');
+      });
     }, 500);
   }
 
   function unsubscribeRealtime() {
+    clearInterval(membershipTimer);
+    membershipTimer = null;
     if (channel) {
       db.removeChannel(channel);
       channel = null;
@@ -396,6 +532,8 @@
     unsubscribeRealtime();
     if (!activeFamily) return;
 
+    const familyId = activeFamily.id;
+    membershipTimer = setInterval(() => checkMembership().catch(() => {}), 15000);
     channel = db
       .channel('christmas-hq-' + activeFamily.id)
       .on(
@@ -407,9 +545,10 @@
           filter: 'family_id=eq.' + activeFamily.id
         },
         payload => {
-          if (payload.new?.title === '__app_state__') {
-            lastCloudUpdatedAt = payload.new.updated_at || null;
-            applySharedSnapshot(payload.new.data);
+          if (activeFamily?.id === familyId && payload.new?.title === '__app_state__') {
+            checkMembership().then(() => {
+              if (activeFamily?.id === familyId) receiveSnapshot(payload.new.data, payload.new.updated_at);
+            }).catch(() => {});
           }
         }
       )
@@ -421,7 +560,7 @@
           table: 'family_members',
           filter: 'family_id=eq.' + activeFamily.id
         },
-        () => refreshMembers().then(() => render(false))
+        () => checkMembership().then(() => refreshMembers()).then(() => render(false)).catch(() => {})
       )
       .subscribe();
   }
@@ -636,7 +775,8 @@
         member =>
           `<span class="cloud-member">${cloudEsc(
             member.display_name || 'Family member'
-          )}${member.role === 'owner' ? ' ★' : ''}</span>`
+          )}${member.user_id === activeFamily.ownerUserId ? ' ★' : ''}${isFamilyOwner() && member.user_id !== activeFamily.ownerUserId && member.user_id !== session.user.id
+            ? ` <button class="btn small warn" type="button" data-cloud-action="removemember" data-user-id="${cloudEsc(member.user_id)}" aria-label="Remove ${cloudEsc(member.display_name || 'family member')} from HQ">Remove from HQ</button>` : ''}</span>`
       )
       .join('');
 
@@ -666,6 +806,12 @@
           Last cloud change: <b>${cloudEsc(when)}</b>.
         </div>
 
+        <div class="cloud-row" style="margin-top:12px" aria-label="Choose which lists to use">
+          <button class="btn ${scope === 'personal' ? '' : 'alt'}" type="button" data-cloud-action="personal" aria-pressed="${scope === 'personal'}">🔒 My personal lists</button>
+          <button class="btn ${scope === 'shared' ? '' : 'alt'}" type="button" data-cloud-action="shared" aria-pressed="${scope === 'shared'}">👪 Family HQ lists</button>
+        </div>
+        <p class="cloud-note">${scope === 'personal' ? 'Your personal lists are open. Changes stay on this phone.' : 'Family HQ lists are open. Items you add are also kept in your personal lists.'}</p>
+
         <div class="cloud-members">
           ${memberHtml || '<span class="cloud-member">You</span>'}
         </div>
@@ -674,6 +820,7 @@
           <button class="btn" type="button" data-cloud-action="invite">Invite family</button>
           <button class="btn alt" type="button" data-cloud-action="syncnow">Sync now</button>
           <button class="btn" type="button" data-cloud-action="signout">Sign out</button>
+          ${!isFamilyOwner() ? '<button class="btn warn" type="button" data-cloud-action="leavefamily">Leave family HQ</button>' : ''}
         </div>
 
         <div id="cloudInviteBox"></div>
@@ -682,6 +829,9 @@
           <b>Shared:</b> family list, checklist, events, menu, groceries, guests,
           food requirements, places and family activities.<br>
           <b>Private on your device:</b> gifts, budget/spending, Santa letter and Secret Santa assignment.
+          Music and other personal settings stay on your phone.<br>
+          Removing a member removes the shared items recorded as theirs. Their personal lists stay intact.
+          Older shared entries without a recorded creator are kept.
         </p>
 
         <div id="cloudError" class="cloud-error"></div>
@@ -706,8 +856,7 @@
 
     if (error) throw error;
 
-    await selectFamily(data.id);
-    await pushCloudState(true);
+    await selectFamily(data.id, true);
     notice('Family Cloud created');
   }
 
@@ -818,6 +967,13 @@
       const originalPersist = persist;
 
       persist = function (msg) {
+        try { captureLists(); }
+        catch (err) {
+          notice('Personal backup could not be saved. Family sync was paused.');
+          console.warn(err);
+          originalPersist(msg);
+          return;
+        }
         originalPersist(msg);
         schedulePush();
       };
@@ -825,16 +981,41 @@
 
     const { data } = await db.auth.getSession();
     session = data.session;
+    preparePersonal();
+
+    const originalRender = render;
+    render = function (...args) {
+      originalRender(...args);
+      if (activeFamily && ui.tab !== 'settings') {
+        const container = document.getElementById('screen');
+        if (container && !container.querySelector('[data-hq-list-scope]')) {
+          const banner = document.createElement('div');
+          banner.dataset.hqListScope = 'true';
+          banner.className = 'cloud-row';
+          banner.style.cssText = 'margin:0 0 10px;font-size:12px;justify-content:space-between';
+          banner.innerHTML = `<b>${scope === 'personal' ? '🔒 My personal lists' : '👪 Family HQ lists'}</b><button class="btn small alt" type="button" data-cloud-action="${scope === 'personal' ? 'shared' : 'personal'}">${scope === 'personal' ? 'Open family lists' : 'Open personal lists'}</button>`;
+          container.prepend(banner);
+        }
+      }
+    };
+    window.addEventListener('online', () => {
+      checkMembership().then(() => pushCloudState()).catch(() => {});
+    });
+    window.addEventListener('focus', () => {
+      checkMembership().then(() => pullCloudState(false)).catch(() => {});
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) checkMembership().then(() => pullCloudState(false)).catch(() => {});
+    });
 
     db.auth.onAuthStateChange((_event, nextSession) => {
-      session = nextSession;
-
-      if (!session) {
-        activeFamily = null;
-        familyMembers = [];
-        cloudReady = false;
-        unsubscribeRealtime();
-        render(false);
+      if (!nextSession && session) {
+        detachFamily();
+        session = null;
+        savePersonal();
+        markView();
+      } else {
+        session = nextSession;
       }
     });
 
@@ -916,6 +1097,7 @@
 
         const { data } = await db.auth.getSession();
         session = data.session;
+        preparePersonal();
 
         const memberships = await loadMemberships();
 
@@ -992,14 +1174,13 @@
 
     try {
       if (action === 'signout') {
+        captureLists();
+        await pushCloudState();
+        detachFamily();
         await db.auth.signOut();
-
         session = null;
-        activeFamily = null;
-        familyMembers = [];
-        cloudReady = false;
-
-        unsubscribeRealtime();
+        savePersonal();
+        markView();
         render(false);
       }
 
@@ -1008,9 +1189,30 @@
       }
 
       if (action === 'syncnow') {
+        await checkMembership();
+        if (!activeFamily) return;
         await pushCloudState(true);
         await pullCloudState(false);
         notice('Family Cloud synced');
+      }
+
+      if (action === 'personal' || action === 'shared') await changeScope(action);
+
+      if (action === 'removemember') {
+        const member = familyMembers.find(m => m.user_id === button.dataset.userId);
+        if (!member) throw new Error('That family member could not be found.');
+        if (!confirm(`Remove ${member.display_name || 'this person'} from ${activeFamily.name}?\n\nThey will lose access, and their recorded contributions will be removed from the shared family lists. Their personal lists, gifts, budget, menus, music and other phone data will be kept.\n\nOlder shared items without a recorded creator will stay.`)) return;
+        button.disabled = true;
+        try {
+          const result = await removeFamilyMember(member.user_id);
+          notice(`${member.display_name || 'Member'} removed · ${result.removed_items || 0} shared items removed`);
+        } finally { button.disabled = false; }
+      }
+
+      if (action === 'leavefamily') {
+        if (!confirm('Leave this family HQ? Your recorded contributions will be removed from its shared lists. All your personal phone data will be kept. Older unclaimed shared entries will stay.')) return;
+        button.disabled = true;
+        try { await leaveActiveFamily(); } finally { button.disabled = false; }
       }
 
       if (action === 'shareinvite') {
