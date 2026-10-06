@@ -48,6 +48,8 @@
   let authCooldownUntil = 0;
   let authCooldownBaseMessage = '';
   let authCooldownKind = ''; // 'confirm' | 'rate'
+  let memberSearch = '';
+  let selectedMemberId = '';
 
   window.ChristmasHQFamilyCloud = {
   get client() {
@@ -175,6 +177,34 @@
         padding:7px 10px;font-size:12px;font-weight:800
       }
       .cloud-error{font-size:12px;color:#9a3340;margin-top:8px}
+      .cloud-member-search{margin:12px 0 16px;position:relative}
+      .cloud-member-search label{display:block;margin:0 0 6px;font-size:11px;font-weight:850;color:#355a47}
+      .cloud-search-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+      #screen .cloud-card .cloud-member-search .field{min-width:0;min-height:46px!important;border:2px solid #cfb56c!important;border-radius:12px!important;background:#fffdf6!important;font-size:13px!important;color:#173e30!important}
+      #screen .cloud-card .cloud-member-search button[data-cloud-action="removechosenmember"]{
+        position:relative!important;display:inline-flex!important;align-items:center!important;
+        justify-content:center!important;gap:7px!important;min-height:44px!important;
+        padding:10px 13px!important;margin:0 0 4px!important;
+        border:2px solid #edc767!important;border-radius:12px!important;
+        background:linear-gradient(160deg,#ef4150 0%,#c71931 42%,#890d24 100%)!important;
+        color:#fff8e4!important;-webkit-text-fill-color:#fff8e4!important;
+        font-size:12px!important;font-weight:900!important;line-height:1.2!important;
+        letter-spacing:.1px!important;text-shadow:0 1px 2px #650619!important;
+        box-shadow:0 4px 0 #660a1d,0 6px 12px #8d12222e,inset 0 1px 0 #ffffff55!important;
+        white-space:nowrap!important;transition:transform .12s,box-shadow .12s!important;
+      }
+      #screen .cloud-card .cloud-member-search button[data-cloud-action="removechosenmember"]::before{
+        content:'🗑'!important;font-size:15px!important;line-height:1!important;margin:0!important;
+      }
+      #screen .cloud-card .cloud-member-search button[data-cloud-action="removechosenmember"]::after{content:none!important}
+      #screen .cloud-card .cloud-member-search button[data-cloud-action="removechosenmember"]:active{
+        transform:translateY(3px)!important;box-shadow:0 1px 0 #660a1d,inset 0 1px 0 #ffffff35!important;
+      }
+      #screen .cloud-card .cloud-member-search button[data-cloud-action="removechosenmember"]:disabled{opacity:.45!important;cursor:not-allowed!important}
+      .cloud-search-results{display:grid;gap:4px;padding:6px;margin-top:7px;background:#fffdf6;border:1px solid #d5bd7a;border-radius:12px;max-height:220px;overflow:auto;box-shadow:0 5px 12px #173e3012}
+      .cloud-search-results[hidden]{display:none!important}
+      #screen .cloud-card .cloud-search-results button{width:100%!important;min-height:40px!important;margin:0!important;padding:10px 12px!important;border:0!important;border-radius:8px!important;background:#edf4e9!important;color:#173e30!important;-webkit-text-fill-color:#173e30!important;font-size:13px!important;font-weight:800!important;text-align:left!important;box-shadow:none!important}
+      .cloud-search-empty{padding:8px 10px;font-size:12px;color:#67776b}
     `;
     document.head.appendChild(style);
   }
@@ -769,14 +799,53 @@
       </div>`;
   }
 
+  function removableMembers() {
+    if (!isFamilyOwner()) return [];
+    return familyMembers.filter(member => member.user_id !== activeFamily.ownerUserId && member.user_id !== session.user.id);
+  }
+
+  function updateMemberSearch() {
+    const input = document.getElementById('cloudMemberSearch');
+    const results = document.getElementById('cloudMemberResults');
+    const remove = document.getElementById('cloudRemoveChosen');
+    if (!input || !results || !remove) return;
+    selectedMemberId = '';
+    memberSearch = input.value;
+    remove.disabled = true;
+    remove.setAttribute('aria-label', 'Select a family member to remove');
+    const query = memberSearch.trim().toLocaleLowerCase();
+    if (!query) { results.hidden = true; input.setAttribute('aria-expanded', 'false'); return; }
+    const matches = removableMembers().filter(member => String(member.display_name || 'Family member').toLocaleLowerCase().includes(query));
+    results.innerHTML = matches.length ? matches.map(member => `<button type="button" data-cloud-action="choosemember" data-user-id="${cloudEsc(member.user_id)}">${cloudEsc(member.display_name || 'Family member')}</button>`).join('') : '<div class="cloud-search-empty">No matching family members</div>';
+    results.hidden = false;
+    input.setAttribute('aria-expanded', 'true');
+  }
+
+  document.addEventListener('input', event => {
+    if (event.target.id === 'cloudMemberSearch') updateMemberSearch();
+  });
+  document.addEventListener('keydown', event => {
+    if (event.target.id !== 'cloudMemberSearch') return;
+    const results = document.getElementById('cloudMemberResults');
+    if (event.key === 'Escape' && results) {
+      results.hidden = true;
+      event.target.setAttribute('aria-expanded', 'false');
+    }
+    if (event.key === 'ArrowDown' && results && !results.hidden) {
+      event.preventDefault();
+      results.querySelector('button')?.focus();
+    }
+  });
+
   function connectedPanel() {
+    const selectedMember = removableMembers().find(member => member.user_id === selectedMemberId);
+    if (!selectedMember) selectedMemberId = '';
     const memberHtml = familyMembers
       .map(
         member =>
           `<span class="cloud-member">${cloudEsc(
             member.display_name || 'Family member'
-          )}${member.user_id === activeFamily.ownerUserId ? ' ★' : ''}${isFamilyOwner() && member.user_id !== activeFamily.ownerUserId && member.user_id !== session.user.id
-            ? ` <button class="btn small warn" type="button" data-cloud-action="removemember" data-user-id="${cloudEsc(member.user_id)}" aria-label="Remove ${cloudEsc(member.display_name || 'family member')} from HQ">Remove from HQ</button>` : ''}</span>`
+          )}${member.user_id === activeFamily.ownerUserId ? ' ★' : ''}</span>`
       )
       .join('');
 
@@ -800,6 +869,8 @@
             </div>
           </div>
         </div>
+
+        ${isFamilyOwner() ? `<div class="cloud-member-search"><label for="cloudMemberSearch">Manage family members</label><div class="cloud-search-row"><input id="cloudMemberSearch" class="field" type="search" placeholder="Search family member…" value="${cloudEsc(selectedMember?.display_name || memberSearch)}" autocomplete="off" aria-label="Search family member" aria-controls="cloudMemberResults" aria-expanded="false"><button id="cloudRemoveChosen" class="btn warn" type="button" data-cloud-action="removechosenmember" ${selectedMember ? '' : 'disabled'} aria-label="${selectedMember ? 'Remove ' + cloudEsc(selectedMember.display_name || 'family member') + ' from HQ' : 'Select a family member to remove'}">Remove</button></div><div id="cloudMemberResults" class="cloud-search-results" hidden></div></div>` : ''}
 
         <div class="cloud-status">
           Shared family plans update between connected phones.
@@ -1198,13 +1269,29 @@
 
       if (action === 'personal' || action === 'shared') await changeScope(action);
 
-      if (action === 'removemember') {
-        const member = familyMembers.find(m => m.user_id === button.dataset.userId);
+      if (action === 'choosemember') {
+        const member = removableMembers().find(m => m.user_id === button.dataset.userId);
+        if (!member) throw new Error('That family member could not be found.');
+        selectedMemberId = member.user_id;
+        memberSearch = member.display_name || 'Family member';
+        const input = document.getElementById('cloudMemberSearch');
+        const results = document.getElementById('cloudMemberResults');
+        const remove = document.getElementById('cloudRemoveChosen');
+        if (input) { input.value = memberSearch; input.setAttribute('aria-expanded', 'false'); }
+        if (results) results.hidden = true;
+        if (remove) { remove.disabled = false; remove.setAttribute('aria-label', 'Remove ' + memberSearch + ' from HQ'); remove.focus(); }
+      }
+
+      if (action === 'removechosenmember') {
+        const member = removableMembers().find(m => m.user_id === selectedMemberId);
         if (!member) throw new Error('That family member could not be found.');
         if (!confirm(`Remove ${member.display_name || 'this person'} from ${activeFamily.name}?\n\nThey will lose access, and their recorded contributions will be removed from the shared family lists. Their personal lists, gifts, budget, menus, music and other phone data will be kept.\n\nOlder shared items without a recorded creator will stay.`)) return;
         button.disabled = true;
         try {
           const result = await removeFamilyMember(member.user_id);
+          selectedMemberId = '';
+          memberSearch = '';
+          render(false);
           notice(`${member.display_name || 'Member'} removed · ${result.removed_items || 0} shared items removed`);
         } finally { button.disabled = false; }
       }
