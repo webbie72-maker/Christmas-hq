@@ -1589,10 +1589,10 @@ return Math.max(0,treeBox.top-(settingsBox.bottom-offset)-4); }
    stopGlide();
    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
    let previous=performance.now();
-   const end=previous+340;
+   const end=previous+390;
    function step(now){
      const dt=Math.min(32,now-previous); previous=now;
-     velocity*=Math.pow(.90,dt/16.67);
+     velocity*=Math.pow(.915,dt/16.67);
      const next=clamp(offset+velocity*dt,0,dragMax);
      if(now>=end || Math.abs(velocity)<.025 || next===offset){glideFrame=0;return;}
      offset=next;nav.style.setProperty('--nav-drag-y',offset+'px');
