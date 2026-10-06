@@ -1,7 +1,1 @@
-Christmas HQ — My menu layout and photos
-
-Replace index.html in the root of your Christmas-hq repository with the included index.html, then commit.
-
-Menu names now have room beside an 88px food photo. Recipe, groceries and remove buttons sit on a separate row. Photos use the same recipe-images/<recipe-id>.jpg files as Recipes.
-
-Prepared from the live app on 6 October 2026.
+Replace index.html and commit. After deployment refresh the app. Groceries has Delete all and Delete ticked items, both with confirmation. Use the existing grocery checkboxes to select items for deletion. My Menu fixes included.
