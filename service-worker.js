@@ -1,4 +1,4 @@
-const CACHE = 'christmas-hq-pwa-v77';
+const CACHE = 'christmas-hq-pwa-v78';
 const CACHE_PREFIX = 'christmas-hq-pwa-';
 
 const CORE = [
@@ -17,7 +17,7 @@ const FEATURES = [
   './christmas-hq-panel-theme.js?v=8', './gift-detail-sheet.js?v=1',
   './explore-detail-sheet.js?v=1', './metric-links.js?v=1',
   './tap-fixes.js?v=1', './countdown-reminders.js?v=1',
-  './kitchen-fixes.js?v=5', './welcome-tour.js?v=3', './phone-back.js?v=3', './family-invitations.js?v=4', './direct-chat.js?v=1'
+  './kitchen-fixes.js?v=5', './welcome-tour.js?v=3', './phone-back.js?v=3', './family-invitations.js?v=4', './direct-chat.js?v=2'
 ];
 
 function usable(response, url) {
