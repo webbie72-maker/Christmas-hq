@@ -1,1 +1,1 @@
-Replace index.html and commit, then refresh after deployment. Planner checklist now has Delete all and Delete ticked items. Both ask for confirmation and apply across all categories, including starter tasks. Grocery deletion and My Menu fixes included.
+Replace index.html and commit, then refresh after deployment. Gift list now has Delete all and Delete ticked items with confirmation. Ticked means marked Already bought using existing checkboxes. Removes gift items only. Includes checklist and grocery deletion and My Menu fixes.
