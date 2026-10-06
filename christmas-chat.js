@@ -370,13 +370,13 @@
       const self=m.user_id===me;
       const tags=[m.role==='owner'?'★ Organiser':'',self?'You':''].filter(Boolean).join(' · ');
       let act='';
-      if(self) act='<button type="button" class="btn small warn" data-hq-chat-leave="family" aria-label="Leave Family Chat">🚪 Leave chat</button>';
-      else if(owner) act='<button type="button" class="btn small warn" data-hq-chat-remove-member="'+x(m.user_id)+'" data-name="'+x(name)+'" aria-label="Remove '+x(name)+' from Family Chat">✕ Remove</button>';
+      if(self && !owner) act='<button type="button" class="btn small warn" data-hq-chat-leave="family" aria-label="Leave Family HQ">🚪 Leave HQ</button>';
+      else if(owner && !self) act='<button type="button" class="btn small warn" data-hq-chat-remove-member="'+x(m.user_id)+'" data-name="'+x(name)+'" aria-label="Remove '+x(name)+' from Family HQ">✕ Remove from HQ</button>';
       return memberRow(name,tags,act);
     }).join('');
     const note=owner
-      ? 'You created this family, so you can remove people. Removing someone takes them out of Family Chat and shared family plans.'
-      : 'Only the family organiser (★) can remove people. You can leave at any time.';
+      ? 'Removing someone from HQ removes their family access and recorded shared list contributions. Their personal data is kept; their shared music becomes private to them. Older items without a recorded creator stay. The organiser cannot leave the family.'
+      : 'Only the family organiser (★) can remove people. Leaving HQ also removes your recorded shared list contributions. Your personal data is kept.';
     return '<details class="hq-chat-members" data-hq-chat-panel="family"'+(chat.panelOpen.family?' open':'')+'><summary>👥 Family Chat members <span class="pill green">'+list.length+'</span></summary>'+
       (chat.membersError?'<p class="hq-chat-members-error">'+x(chat.membersError)+'</p>':'')+
       (rows?'<ul class="hq-chat-member-list">'+rows+'</ul>':'<p class="hq-chat-members-note">Loading family members…</p>')+
@@ -430,11 +430,11 @@
   async function removeChatMember(userId, name){
     const c=cloud();
     if(!c || typeof c.removeMember!=='function'){notice('Family Cloud is still connecting.');return;}
-    if(!confirm('Remove '+name+' from Family Chat?\n\nThey’ll be taken out of your connected family, so they lose access to Family Chat and shared family plans. They can only come back with a new invite.')) return;
+    if(!confirm('Remove '+name+' from Family HQ?\n\nThey will lose access to Family Chat and shared family plans. Their recorded contributions will be removed from shared family lists, and their shared music will become private to them.\n\nTheir personal lists, gifts, budget, music and other phone data will be kept. Older shared items without a recorded creator will stay. They will need a new invite to rejoin.')) return;
     try{
       await c.removeMember(userId);
       chat.members=(c.members||[]).filter(m=>m.user_id!==userId);
-      notice(name+' removed from Family Chat');
+      notice(name+' removed from Family HQ');
     }catch(err){
       notice(err.message||'Could not remove that member.');
     }
@@ -453,8 +453,8 @@
     const c=cloud();
     if(!c || !familyId() || typeof c.leaveFamily!=='function'){notice('You are not connected to a family.');return;}
     const familyName=c.family?.name||'your family';
-    const owner=!!c.isOwner && (chat.members||[]).length>1;
-    if(!confirm('Leave Family Chat?\n\nFamily Chat belongs to your connected family, so this takes you out of “'+familyName+'”. You’ll stop seeing family topics and shared plans until someone invites you again.'+(owner?'\n\n⚠️ You created this family. After you leave, nobody will be able to remove members.':''))) return;
+    if(c.isOwner){notice('The family organiser cannot leave this HQ.');return;}
+    if(!confirm('Leave Family HQ?\n\nYou will lose access to Family Chat and shared plans in “'+familyName+'”. Your recorded shared list contributions will be removed, and your shared music will become private to you.\n\nYour personal lists, gifts, budget, music and other phone data will be kept. Older shared items without a recorded creator will stay. You will need a new invite to rejoin.')) return;
     const fid=familyId();
     try{
       await c.leaveFamily();
@@ -780,3 +780,4 @@
   ensureNav();
   addHomeShortcut();
 })();
+
