@@ -1613,6 +1613,11 @@ I
     return liveGameStage();
   }
 
+  window.ChristmasHQGamesNavigation = {
+    snapshot(){return hqLocalView;},
+    restore(view){hqLocalView=['hub','trivia','song','would','bingo','wheel','memory'].includes(view)?view:'hub';}
+  };
+
   function renderGames(top = true) {
   document.getElementById('bottomNav')?.classList.remove('nav-open');
   document.getElementById('navToggle')?.setAttribute('aria-expanded','false');
@@ -1623,6 +1628,7 @@ I
   ensureGamesNav();
   addSnow();
   ensureMusicDock();
+  window.ChristmasHQPhoneBack?.record();
 
   if (top) {
     window.scrollTo({
@@ -2270,6 +2276,7 @@ renderFestiveAfter();
 
       try {
         if (action === 'backHub') {
+          if(window.ChristmasHQPhoneBack?.canBack){back();return;}
           hqLocalView = 'hub';
           renderGames(false);
         } else if (action === 'joinLiveGame') {
@@ -2562,3 +2569,4 @@ renderFestiveAfter();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ensureBackFab);
   else ensureBackFab();
 })();
+
