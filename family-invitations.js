@@ -4,7 +4,7 @@
  if(window.ChristmasHQInvites)return;
  const cloud=()=>window.ChristmasHQFamilyCloud;
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- let inbox=[],matches=[],query='',identity=null,unread=0,userKey='',familyKey='',refreshing=false,searchVersion=0,channel=null;
+ let inbox=[],matches=[],query='',identity=null,unread=0,directUnread=0,userKey='',familyKey='',refreshing=false,searchVersion=0,channel=null;
  let searchNote='',inboxNote='',exitPromise=null;
  const pending=new Set();
  const signedIn=()=>!!cloud()?.session?.user;
@@ -20,7 +20,7 @@
    button.innerHTML='<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 5h20a3 3 0 0 1 3 3v13a3 3 0 0 1-3 3H14l-8 5v-5a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3Z" fill="#ffe37e" stroke="#79511b" stroke-width="1.6"/><circle cx="10" cy="14" r="1.5"/><circle cx="16" cy="14" r="1.5"/><circle cx="22" cy="14" r="1.5"/></svg><span class="hq-bubble-count"></span>';
    document.body.appendChild(button);
   }
-  const count=signedIn()?unread+inbox.length:0;
+  const count=signedIn()?unread+directUnread+inbox.length:0;
   button.hidden=ui.tab!=='home'||count===0;button.classList.toggle('has-unread',count>0);
   button.setAttribute('aria-label',count?`Open Chat: ${count} unread topics or family invitations`:'Open Christmas Chat');
   const badge=button.querySelector('.hq-bubble-count');badge.hidden=!count;badge.textContent=count>99?'99+':String(count);
@@ -51,7 +51,7 @@
  async function refresh(){
   const c=cloud(),uid=c?.session?.user?.id||'',fid=c?.familyId||'';
   if(uid!==userKey||fid!==familyKey){
-   userKey=uid;familyKey=fid;inbox=[];matches=[];identity=null;unread=0;searchVersion++;
+   userKey=uid;familyKey=fid;inbox=[];matches=[];identity=null;unread=0;directUnread=0;searchVersion++;
    if(channel){c?.client?.removeChannel(channel);channel=null;}
    document.getElementById('hqFamilyInvitations')?.remove();
   }
@@ -59,10 +59,11 @@
   if(refreshing||document.hidden)return;
   refreshing=true;
   try{
-   const [ir,nr,pr]=await Promise.allSettled([action('inbox'),c.client.rpc('hq_chat_unread_count'),action('identity')]);
+   const [ir,nr,pr,dr]=await Promise.allSettled([action('inbox'),c.client.rpc('hq_chat_unread_count'),action('identity'),c.client.from('hq_direct_messages').select('id',{count:'exact',head:true}).eq('receiver_id',uid).is('read_at',null)]);
    if(cloud()?.session?.user?.id!==uid||cloud()?.familyId!==fid)return;
    if(ir.status==='fulfilled'){inbox=ir.value||[];inboxNote='';}else inboxNote='Invitations could not refresh. Check your connection.';
    if(nr.status==='fulfilled'&&!nr.value.error)unread=Number(nr.value.data)||0;
+   if(dr.status==='fulfilled'&&!dr.value.error)directUnread=Number(dr.value.count)||0;
    if(pr.status==='fulfilled')identity=pr.value;
    if(!channel){channel=c.client.channel('hq-chat-alerts-'+uid).on('postgres_changes',{event:'*',schema:'public',table:'chat_threads'},()=>refresh()).subscribe();}
    decorateChat();paintBubble();
@@ -106,7 +107,7 @@
   catch(err){matches=[];searchNote=err.message||'Could not search names.';}finally{button.disabled=false;renderSearch();}
  },true);
  document.addEventListener('click',async e=>{
-  const open=e.target.closest('[data-hq-inbox-open]');if(open){e.preventDefault();go('chat');await refresh();const invitations=document.getElementById('hqFamilyInvitations');if(invitations){invitations.open=true;invitations.scrollIntoView({block:'start'});}return;}
+  const open=e.target.closest('[data-hq-inbox-open]');if(open){e.preventDefault();const openDirect=directUnread>0;go('chat');await refresh();if(openDirect){window.ChristmasHQDirectChat?.open();return;}const invitations=document.getElementById('hqFamilyInvitations');if(invitations){invitations.open=true;invitations.scrollIntoView({block:'start'});}return;}
   const send=e.target.closest('[data-hq-invite-send]');
   if(send){e.preventDefault();const person=matches.find(p=>p.user_id===send.dataset.hqInviteSend);if(!person)return;
    if(!confirm(`Invite ${person.display_name} (${person.user_code}) to ${cloud()?.family?.name||'your family HQ'}? The invitation will appear in their Chat.`))return;

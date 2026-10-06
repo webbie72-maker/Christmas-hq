@@ -264,8 +264,8 @@
     const topicCount=visibleThreads().length;
     return switcher()+
       (family
-        ? '<div class="hq-chat-intro private"><span>🔒</span><div><b>Your private Family Chat</b>'+
-            '<p>Folders, topics and replies here stay inside your connected family.</p></div></div>'
+        ? '<button type="button" class="hq-chat-intro private hq-chat-intro-btn" data-hq-dm-open><span>🔒</span><div><b>Your private Family Chat</b>'+
+            '<p>Tap to find a family member and start a private one-to-one chat.</p></div><span class="hq-chat-chevron">›</span></button>'
         : '<button type="button" class="hq-chat-intro hq-chat-intro-btn" data-hq-chat-open-community aria-label="Open Christmas Community topics">'+
             '<span>🌍</span><div><b>Christmas Community</b>'+
             '<p>Christmas-only discussion for the wider Christmas HQ community.</p>'+
@@ -519,6 +519,7 @@
     '</div>';
     if(top) window.scrollTo({top:0,behavior:'instant'});
     window.ChristmasHQInvites?.decorateChat();
+    window.ChristmasHQDirectChat?.decorate();
     window.ChristmasHQPhoneBack?.record();
   }
 
