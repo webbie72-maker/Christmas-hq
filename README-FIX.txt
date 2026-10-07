@@ -1,1 +1,1 @@
-Replace these two files and push.\nGift idea buttons now say 260, which is the real library size.\n
+Replace index.html, add gift-match.js, and add the gift-photos folder. Then push.\nEach of the 200 gifts now has its own picture and a description of that gift.\n
