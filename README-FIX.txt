@@ -1,1 +1,1 @@
-Replace index.html, add gift-match.js, and add the gift-photos folder. Then push.\nEach of the 200 gifts now has its own picture and a description of that gift.\n
+Replace gift-match.js in the repo with this file and push.\nThis stops the gift page freezing. Pictures were not uploaded, and the old script kept rewriting every card.\n
