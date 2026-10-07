@@ -313,8 +313,8 @@
     const originalGifts = gifts;
     gifts = function(){
       return originalGifts()
-        .replace(/Browse 36 gift ideas/g, 'Browse 299 gift ideas')
-        .replace(/36 starter ideas/g, '299 gift ideas');
+        .replace(/Browse 36 gift ideas/g, 'Browse 260 gift ideas')
+        .replace(/36 starter ideas/g, '260 gift ideas');
     };
   }
 })();
@@ -1336,7 +1336,7 @@ document.addEventListener('click', event => {
             data-action="sub"
             data-tab="gifts"
             data-value="Gift ideas">
-            Browse 200 gift ideas →
+            Browse 260 gift ideas →
           </button>
         </div>
       `;

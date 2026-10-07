@@ -2639,11 +2639,11 @@ IDEAS.splice(0, IDEAS.length, ...CLEAN_GIFT_IDEAS);
     window.__megaGiftScreenWrapped = true;
     const previousGifts = gifts;
     gifts = function(){
+      const count = (typeof CLEAN_GIFT_IDEAS !== 'undefined' && CLEAN_GIFT_IDEAS.length) || 260;
       return previousGifts()
-        .replace(/Browse 299 gift ideas/g, 'Browse 200 gift ideas')
-.replace(/299 gift ideas/g, '200 unique gift ideas')
-.replace(/Browse 36 gift ideas/g, 'Browse 200 gift ideas')
-.replace(/36 starter ideas/g, '200 unique gift ideas');
+        .replace(/Browse \d+ gift ideas/g, 'Browse ' + count + ' gift ideas')
+        .replace(/\d+ unique gift ideas/g, count + ' gift ideas')
+        .replace(/\d+ starter ideas/g, count + ' gift ideas');
     };
   }
 })();

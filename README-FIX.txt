@@ -1,1 +1,1 @@
-Replace index.html and welcome-tour.js, then push so Vercel redeploys.\n- Home no longer shows the backup note to new visitors.\n- Welcome tour no longer starts by itself. Replay it from Settings.\n
+Replace these two files and push.\nGift idea buttons now say 260, which is the real library size.\n
