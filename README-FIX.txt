@@ -1,4 +1,1 @@
-Replace these three files in the Christmas-hq repo, then commit and push so Vercel redeploys.
-index.html
-pin-lock.js
-countdown-reminders.js
+Replace index.html and welcome-tour.js, then push so Vercel redeploys.\n- Home no longer shows the backup note to new visitors.\n- Welcome tour no longer starts by itself. Replay it from Settings.\n
