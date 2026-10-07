@@ -202,12 +202,7 @@
     if(ui.tab!=='home') return;
     const grid=screen.querySelector('.quick-grid');
     if(!grid || grid.querySelector('[data-target="chat"]')) return;
-    const b=document.createElement('button');
-    b.className='tap-card';
-    b.dataset.action='shortcut';
-    b.dataset.target='chat';
-    b.innerHTML='<span class="big">💬</span><strong>Christmas chat</strong><small>Community topics & private family threads</small>';
-    grid.appendChild(b);
+    return;
   }
 
   function switcher(){

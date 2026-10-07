@@ -1379,11 +1379,7 @@ I
     const grid = grids[0];
     if (!grid || grid.querySelector('[data-nav="games"]')) return;
 
-    const button = document.createElement('button');
-    button.className = 'tap-card';
-    button.dataset.nav = 'games';
-    button.innerHTML = '<span class="big">🎮</span><strong>Family games</strong><small>Live trivia, bingo, votes & more</small>';
-    grid.appendChild(button);
+    return;
   }
 
   function ensureGamesNav() {
@@ -2109,7 +2105,7 @@ audio.volume = hqMusicVolume;
     ui.tab === 'home' ||
     (ui.tab === 'magic' && ui.sub.magic === 'Music');
 
-  if (!showMusicDock) {
+  if (!showMusicDock || (ui.tab === 'home' && !selectedSong())) {
     if (dock) dock.style.display = 'none';
     return;
   }
