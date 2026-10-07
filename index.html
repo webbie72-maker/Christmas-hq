@@ -1211,9 +1211,9 @@ case 'fixedEventEdit':{
  case 'watch':toggleArray(state.watched,Number(btn.dataset.index));persist();break;
  case 'print':window.print();break;
  case 'lightSearch':{let el=document.getElementById('lightSuburbInput');let suburb=el?el.value.trim():lightSuburb();if(el)saveLightSuburb(suburb);window.location.assign(lightSearchUrl(suburb));break}
- case 'mapSearch':{let el=document.getElementById('cityInput');if(el)ui.city=el.value.trim()||'Perth WA';window.open(mapQuery(btn.dataset.term),'_blank','noopener');break}
+ case 'mapSearch':{let el=document.getElementById('cityInput');if(el)ui.city=el.value.trim()||'Perth WA';window.location.assign(mapQuery(btn.dataset.term));break}
  case 'placeDelete':state.places=state.places.filter(x=>x.id!==id);persist();break;
- case 'route':{if(state.places.length<2)return notice('Add two or more stops first.');let stops=state.places.slice(0,8).map(p=>encodeURIComponent(p.address));let url=`https://www.google.com/maps/dir/?api=1&origin=${stops[0]}&destination=${stops[stops.length-1]}&travelmode=driving`;if(stops.length>2)url+='&waypoints='+stops.slice(1,-1).join('%7C');window.open(url,'_blank','noopener');break}
+ case 'route':{if(state.places.length<2)return notice('Add two or more stops first.');let stops=state.places.slice(0,8).map(p=>encodeURIComponent(p.address));let url=`https://www.google.com/maps/dir/?api=1&origin=${stops[0]}&destination=${stops[stops.length-1]}&travelmode=driving`;if(stops.length>2)url+='&waypoints='+stops.slice(1,-1).join('%7C');window.location.assign(url);break}
  case 'export':try{await exportChristmasBackup()}catch(err){notice(err.message||'Could not create a complete backup')}break;
  case 'reset':if(confirm('Reset your personal plan? Your personal lists and spending will be replaced with the starter plan. Shared Family HQ lists will be kept. Export a backup first if needed.')){try{await preparePersonalPlanChange();state=seed();persist('Personal starter plan restored');go('home')}catch(err){notice(err.message||'Could not safely reset your personal plan')}}break;
  }});
@@ -1776,3 +1776,14 @@ return Math.max(0,treeBox.top-(settingsBox.bottom-offset)-4); }
 <script src="./direct-chat.js?v=2"></script>
 
 <script src="./account-deletion.js?v=1"></script>
+
+<script id="hq-google-return-fix">
+document.addEventListener('click',function(event){
+ const link=event.target.closest&&event.target.closest('a[href]');
+ if(!link||event.defaultPrevented||event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
+ let url;try{url=new URL(link.href,location.href)}catch(error){return}
+ if(url.protocol==='https:'&&(url.hostname==='google.com'||url.hostname==='www.google.com')){
+  event.preventDefault();event.stopImmediatePropagation();window.location.assign(url.href);
+ }
+},true);
+</script>

@@ -1,1 +1,1 @@
-Replace index.html and commit, then refresh after deployment. Light search now navigates the current window instead of opening a separate window. Test Android phone Back from the installed app after searching. All prior fixes included.
+Replace index.html and commit, then refresh after deployment. Google search and Maps links use the current window, matching the tested Light Trails fix. Includes Advent, activities, Explore, saved stops and driving routes. All earlier fixes included. Test phone Back from the home-screen app.
