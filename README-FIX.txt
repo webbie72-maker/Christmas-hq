@@ -1,1 +1,1 @@
-Replace only index.html, then push.\nDo not replace gift-match.js.\n\n- Family hub card removed from home. Family stays in Planning.\n- New installs have no fake $1,200 budget.\n- No gifts shows None yet. No budget shows Set budget.\n- Past starter tasks on a new install are dated today.\n- Subscriptions coming soon card is hidden.\n
+Replace index.html only. Includes the Christmas Day run sheet plus a Boxing Day leftovers note.\nDo not replace gift-match.js.\n
