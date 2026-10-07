@@ -1,1 +1,5 @@
-Upload index.html, welcome-tour.js and terms.html to the root, commit and refresh. Settings now shows My Plan with Free and All Access pricing (A$1.49/month or A$14.99/year). Checkout is disabled until billing is connected. Testing access is preserved. This update does not enforce paid restrictions or grant purchases. Production feature access must be checked against verified subscription status in the backend. Includes previous fixes and onboarding update.
+Upload hq-admin-stats.js into the main folder of your GitHub repository.
+In your CURRENT index.html, add this line directly before </body>:
+<script src="./hq-admin-stats.js?v=1"></script>
+Commit both changes, then refresh the app. Sign in as webbie72@live.com.au and open Settings.
+The database setup is already complete. Other accounts cannot retrieve totals. Active users begin appearing as they use this updated version; guests are not counted. Joined today uses Perth time.
