@@ -4,6 +4,8 @@
   if (window.__hqWelcomeTour) return;
   window.__hqWelcomeTour = true;
 
+  var ACK_KEY = 'christmas-hq-terms-ack-v1';
+  function acknowledged(){try{return !!JSON.parse(localStorage.getItem(ACK_KEY)||'null')}catch(e){return false}}
   var STORE_KEY = 'christmas-hq-welcome-tour-v3';
   var ROOT_ID = 'hqWelcomeTour';
   var STYLE_ID = 'hqWelcomeTourStyle';
@@ -141,14 +143,14 @@
     {
       id: 'finish',
       emoji: '✨',
-      title: 'You’re all set',
+      title: 'Terms & Privacy',
       body: 'That’s the tour! Open the tree anytime, explore at your pace, and replay from Settings if you want a refresher. Merry Christmas!',
       selectors: []
     }
   ];
 
   function seen() {
-    try { return localStorage.getItem(STORE_KEY) === '1'; } catch (e) { return false; }
+    try { return localStorage.getItem(STORE_KEY) === '1' && acknowledged(); } catch (e) { return false; }
   }
 
   function markSeen() {
@@ -419,6 +421,13 @@
     if (emoji) emoji.textContent = step.emoji || '🎄';
     if (title) title.textContent = step.title || '';
     if (body) body.textContent = step.body || '';
+    if(step.id==='finish' && body){
+      body.innerHTML='<p>Please read our Terms & Conditions and Privacy Policy before continuing.</p><details><summary>Read Terms & Conditions</summary><iframe title="Terms & Conditions" src="./terms.html" style="width:100%;height:240px;border:1px solid #d8d8cf;border-radius:12px"></iframe></details><details style="margin-top:12px"><summary>Read Privacy Policy</summary><iframe title="Privacy Policy" src="./privacy.html" style="width:100%;height:240px;border:1px solid #d8d8cf;border-radius:12px"></iframe></details><label style="display:flex;gap:12px;align-items:flex-start;margin-top:18px;line-height:1.5"><input id="hqTermsTick" type="checkbox" style="width:22px;height:22px;flex-shrink:0"><span>I agree to the Terms & Conditions and acknowledge that I have read the Privacy Policy.</span></label><p id="hqTermsError" role="status" style="color:#a22"></p>';
+      var tick=body.querySelector('#hqTermsTick');tick.checked=acknowledged();
+      tick.addEventListener('change',function(){nextBtn.disabled=!tick.checked});
+    }
+    if(nextBtn)nextBtn.disabled=step.id==='finish'&&!acknowledged();
+    var skipBtn=root.querySelector('[data-hqwt="skip"]');if(skipBtn)skipBtn.hidden=step.id==='finish';
 
     if (prog) {
       var dots = '';
@@ -434,7 +443,7 @@
       backBtn.style.visibility = stepIndex === 0 ? 'hidden' : 'visible';
     }
     if (nextBtn) {
-      nextBtn.textContent = stepIndex === STEPS.length - 1 ? "Let's go! 🎄" : 'Next';
+      nextBtn.textContent = stepIndex === STEPS.length - 1 ? 'Start using Christmas HQ 🎄' : 'Next';
     }
 
     var target = findTarget(step);
@@ -535,6 +544,12 @@
   }
 
   function finish(mark) {
+    if(mark&&!acknowledged()){
+      if(stepIndex!==STEPS.length-1){stepIndex=STEPS.length-1;renderStep();return}
+      var tick=document.getElementById('hqTermsTick');if(!tick||!tick.checked)return;
+      try{localStorage.setItem(ACK_KEY,JSON.stringify({termsVersion:'2026-10-07-v1',privacyVersion:'2026-10-06',acceptedAt:new Date().toISOString()}))}
+      catch(e){var error=document.getElementById('hqTermsError');if(error)error.textContent='Could not save your acknowledgement on this device. Please enable browser storage and try again.';return}
+    }
     if (!active && !document.getElementById(ROOT_ID)) {
       if (mark) markSeen();
       return;
