@@ -17,7 +17,9 @@
   var KEY = 'christmasHQ_pin';
   var ENABLE_KEY='christmasHQ_patternEnabled';
   var patternEnabled=false;
-  try { var preference=localStorage.getItem(ENABLE_KEY); patternEnabled=preference===null?!!localStorage.getItem(KEY):preference==='on'; } catch(e) {}
+  try { var preference=localStorage.getItem(ENABLE_KEY); patternEnabled=preference==='on' || (preference===null && !!localStorage.getItem(KEY)); } catch(e) {}
+  /* First visit has no saved pattern: do not force the lock. Opt in from Settings. */
+  if (!localStorage.getItem(KEY)) patternEnabled = preference==='on';
 
   // A one-use handoff for a refresh of an already unlocked page.
   var REFRESH_KEY = 'christmasHQ_pin_refresh';
@@ -417,7 +419,7 @@
         DOTS_HTML +
       '</div>' +
       '<div class="hqpin-links">' +
-        '<button type="button" class="hqpin-link" data-hqpin-key="cancel" id="hqPinCancel" hidden>Cancel</button>' +
+        '<button type="button" class="hqpin-link" data-hqpin-key="cancel" id="hqPinCancel" hidden>Skip for now</button>' +
         '<button type="button" class="hqpin-link" data-hqpin-key="forgot" id="hqPinForgot">Forgot pattern?</button>' +
       '</div>' +
       '<p class="hqpin-note" id="hqPinNote" role="note" hidden></p>' +
@@ -512,7 +514,7 @@
     var t = TEXT[S.mode] || TEXT.unlock;
     el.title.textContent = t[0];
     el.sub.textContent = t[1];
-    el.cancel.hidden = !isChangeMode();
+    el.cancel.hidden = !(isChangeMode() || (S.mode==='create1' && !readRecord()));
     el.forgot.hidden = !isCheckMode();
   }
 
@@ -971,6 +973,12 @@
   }
 
   function cancelChange() {
+    if (S.mode==='create1' && !readRecord()) {
+      patternEnabled = false;
+      try { localStorage.setItem(ENABLE_KEY, 'off'); } catch (e) {}
+      hideLock('Pattern lock skipped. Turn it on anytime in Settings.');
+      return;
+    }
     if (!isChangeMode()) return;
     hideLock('Pattern not changed.');
   }

@@ -244,8 +244,8 @@
     /* Prefer this year’s Christmas through Boxing Day (-1), even though app YEAR rolls after 25 Dec. */
     if (t.getMonth() === 11 && t.getDate() === 26) return -1;
     if (t.getMonth() === 11 && t.getDate() === 25) return 0;
-    var c = christmasDate().getTime();
-    return Math.round((c - t.getTime()) / 86400000);
+    var c = new Date(christmasYear(), 11, 25, 0, 0, 0).getTime();
+    return Math.max(0, Math.floor((c - Date.now()) / 86400000));
   }
 
   function dateForDaysUntil(days) {
