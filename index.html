@@ -1210,7 +1210,7 @@ case 'fixedEventEdit':{
  case 'activity':toggleArray(state.activitiesDone,Number(btn.dataset.index));persist();break;
  case 'watch':toggleArray(state.watched,Number(btn.dataset.index));persist();break;
  case 'print':window.print();break;
- case 'lightSearch':{let el=document.getElementById('lightSuburbInput');let suburb=el?el.value.trim():lightSuburb();if(el)saveLightSuburb(suburb);window.open(lightSearchUrl(suburb),'_blank','noopener');break}
+ case 'lightSearch':{let el=document.getElementById('lightSuburbInput');let suburb=el?el.value.trim():lightSuburb();if(el)saveLightSuburb(suburb);window.location.assign(lightSearchUrl(suburb));break}
  case 'mapSearch':{let el=document.getElementById('cityInput');if(el)ui.city=el.value.trim()||'Perth WA';window.open(mapQuery(btn.dataset.term),'_blank','noopener');break}
  case 'placeDelete':state.places=state.places.filter(x=>x.id!==id);persist();break;
  case 'route':{if(state.places.length<2)return notice('Add two or more stops first.');let stops=state.places.slice(0,8).map(p=>encodeURIComponent(p.address));let url=`https://www.google.com/maps/dir/?api=1&origin=${stops[0]}&destination=${stops[stops.length-1]}&travelmode=driving`;if(stops.length>2)url+='&waypoints='+stops.slice(1,-1).join('%7C');window.open(url,'_blank','noopener');break}

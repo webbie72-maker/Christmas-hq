@@ -1,1 +1,1 @@
-Replace index.html and commit, then refresh after deployment. Christmas lights now searches the web for current-year displays and addresses around your suburb instead of searching Maps for a library. Saved display addresses still open in Maps and driving routes. Includes all earlier fixes from this chat.
+Replace index.html and commit, then refresh after deployment. Light search now navigates the current window instead of opening a separate window. Test Android phone Back from the installed app after searching. All prior fixes included.
