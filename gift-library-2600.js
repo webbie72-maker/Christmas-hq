@@ -2618,7 +2618,7 @@ for (const gift of MEGA_GIFT_IDEAS) {
     gift[0],
     cleanName,
     gift[2],
-    gift[3]
+    'A ' + cleanName.toLowerCase() + ' — a ' + String(gift[2] || 'Christmas').toLowerCase() + ' gift.'
   ]);
 }
 
