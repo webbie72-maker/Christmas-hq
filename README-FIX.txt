@@ -1,1 +1,1 @@
-Replace index.html only. Includes the Christmas Day run sheet plus a Boxing Day leftovers note.\nDo not replace gift-match.js.\n
+Replace index.html only.\nGift workshop uses the family list: people with no gift yet appear as buttons and fill in Who is it for.\n
