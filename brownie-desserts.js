@@ -1,4 +1,4 @@
-/* Eight brownie desserts from the Sweet Brownie Comfort card. Photos live in recipe-images. */
+/* Eight brownie desserts. Photos were uploaded beside index.html, not in recipe-images. */
 (() => {
   if (typeof RECIPES === 'undefined' || window.__brownieDesserts) return;
   window.__brownieDesserts = true;
@@ -16,4 +16,16 @@
     if (RECIPES.some(r => r.id === item.id)) return;
     RECIPES.push({id:item.id, icon:item.icon, name:item.name, type:'Desserts', time:'45 min', serves:9, detail:item.detail, ingredients:item.ingredients, steps:item.steps});
   });
+  const ids = new Set(items.map(item => item.id));
+  function fixPhotos(root) {
+    (root || document).querySelectorAll('img').forEach(img => {
+      const src = img.getAttribute('src') || '';
+      const match = src.match(/recipe-images\/([a-z0-9-]+)\.jpg/i);
+      if (!match || !ids.has(match[1])) return;
+      const next = './' + match[1] + '.jpg';
+      if (img.getAttribute('src') !== next) img.src = next;
+    });
+  }
+  fixPhotos();
+  new MutationObserver(() => fixPhotos()).observe(document.documentElement, {childList:true, subtree:true});
 })();
