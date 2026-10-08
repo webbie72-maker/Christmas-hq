@@ -1,1 +1,1 @@
-Replace index.html only. Includes the Christmas Day run sheet plus a Boxing Day leftovers note.\nDo not replace gift-match.js.\n
+Replace index.html, add brownie-desserts.js, and put the jpg files in recipe-images next to the other recipe photos.\nEight desserts are added: cheesecake, matcha swirl, mocha, almond, coconut, black forest, tiramisu and double chocolate brownie. Each photo is separate from the recipe.\n
