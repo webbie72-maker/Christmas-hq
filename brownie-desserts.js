@@ -1,7 +1,6 @@
-/* Eight brownie desserts. Photos were uploaded beside index.html, not in recipe-images. */
+/* Brownie desserts use the photos in recipe-images. Kitchen was showing Photo coming soon. */
 (() => {
-  if (typeof RECIPES === 'undefined' || window.__brownieDesserts) return;
-  window.__brownieDesserts = true;
+  if (typeof RECIPES === 'undefined') return;
   const items = [
     {id:'cheesecake-brownie', icon:'🍰', name:'Cheesecake brownie', detail:'A fudgy brownie with a cream-cheese swirl.', ingredients:['1/2 cup unsalted butter','1 cup granulated sugar','2 large eggs','1 tsp vanilla extract','1/3 cup cocoa powder','1/2 cup all-purpose flour','1/4 tsp salt','1/4 tsp baking powder','8 oz cream cheese, softened','1/4 cup granulated sugar, for the swirl','1 large egg yolk','1/2 tsp vanilla extract, for the swirl'], steps:['Heat the oven to 175°C. Line a 20 cm tin.','Melt the butter, then mix in the sugar, eggs and vanilla.','Stir in cocoa, flour, salt and baking powder.','Beat the cream cheese, extra sugar, yolk and vanilla.','Spread the batter, dollop the cheesecake mix on top and swirl.','Bake 25–30 minutes, until the centre is just set. Cool before cutting.']},
     {id:'matcha-swirl-brownie', icon:'🍵', name:'Matcha swirl brownie', detail:'Chocolate brownie with a matcha cheesecake swirl.', ingredients:['1/2 cup unsalted butter','4 oz semisweet chocolate','3/4 cup granulated sugar','1/4 cup brown sugar','2 large eggs','1 tsp vanilla extract','1/2 cup all-purpose flour','2 tbsp cocoa powder','1/4 tsp salt','4 oz cream cheese','2 tbsp sugar','1 tsp matcha green tea powder','1 egg yolk'], steps:['Heat the oven to 175°C. Line a 20 cm tin.','Melt the butter and chocolate. Mix in both sugars, eggs and vanilla.','Fold in flour, cocoa and salt.','Beat the cream cheese, sugar, matcha and yolk.','Spread the batter, spoon on the matcha mix and swirl.','Bake 25–30 minutes. Cool, then cut.']},
@@ -13,19 +12,13 @@
     {id:'double-chocolate-brownie', icon:'🍫', name:'Double chocolate brownie', detail:'A very chocolate brownie with chips in the batter.', ingredients:['1 cup unsalted butter','8 oz semisweet or dark chocolate, chopped','1 1/2 cups granulated sugar','1/2 cup brown sugar','4 large eggs','2 tsp vanilla extract','1 cup all-purpose flour','1/2 cup cocoa powder','1/2 tsp salt','1 cup chocolate chips or chunks'], steps:['Heat the oven to 175°C. Line a 23 cm tin.','Melt the butter and chocolate. Mix in both sugars, eggs and vanilla.','Stir in flour, cocoa and salt, then fold in the chips.','Bake 28–35 minutes, until the centre is just set. Cool before cutting.']}
   ];
   items.forEach(item => {
-    if (RECIPES.some(r => r.id === item.id)) return;
-    RECIPES.push({id:item.id, icon:item.icon, name:item.name, type:'Desserts', time:'45 min', serves:9, detail:item.detail, ingredients:item.ingredients, steps:item.steps});
+    const photo = './recipe-images/' + item.id + '.jpg';
+    let row = RECIPES.find(r => r.id === item.id);
+    if (!row) {
+      row = {id:item.id, icon:item.icon, name:item.name, type:'Desserts', time:'45 min', serves:9, detail:item.detail, ingredients:item.ingredients, steps:item.steps};
+      RECIPES.push(row);
+    }
+    row.photo = photo;
+    if (typeof photoById === 'object' && photoById) photoById[item.id] = item.id + '.jpg';
   });
-  const ids = new Set(items.map(item => item.id));
-  function fixPhotos(root) {
-    (root || document).querySelectorAll('img').forEach(img => {
-      const src = img.getAttribute('src') || '';
-      const match = src.match(/recipe-images\/([a-z0-9-]+)\.jpg/i);
-      if (!match || !ids.has(match[1])) return;
-      const next = './' + match[1] + '.jpg';
-      if (img.getAttribute('src') !== next) img.src = next;
-    });
-  }
-  fixPhotos();
-  new MutationObserver(() => fixPhotos()).observe(document.documentElement, {childList:true, subtree:true});
 })();
