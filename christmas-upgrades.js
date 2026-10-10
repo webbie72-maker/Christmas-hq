@@ -445,6 +445,11 @@ function familyMusicReady() {
   }
 
   async function listSongs() {
+    try { return [...(window.ChristmasHQBuiltInSongs || []), ...await listUploadedSongs()]; }
+    catch (error) { if (window.ChristmasHQBuiltInSongs?.length) return [...window.ChristmasHQBuiltInSongs]; throw error; }
+  }
+
+  async function listUploadedSongs() {
   /* Give Family Cloud time to restore the signed-in family on this device */
   if (!familyMusicCloud()?.session && !familyMusicCloud()?.familyId) {
     for (let i = 0; i < 20 && !familyMusicReady(); i++) {
@@ -573,6 +578,7 @@ function familyMusicReady() {
 }
 
   async function deleteSong(id) {
+  if (String(id).startsWith('builtin:')) return;
   if (!familyMusicReady()) {
     if (String(id).startsWith('cloud:')) {
       const hidden = JSON.parse(localStorage.getItem(hiddenSongsKey()) || '[]');
@@ -739,9 +745,7 @@ function familyMusicReady() {
                 ${player}
               </div>
 
-              <button class="icon-action" type="button"
-                data-song-delete="${esc(song.id)}"
-                aria-label="Delete song">×</button>
+              ${song.builtIn ? '<span class="pill">Included</span>' : `<button class="icon-action" type="button" data-song-delete="${esc(song.id)}" aria-label="Delete song">×</button>`}
             </div>
           </div>`;
       }).join('');

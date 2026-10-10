@@ -590,8 +590,7 @@
     }
     if (seen()) return;
     if (!isUnlocked()) return;
-    /* Don't block the first open. Replay stays in Settings. */
-    return;
+    startTour(false);
   }
 
   function waitForUnlock() {

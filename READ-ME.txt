@@ -1,1 +1,15 @@
-Replace hq-admin-stats.js in your main GitHub folder with the included file. Commit, then refresh Christmas HQ. No index.html changes needed.
+CHRISTMAS HQ UPDATE — 10 OCTOBER 2026
+
+The live app has NOT been updated: GitHub integration returned 403 (no write access).
+
+1. Extract this ZIP first. Do not upload the ZIP itself into your app.
+2. Open webbie72-maker/Christmas-hq on GitHub, main branch.
+3. Add file > Upload files. Upload all seven files at the top level and the music folder, preserving its folder name.
+4. Commit changes. Your connected Vercel deployment should then rebuild.
+5. Reopen the app online and check Settings and Planner > Guests.
+
+Included: optional city/country entry in Settings; owner-only aggregate tally; six permanent songs in Magic > Music and the player (no delete controls); first-open tour; one shared Supabase client; updated offline script cache; navigation and audio accessibility labels; tap a guest name/notes to edit and save guest details.
+
+Locations are voluntary and member-entered; no names or precise coordinates appear in the tally. Existing database RPCs are required and were set up previously. Songs stream from the bundled files; offline availability depends on previously cached content. Existing plans and shared lists are preserved.
+
+Validation: all JS and inline script syntax checks pass; local script/style references exist and match service-worker precache; all six MP3s decode with ffprobe. New signed-in flows have not been tested on the live app because the upload was denied. The unused index (1).html was left in place to avoid unrelated deletion.

@@ -1396,6 +1396,8 @@ I
     }
 
     nav.querySelectorAll('button[data-nav]').forEach(button => {
+      const names = {home:'Home',gifts:'Gifts',plan:'Planner',kitchen:'Kitchen',magic:'Magic',games:'Games',chat:'Chat',explore:'Explore',settings:'Settings'};
+      button.setAttribute('aria-label', names[button.dataset.nav] || button.dataset.nav);
       const isCurrent = button.dataset.nav === ui.tab;
       button.classList.toggle('current', isCurrent);
       if (isCurrent) button.setAttribute('aria-current', 'page');
@@ -1785,11 +1787,8 @@ I
   }
 
   async function initFamilyGames() {
-    if (!window.supabase?.createClient) return;
-
-    hqDb = window.supabase.createClient(HQ_SUPABASE_URL, HQ_SUPABASE_KEY, {
-      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
-    });
+    hqDb = window.ChristmasHQFamilyCloud?.client;
+    if (!hqDb) return;
 
     const { data } = await hqDb.auth.getSession();
     hqSession = data.session;
@@ -1946,6 +1945,7 @@ I
       });
     }
 
+    hqMusicSongs = [...(window.ChristmasHQBuiltInSongs || []), ...hqMusicSongs];
     if (
       !hqSelectedSongId ||
       !hqMusicSongs.some(song => song.id === hqSelectedSongId)
@@ -1965,6 +1965,9 @@ I
 
   } catch (err) {
     console.warn('Music library load failed', err);
+    hqMusicSongs = [...(window.ChristmasHQBuiltInSongs || [])];
+    loadSelectedSong();
+    ensureMusicDock();
   }
 }
 
@@ -2129,7 +2132,7 @@ audio.volume = hqMusicVolume;
           <b>${song ? hqEsc(song.title) : 'Your Christmas music'}</b>
           <small>${song ? hqEsc(song.artist || song.fileName || 'Christmas HQ') : 'Add your own song in Magic → Music'}</small>
         </div>
-        <button class="hq-music-btn" data-hq-music="${playing?'pause':'play'}">${playing?'❚❚':'▶'}</button>
+        <button class="hq-music-btn" aria-label="${playing ? 'Pause music' : 'Play music'}" data-hq-music="${playing?'pause':'play'}">${playing?'❚❚':'▶'}</button>
         <button class="hq-music-expand" data-hq-music="expand" aria-label="Music options">⋯</button>
       </div>
       <div class="hq-music-tools">
@@ -2137,7 +2140,7 @@ audio.volume = hqMusicVolume;
           ${hqMusicSongs.length ? hqMusicSongs.map(s => `<option value="${hqEsc(s.id)}" ${s.id===hqSelectedSongId?'selected':''}>${hqEsc(s.title)}</option>`).join('') : '<option value="">No uploaded songs yet</option>'}
         </select>
         <span>🔈</span>
-        <input data-hq-volume type="range" min="0" max="1" step=".05" value="${hqMusicVolume}">
+        <input aria-label="Music volume" data-hq-volume type="range" min="0" max="1" step=".05" value="${hqMusicVolume}">
         <div class="hq-music-actions">
           <button class="hq-music-btn" data-hq-music="all">Play all</button>
           <button class="hq-music-btn" data-hq-music="shuffle">Shuffle</button>
