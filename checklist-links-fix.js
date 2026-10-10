@@ -12,7 +12,7 @@
       [/santa photos/, ['explore', 'Discover']],
       [/colour\/theme|decorations and lights|christmas tree/, ['explore', 'Decor ideas']],
       [/christmas menu/, ['kitchen', 'My menu']],
-      [/desserts and cold food/, ['kitchen', 'Cook plan']],
+      [/desserts and cold food/, ['kitchen', 'Recipes']],
       [/food list|groceries|fresh-food shopping/, ['kitchen', 'Groceries']],
       [/cards\/messages/, ['chat', null]],
       [/charge camera and devices/, ['guide', null]],
@@ -52,7 +52,48 @@
   }
   function openTask(task) {
     const [tab, sub] = checklistDestination(task);
-    if (tab !== 'guide') { go(tab, sub); return; }
+    if (tab !== 'guide') {
+      // Set the subpanel explicitly, then scroll after all render decorators finish.
+      go(tab, sub);
+      if (sub && ui.sub[tab] !== sub) { ui.sub[tab] = sub; render(false); }
+      if (tab === 'kitchen' && sub === 'Recipes') {
+        ui.search = '';
+        ui.category = /desserts and cold food/i.test(task.text) ? 'Desserts' : /leftovers/i.test(task.text) ? 'Leftovers' : 'All';
+        render(false);
+      }
+      const selectors = {
+        'plan:Budget': '[data-form="budget"]',
+        'plan:Calendar': '[data-form="event"]',
+        'plan:Guests': '[data-form="guest"]',
+        'plan:Checklist': '[data-form="task"]',
+        'gifts:My gifts': '[data-form="gift"]',
+        'kitchen:Recipes': '#recipeLibrary',
+        'kitchen:Groceries': '[data-form="shopping"]',
+        'kitchen:Cook plan': '[data-form="cookSchedule"]',
+        'magic:Music': '#christmasSongForm, #christmasSongList'
+      };
+      const route = tab + ':' + sub;
+      const finish = () => {
+        if (ui.tab !== tab || (sub && ui.sub[tab] !== sub)) return;
+        const container = document.getElementById('screen');
+        let destination = selectors[route] ? container.querySelector(selectors[route]) : null;
+        if (!destination) {
+          const selected = [...container.querySelectorAll('[data-action="sub"][data-tab]')]
+            .find(button => button.dataset.tab === tab && button.dataset.value === sub);
+          destination = selected?.closest('.subtabs')?.nextElementSibling;
+        }
+        if (!destination) destination = container.querySelector('.catalog, .hq-chat-shell, .card, .list');
+        if (!destination) return;
+        destination.classList.add('hq-checklist-destination');
+        destination.scrollIntoView({block: 'start', behavior: 'instant'});
+        setTimeout(() => destination.classList.remove('hq-checklist-destination'), 1800);
+      };
+      requestAnimationFrame(() => requestAnimationFrame(finish));
+      // Rendering music/chat and the family scope banner can finish asynchronously.
+      setTimeout(finish, 200);
+      setTimeout(finish, 450);
+      return;
+    }
     // This practical task has no app section, so give it its own useful guide.
     const dialog = document.createElement('dialog');
     dialog.className = 'hq-task-guide';
@@ -116,7 +157,7 @@
     }
   }
   const style = document.createElement('style');
-  style.textContent = '.item:has([data-action="taskToggle"]){cursor:pointer;touch-action:manipulation}.hq-task-open{user-select:none}.hq-task-open:focus-visible{outline:3px solid #c4984d;outline-offset:4px;border-radius:6px}.hq-task-guide{max-width:420px;width:calc(100% - 36px);border:2px solid #c4984d;border-radius:20px;padding:24px;background:#fff8e5;color:#103b31}.hq-task-guide::backdrop{background:#103b3188}';
+  style.textContent = '.item:has([data-action="taskToggle"]){cursor:pointer;touch-action:manipulation}.hq-checklist-destination{scroll-margin-top:18px;outline:2px solid #c4984d;outline-offset:5px}.hq-task-open{user-select:none}.hq-task-open:focus-visible{outline:3px solid #c4984d;outline-offset:4px;border-radius:6px}.hq-task-guide{max-width:420px;width:calc(100% - 36px);border:2px solid #c4984d;border-radius:20px;padding:24px;background:#fff8e5;color:#103b31}.hq-task-guide::backdrop{background:#103b3188}';
   document.head.appendChild(style);
   new MutationObserver(decorate).observe(document.getElementById('screen'), {childList: true, subtree: true});
   decorate();
