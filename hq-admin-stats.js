@@ -1,6 +1,7 @@
 (() => {
  'use strict';
  const owner='7f41d607-bc14-4ba6-83ad-4b92a94be55c';
+const admins=new Set([owner,'73683ed7-20f5-4fad-a508-1878c78325ff']);
 
  const style=document.createElement('style');
  style.textContent=`
@@ -26,13 +27,13 @@
  const uid=()=>cloud()?.session?.user?.id||'';
  function draw(){
   const existing=document.getElementById('hqAdminStats');
-  if(uid()!==owner || typeof ui==='undefined' || ui.tab!=='settings'){existing?.remove();return;}
+  if(!admins.has(uid()) || typeof ui==='undefined' || ui.tab!=='settings'){existing?.remove();return;}
   const host=document.getElementById('screen');
   if(!host)return;
   const card=existing||document.createElement('section');
   card.id='hqAdminStats';card.className='card';
   const labels=[['total_users','Registered users','👥'],['joined_today','Joined today','✨'],['active_now','Active now','🟢'],['total_families','Families created','🏡']];
-  const html='<div class="hq-admin-head"><h3 class="hq-admin-title">✦ Admin dashboard</h3><span class="hq-admin-private">🔒 Just for you</span></div><div class="hq-admin-grid">'+labels.map(([key,label,icon])=>'<div class="hq-admin-stat"><span class="hq-admin-icon" aria-hidden="true">'+icon+'</span><div><strong class="hq-admin-value">'+(cached?Number(cached[key]).toLocaleString():'—')+'</strong><span class="hq-admin-label">'+label+'</span></div></div>').join('')+'</div><div class="hq-admin-footer"><span class="hq-admin-status" role="status">'+(failed?'Refresh unavailable':cached?'Updated '+new Date(lastFetch).toLocaleTimeString():'Loading…')+'</span><button type="button" id="hqAdminRefresh">↻ Refresh</button></div><details><summary>About these numbers</summary><p>Today follows Perth time. Active now counts signed-in users seen within five minutes on the updated app.</p></details>';
+  const html='<div class="hq-admin-head"><h3 class="hq-admin-title">✦ Admin dashboard</h3><span class="hq-admin-private">🔒 Admins only</span></div><div class="hq-admin-grid">'+labels.map(([key,label,icon])=>'<div class="hq-admin-stat"><span class="hq-admin-icon" aria-hidden="true">'+icon+'</span><div><strong class="hq-admin-value">'+(cached?Number(cached[key]).toLocaleString():'—')+'</strong><span class="hq-admin-label">'+label+'</span></div></div>').join('')+'</div><div class="hq-admin-footer"><span class="hq-admin-status" role="status">'+(failed?'Refresh unavailable':cached?'Updated '+new Date(lastFetch).toLocaleTimeString():'Loading…')+'</span><button type="button" id="hqAdminRefresh">↻ Refresh</button></div><details><summary>About these numbers</summary><p>Today follows Perth time. Active now counts signed-in users seen within five minutes on the updated app.</p></details>';
   if(card.dataset.rendered!==html){card.innerHTML=html;card.dataset.rendered=html;}
   if(!existing)host.prepend(card);
  }
@@ -44,7 +45,7 @@
   busy=true;
   try{
    if(Date.now()-lastPing>60000){const r=await db.rpc('hq_activity_ping');if(!r.error)lastPing=Date.now();}
-   if(id===owner&&typeof ui!=='undefined'&&ui.tab==='settings'&&(force||Date.now()-lastFetch>30000)){
+   if(admins.has(id)&&typeof ui!=='undefined'&&ui.tab==='settings'&&(force||Date.now()-lastFetch>30000)){
     const result=await db.rpc('hq_admin_stats');
     if(uid()!==id)return;
     if(result.error)failed=true;
@@ -62,6 +63,7 @@
 (()=>{
 'use strict';
 const owner='7f41d607-bc14-4ba6-83ad-4b92a94be55c';
+const admins=new Set([owner,'73683ed7-20f5-4fad-a508-1878c78325ff']);
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const countries=new Intl.DisplayNames(['en'],{type:'region'});
 const options=[];
@@ -77,7 +79,7 @@ function draw(){
  card.innerHTML='<h3>🌍 Your corner of the world</h3><p class="muted-note" style="font-size:13px">Optional: share your city and country for the admin’s location tally. No names or exact locations appear in the tally.</p><form id="hqLocationForm"><label>City<input class="field" name="city" maxlength="80" placeholder="e.g. Perth" value="'+escape(own?.city)+'"></label><label>Country<select class="field" name="country"><option value="">Choose country</option>'+options.map(([c,n])=>'<option value="'+c+'" '+(own?.country===c?'selected':'')+'>'+escape(n)+'</option>').join('')+'</select></label><div class="btnrow"><button class="btn" type="submit">Save location</button><button class="btn alt" type="button" id="hqClearLocation">Remove location</button></div><p id="hqLocationStatus" role="status" style="font-size:12px">'+escape(message)+'</p></form>';
  host.append(card);
  }
- if(id===owner){
+ if(admins.has(id)){
  const admin=document.getElementById('hqAdminStats');if(!admin)return;
  let world=document.getElementById('hqWorldCounts');if(!world){world=document.createElement('section');world.id='hqWorldCounts';world.className='card';world.style.background='#fff8e6';admin.insertAdjacentElement('afterend',world);}
  const html='<div style="border-top:1px solid #b99c55;margin-top:12px;padding-top:10px"><h4 style="font-size:16px;color:#174c3a;margin:0 0 8px">🌍 Members around the world</h4><button type="button" class="btn small alt" id="hqWorldRefresh">↻ Refresh locations</button><p role="status" style="font-size:12px;margin:8px 0">'+escape(worldMessage||(counts?'Updated '+new Date(updated).toLocaleTimeString():'Loading location totals…'))+'</p>'+(counts?'<div style="max-height:240px;overflow:auto"><table style="width:100%;font-size:13px;color:#174c3a;border-collapse:collapse"><thead><tr><th scope="col" style="text-align:left">City / country</th><th scope="col" style="text-align:right">Members</th></tr></thead><tbody>'+counts.locations.map(r=>'<tr><td style="padding:7px 0;border-bottom:1px solid #ffffff20">'+escape(r.city)+', '+escape(countries.of(r.country))+'</td><td style="text-align:right;font-weight:800">'+Number(r.members).toLocaleString()+'</td></tr>').join('')+'<tr><td style="padding-top:8px">Location not shared</td><td style="text-align:right;font-weight:800">'+Number(counts.unshared).toLocaleString()+'</td></tr></tbody></table></div><p style="font-size:10px;color:#526b5c;margin:8px 0 0">Optional member-entered locations · no individual pins</p>':'<p style="font-size:12px">'+escape(worldMessage||'Loading location totals…')+'</p>')+'</div>';
@@ -93,12 +95,12 @@ async function refresh(force=false){
  if(loaded&&!force&&Date.now()-updated<30000)return;
  busy=true;try{
  const requests=[cloud.client.rpc('hq_member_location')];
- if(id===owner)requests.push(cloud.client.rpc('hq_world_counts'));
+ if(admins.has(id))requests.push(cloud.client.rpc('hq_world_counts'));
  const results=await Promise.allSettled(requests);if(user!==id)return;
  const mine=results[0];
  if(mine.status==='fulfilled'&&!mine.value.error){own=mine.value.data;loaded=true;}
  else message='Could not load your saved location. Try again.';
- if(id===owner){const tally=results[1];
+ if(admins.has(id)){const tally=results[1];
   if(tally.status==='fulfilled'&&!tally.value.error&&Array.isArray(tally.value.data?.locations)){counts=tally.value.data;worldMessage='';}
   else worldMessage='Could not refresh location totals. Tap Refresh locations to retry.';
  }
