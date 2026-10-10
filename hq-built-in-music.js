@@ -4,7 +4,7 @@ window.ChristmasHQBuiltInSongs = Object.freeze([
     "id": "builtin:aussie-christmas",
     "title": "Aussie Christmas",
     "artist": "Christmas HQ",
-    "url": "./music/aussie-christmas.mp3",
+    "url": "./aussie-christmas.mp3",
     "cloudAudio": true,
     "builtIn": true
   },
@@ -12,7 +12,7 @@ window.ChristmasHQBuiltInSongs = Object.freeze([
     "id": "builtin:poster-boy-christmas",
     "title": "Poster Boy Christmas",
     "artist": "Christmas HQ",
-    "url": "./music/poster-boy-christmas.mp3",
+    "url": "./poster-boy-christmas.mp3",
     "cloudAudio": true,
     "builtIn": true
   },
@@ -20,7 +20,7 @@ window.ChristmasHQBuiltInSongs = Object.freeze([
     "id": "builtin:the-river",
     "title": "The River",
     "artist": "Christmas HQ",
-    "url": "./music/the-river.mp3",
+    "url": "./the-river.mp3",
     "cloudAudio": true,
     "builtIn": true
   },
@@ -28,7 +28,7 @@ window.ChristmasHQBuiltInSongs = Object.freeze([
     "id": "builtin:christmas-time",
     "title": "Christmas Time",
     "artist": "Christmas HQ",
-    "url": "./music/christmas-time.mp3",
+    "url": "./christmas-time.mp3",
     "cloudAudio": true,
     "builtIn": true
   },
@@ -36,7 +36,7 @@ window.ChristmasHQBuiltInSongs = Object.freeze([
     "id": "builtin:a-very-merry-christmas",
     "title": "A Very Merry Christmas",
     "artist": "Christmas HQ",
-    "url": "./music/a-very-merry-christmas.mp3",
+    "url": "./a-very-merry-christmas.mp3",
     "cloudAudio": true,
     "builtIn": true
   },
@@ -44,7 +44,7 @@ window.ChristmasHQBuiltInSongs = Object.freeze([
     "id": "builtin:merry-christmas-time",
     "title": "Merry Christmas Time",
     "artist": "Christmas HQ",
-    "url": "./music/merry-christmas-time.mp3",
+    "url": "./merry-christmas-time.mp3",
     "cloudAudio": true,
     "builtIn": true
   }
