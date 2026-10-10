@@ -67,7 +67,7 @@ const countries=new Intl.DisplayNames(['en'],{type:'region'});
 const options=[];
 for(let a=65;a<=90;a++)for(let b=65;b<=90;b++){const code=String.fromCharCode(a,b);const name=countries.of(code);if(name&&name!==code)options.push([code,name]);}
 options.sort((a,b)=>a[1].localeCompare(b[1]));
-let user='',own=null,counts=null,loaded=false,busy=false,updated=0,message='';
+let user='',own=null,counts=null,loaded=false,busy=false,updated=0,message='',worldMessage='',refreshQueued=false;
 function draw(){
  const cloud=window.ChristmasHQFamilyCloud,id=cloud?.session?.user?.id||'';
  if(typeof ui==='undefined'||ui.tab!=='settings'||!id){document.getElementById('hqLocationProfile')?.remove();document.getElementById('hqWorldCounts')?.remove();return;}
@@ -79,21 +79,32 @@ function draw(){
  }
  if(id===owner){
  const admin=document.getElementById('hqAdminStats');if(!admin)return;
- let world=document.getElementById('hqWorldCounts');if(!world){world=document.createElement('section');world.id='hqWorldCounts';world.className='card';world.style.background='#174c3a';admin.insertAdjacentElement('afterend',world);}
- const html='<div style="border-top:1px solid #b99c55;margin-top:12px;padding-top:10px"><h4 style="font-size:14px;color:#f4d68a;margin:0 0 8px">🌍 Members around the world</h4>'+(counts?'<div style="max-height:240px;overflow:auto"><table style="width:100%;font-size:12px;color:#fff8e6;border-collapse:collapse"><thead><tr><th scope="col" style="text-align:left">City / country</th><th scope="col" style="text-align:right">Members</th></tr></thead><tbody>'+counts.locations.map(r=>'<tr><td style="padding:7px 0;border-bottom:1px solid #ffffff20">'+escape(r.city)+', '+escape(countries.of(r.country))+'</td><td style="text-align:right;font-weight:800">'+Number(r.members).toLocaleString()+'</td></tr>').join('')+'<tr><td style="padding-top:8px">Location not shared</td><td style="text-align:right;font-weight:800">'+Number(counts.unshared).toLocaleString()+'</td></tr></tbody></table></div><p style="font-size:10px;color:#dce8dc;margin:8px 0 0">Optional member-entered locations · no individual pins</p>':'<p style="font-size:12px">'+escape(message||'Loading location totals…')+'</p>')+'</div>';
+ let world=document.getElementById('hqWorldCounts');if(!world){world=document.createElement('section');world.id='hqWorldCounts';world.className='card';world.style.background='#fff8e6';admin.insertAdjacentElement('afterend',world);}
+ const html='<div style="border-top:1px solid #b99c55;margin-top:12px;padding-top:10px"><h4 style="font-size:16px;color:#174c3a;margin:0 0 8px">🌍 Members around the world</h4><button type="button" class="btn small alt" id="hqWorldRefresh">↻ Refresh locations</button><p role="status" style="font-size:12px;margin:8px 0">'+escape(worldMessage||(counts?'Updated '+new Date(updated).toLocaleTimeString():'Loading location totals…'))+'</p>'+(counts?'<div style="max-height:240px;overflow:auto"><table style="width:100%;font-size:13px;color:#174c3a;border-collapse:collapse"><thead><tr><th scope="col" style="text-align:left">City / country</th><th scope="col" style="text-align:right">Members</th></tr></thead><tbody>'+counts.locations.map(r=>'<tr><td style="padding:7px 0;border-bottom:1px solid #ffffff20">'+escape(r.city)+', '+escape(countries.of(r.country))+'</td><td style="text-align:right;font-weight:800">'+Number(r.members).toLocaleString()+'</td></tr>').join('')+'<tr><td style="padding-top:8px">Location not shared</td><td style="text-align:right;font-weight:800">'+Number(counts.unshared).toLocaleString()+'</td></tr></tbody></table></div><p style="font-size:10px;color:#526b5c;margin:8px 0 0">Optional member-entered locations · no individual pins</p>':'<p style="font-size:12px">'+escape(worldMessage||'Loading location totals…')+'</p>')+'</div>';
  if(world.innerHTML!==html)world.innerHTML=html;
  }
 }
 async function refresh(force=false){
  const cloud=window.ChristmasHQFamilyCloud,id=cloud?.session?.user?.id||'';
- if(user!==id){user=id;own=null;counts=null;loaded=false;updated=0;message='';document.getElementById('hqLocationProfile')?.remove();}
- draw();if(!id||busy||typeof ui==='undefined'||ui.tab!=='settings'||document.hidden||!navigator.onLine)return;
+ if(user!==id){user=id;own=null;counts=null;loaded=false;updated=0;message='';worldMessage='';refreshQueued=false;document.getElementById('hqLocationProfile')?.remove();}
+ draw();if(!id||typeof ui==='undefined'||ui.tab!=='settings'||document.hidden)return;
+ if(!navigator.onLine){worldMessage='You’re offline. Reconnect to refresh location totals.';draw();return;}
+ if(busy){if(force)refreshQueued=true;return;}
  if(loaded&&!force&&Date.now()-updated<30000)return;
  busy=true;try{
- const result=await cloud.client.rpc('hq_member_location');if(user!==id)return;if(result.error)throw result.error;own=result.data;loaded=true;
- if(id===owner){const r=await cloud.client.rpc('hq_world_counts');if(user!==id)return;if(r.error)throw r.error;counts=r.data;}
+ const requests=[cloud.client.rpc('hq_member_location')];
+ if(id===owner)requests.push(cloud.client.rpc('hq_world_counts'));
+ const results=await Promise.allSettled(requests);if(user!==id)return;
+ const mine=results[0];
+ if(mine.status==='fulfilled'&&!mine.value.error){own=mine.value.data;loaded=true;}
+ else message='Could not load your saved location. Try again.';
+ if(id===owner){const tally=results[1];
+  if(tally.status==='fulfilled'&&!tally.value.error&&Array.isArray(tally.value.data?.locations)){counts=tally.value.data;worldMessage='';}
+  else worldMessage='Could not refresh location totals. Tap Refresh locations to retry.';
+ }
  updated=Date.now();
- }catch{message='Could not load locations. Try Refresh.';}finally{busy=false;draw();}
+ }catch{worldMessage='Could not refresh location totals. Tap Refresh locations to retry.';}
+ finally{busy=false;draw();if(refreshQueued){refreshQueued=false;refresh(true);}}
 }
 async function save(city,country){
  const cloud=window.ChristmasHQFamilyCloud,id=cloud?.session?.user?.id;if(!id)return;
@@ -103,6 +114,8 @@ async function save(city,country){
  finally{form?.querySelectorAll('button').forEach(b=>b.disabled=false);}
 }
 document.addEventListener('submit',e=>{if(e.target.id!=='hqLocationForm')return;e.preventDefault();const data=new FormData(e.target),city=String(data.get('city')).trim(),country=String(data.get('country'));if(!city||!country){document.getElementById('hqLocationStatus').textContent='Choose a city and country, or use Remove location.';return;}save(city,country);});
-document.addEventListener('click',e=>{if(e.target.closest('#hqClearLocation'))save('','');if(e.target.closest('#hqAdminRefresh'))refresh(true);});
+document.addEventListener('click',e=>{if(e.target.closest('#hqClearLocation'))save('','');if(e.target.closest('#hqAdminRefresh,#hqWorldRefresh'))refresh(true);});
 setInterval(()=>refresh(),2000);refresh();
 })();
+
+(()=>{const style=document.createElement('style');style.textContent='#screen #hqWorldCounts{background:#fff8e6!important;color:#174c3a!important}#screen #hqWorldCounts h4,#screen #hqWorldCounts th,#screen #hqWorldCounts td,#screen #hqWorldCounts p{color:#174c3a!important}#hqWorldCounts table{margin-top:10px}#hqWorldCounts th,#hqWorldCounts td{padding:8px 4px!important;border-bottom:1px solid #d8dfd2}';document.head.appendChild(style);})();
