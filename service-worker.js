@@ -1,4 +1,4 @@
-const CACHE = 'christmas-hq-pwa-v80';
+const CACHE = 'christmas-hq-pwa-v81';
 const CACHE_PREFIX = 'christmas-hq-pwa-';
 
 const CORE = [
@@ -9,6 +9,7 @@ const CORE = [
 
 // Preload the remaining local features without letting one missing file block installation.
 const FEATURES = [
+  './gift-photo-personal.webp', './gift-photo-under-50.webp', './gift-photo-kids.webp', './gift-photo-experience.webp', './gift-photo-foodie.webp', './gift-photo-tech.webp', './gift-photo-fitness.webp', './gift-photo-home.webp', './gift-photo-practical.webp', './gift-photo-outdoors.webp',
   './hq-built-in-music.js?v=1', './hq-admin-stats.js?v=2', './gift-match.js?v=1', './brownie-desserts.js?v=1', './terms.html', './account-deletion.js?v=1', './delete-account.html', './privacy.html',
   './gift-library-2600.js', './checklist-links-fix.js',
   './christmas-hq-festive-live.js?v=25', './christmas-chat.js?v=7',

@@ -1,15 +1,233 @@
-CHRISTMAS HQ UPDATE — 10 OCTOBER 2026
+CHRISTMAS HQ — MATCHED GIFT PICTURES
 
-The live app has NOT been updated: GitHub integration returned 403 (no write access).
+1. Extract this ZIP.
+2. In GitHub webbie72-maker/Christmas-hq, choose Add file > Upload files.
+3. Upload ALL 13 app files from this ZIP beside index.html: three .js files and ten .webp pictures. No folder is required. Replace the existing three .js files.
+4. Commit changes and let Vercel finish deploying.
+5. Reopen Christmas HQ online. Go to Gifts > Gift ideas. Tap Photo book and Leather wallet to check their matching list and detail pictures.
 
-1. Extract this ZIP first. Do not upload the ZIP itself into your app.
-2. Open webbie72-maker/Christmas-hq on GitHub, main branch.
-3. Add file > Upload files. Upload all seven files at the top level and the music folder, preserving its folder name.
-4. Commit changes. Your connected Vercel deployment should then rebuild.
-5. Reopen the app online and check Settings and Planner > Guests.
+The picture sheets contain 200 distinct gift pictures, displayed individually by the app. The current gift source has 200 unique items; the old 260 heading is corrected. Search, categories, + List, and shopping links remain. Generated illustrative product pictures represent the gift types, rather than a particular retailer or purchasable brand. Experience gifts show the associated activity.
 
-Included: optional city/country entry in Settings; owner-only aggregate tally; six permanent songs in Magic > Music and the player (no delete controls); first-open tour; one shared Supabase client; updated offline script cache; navigation and audio accessibility labels; tap a guest name/notes to edit and save guest details.
+Validation: all three JS files pass syntax checks; every current gift name maps to an included picture; all ten picture files decode; card mapping, empty results, and the corrected count pass a runtime check. This ZIP has not been deployed by Codex because the connected GitHub integration does not have write access.
 
-Locations are voluntary and member-entered; no names or precise coordinates appear in the tally. Existing database RPCs are required and were set up previously. Songs stream from the bundled files; offline availability depends on previously cached content. Existing plans and shared lists are preserved.
+Image generation: built-in image-generation tool. Prompt set: ten catalogue atlases, one per category, strict 4-column / 5-row layout; pale cream studio backgrounds; recognizable unbranded photo-style products matched in reading order; soft consistent lighting; no cartoons or generic gift boxes. The exact item order for each prompt is below.
 
-Validation: all JS and inline script syntax checks pass; local script/style references exist and match service-worker precache; all six MP3s decode with ffprobe. New signed-in flows have not been tested on the live app because the upload was denied. The unused index (1).html was left in place to avoid unrelated deletion.
+Personal:
+1. Photo book
+2. Leather wallet
+3. Coffee mug
+4. Phone case
+5. Travel tag
+6. Jewellery box
+7. Recipe book
+8. Family calendar
+9. Keepsake box
+10. Keyring
+11. Cushion
+12. Blanket
+13. Cutting board
+14. Water bottle
+15. Notebook
+16. Pen set
+17. Christmas ornament
+18. Wall print
+19. Photo frame
+20. Tote bag
+
+Under $50:
+1. Insulated cup
+2. Desk plant
+3. Mini Bluetooth speaker
+4. Phone stand
+5. Scented candle
+6. Puzzle book bundle
+7. Travel mug
+8. Movie-night snack box
+9. Notebook and pen set
+10. Compact umbrella
+11. Coffee sampler
+12. Tea sampler
+13. Chocolate box
+14. Bath set
+15. Picnic blanket
+16. Portable torch
+17. Lunch bag
+18. Car-cleaning kit
+19. Wireless charging pad
+20. Beach towel
+
+Kids:
+1. Building set
+2. Magnetic tile kit
+3. Science kit
+4. Craft box
+5. Gardening kit
+6. Remote-control car
+7. Dress-up set
+8. Storybook bundle
+9. Baking kit
+10. Wooden train set
+11. Dinosaur dig kit
+12. Space discovery kit
+13. Junior microscope
+14. Slime kit
+15. Karaoke microphone
+16. Board game
+17. Outdoor water-play set
+18. Scooter accessory pack
+19. STEM robot kit
+20. Kids camera
+
+Experience:
+1. Restaurant voucher
+2. Concert tickets
+3. Theatre tickets
+4. Cinema experience
+5. Cooking class
+6. Pottery workshop
+7. Zoo visit
+8. Aquarium visit
+9. Escape room
+10. Go-karting session
+11. High tea
+12. Day spa visit
+13. Massage
+14. Photo session
+15. Surf lesson
+16. Kayak hire
+17. Paddleboard lesson
+18. Paint workshop
+19. Comedy show
+20. Museum visit
+
+Foodie:
+1. Chocolate hamper
+2. Coffee hamper
+3. Tea hamper
+4. Cheese board set
+5. Pasta kit
+6. Pizza kit
+7. BBQ rub set
+8. Hot sauce sampler
+9. Olive oil set
+10. Gourmet salt set
+11. Baking hamper
+12. Cookie-decorating kit
+13. Dessert kit
+14. Mocktail hamper
+15. Breakfast hamper
+16. Picnic hamper
+17. Spice collection
+18. Sourdough kit
+19. Jam set
+20. Honey set
+
+Tech:
+1. Wireless headphones
+2. Noise-cancelling earbuds
+3. Bluetooth speaker
+4. Smartwatch
+5. Fitness tracker
+6. Wireless charging stand
+7. Power bank
+8. USB-C hub
+9. Mechanical keyboard
+10. Wireless mouse
+11. Laptop stand
+12. Tablet stand
+13. Streaming device
+14. Smart light set
+15. Digital photo frame
+16. Mini projector
+17. Webcam
+18. Portable SSD
+19. USB microphone
+20. Gaming headset
+
+Fitness:
+1. Resistance band set
+2. Foam roller
+3. Massage ball set
+4. Lifting straps
+5. Weightlifting belt
+6. Gym backpack
+7. Shaker bottle
+8. Yoga mat
+9. Yoga block set
+10. Pilates ring
+11. Skipping rope
+12. Adjustable dumbbells
+13. Kettlebell
+14. Workout towel set
+15. Massage gun
+16. Running belt
+17. Training journal
+18. Mobility band kit
+19. Gym gloves
+20. Sports duffel bag
+
+Home:
+1. Plant pot set
+2. Candle set
+3. Diffuser set
+4. Throw blanket
+5. Cushion set
+6. Serving platter
+7. Cheese board
+8. Decorative vase
+9. Table lamp
+10. Bedside lamp
+11. Indoor herb garden
+12. Wall art
+13. Photo frame set
+14. Towel set
+15. Bedsheet set
+16. Kitchen canister set
+17. Coffee table book
+18. Serving bowl set
+19. Picnic basket
+20. Outdoor lantern
+
+Practical:
+1. Multi-tool
+2. Socket set
+3. Car emergency kit
+4. Tyre inflator
+5. Portable jump starter
+6. Lunch cooler
+7. Travel organiser
+8. Packing cube set
+9. Durable backpack
+10. Laptop bag
+11. Wallet
+12. Key organiser
+13. Rechargeable torch
+14. Headlamp
+15. Toolbox organiser
+16. Battery charger
+17. Work gloves
+18. Insulated lunch box
+19. Car vacuum
+20. Cordless screwdriver
+
+Outdoors:
+1. Camping lantern
+2. Camping chair
+3. Portable hammock
+4. Insulated cooler
+5. Picnic rug
+6. Camping cookware set
+7. Head torch
+8. Hiking daypack
+9. Dry bag
+10. Beach umbrella
+11. Beach games set
+12. Fishing tackle box
+13. Fishing rod combo
+14. Camp table
+15. Reusable picnic set
+16. Outdoor speaker
+17. Binoculars
+18. Gardening tool set
+19. Camping pillow
+20. Sleeping bag

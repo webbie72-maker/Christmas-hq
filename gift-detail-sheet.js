@@ -90,7 +90,7 @@
     bd.className = 'gd-backdrop';
     bd.innerHTML =
       '<div class="gd-sheet" role="dialog" aria-modal="true" aria-labelledby="gdTitle">' +
-        '<div class="gd-head"><span class="gd-em" aria-hidden="true">' + esc(g.em) + '</span>' +
+        '<div class="gd-head">' + (window.hqGiftPhoto ? window.hqGiftPhoto(g.name) : '<span class="gd-em" aria-hidden="true">' + esc(g.em) + '</span>') +
         '<div><h2 id="gdTitle">' + esc(g.name) + '</h2>' + (g.tag ? '<span class="gd-pill">' + esc(g.tag) + '</span>' : '') + '</div>' +
         '<button type="button" class="gd-close" aria-label="Close">×</button></div>' +
         '<p class="gd-desc">' + esc(g.desc) + '</p>' +
