@@ -1,4 +1,4 @@
-const CACHE = 'christmas-hq-pwa-v86';
+const CACHE = 'christmas-hq-pwa-v87';
 const CACHE_PREFIX = 'christmas-hq-pwa-';
 
 const CORE = [
@@ -9,6 +9,7 @@ const CORE = [
 
 // Preload the remaining local features without letting one missing file block installation.
 const FEATURES = [
+  './hq-offline-music.js?v=1',
   './elf-on-the-shelf.js?v=2', './elf-setup-pictures.webp',
   './gift-photo-personal.webp', './gift-photo-under-50.webp', './gift-photo-kids.webp', './gift-photo-experience.webp', './gift-photo-foodie.webp', './gift-photo-tech.webp', './gift-photo-fitness.webp', './gift-photo-home.webp', './gift-photo-practical.webp', './gift-photo-outdoors.webp',
   './hq-built-in-music.js?v=1', './hq-admin-stats.js?v=2', './gift-match.js?v=1', './brownie-desserts.js?v=1', './terms.html', './account-deletion.js?v=1', './delete-account.html', './privacy.html',
@@ -70,11 +71,42 @@ self.addEventListener('activate', event => {
   })());
 });
 
+const MUSIC_CACHE = 'christmas-hq-offline-music-v1';
+const MUSIC_FILES = new Set(['aussie-christmas.mp3','poster-boy-christmas.mp3','the-river.mp3','christmas-time.mp3','a-very-merry-christmas.mp3','merry-christmas-time.mp3']);
+async function offlineMusic(request) {
+ const url = new URL(request.url);
+ const cache = await caches.open(MUSIC_CACHE);
+ const key = new URL(url.pathname, self.location.origin).href;
+ const hit = request.cache === 'reload' || request.cache === 'no-store' ? null : await cache.match(key);
+ if (!hit) return fetch(request);
+ const range = request.headers.get('range');
+ if (!range) return hit;
+ const match = /^bytes=(\d*)-(\d*)$/i.exec(range);
+ if (!match || !match[1] && !match[2]) return hit;
+ const bytes = new Uint8Array(await hit.arrayBuffer());
+ const size = bytes.length;
+ let start = match[1] ? Number(match[1]) : Math.max(0, size - Number(match[2]));
+ let end = match[1] && match[2] ? Number(match[2]) : size - 1;
+ const headers = new Headers(hit.headers);headers.set('accept-ranges','bytes');
+ if (start >= size || start > end || !Number.isSafeInteger(start) || !Number.isSafeInteger(end)) {
+  headers.set('content-range','bytes */'+size);headers.set('content-length','0');
+  return new Response(null,{status:416,headers});
+ }
+ end = Math.min(end,size-1);
+ const body = bytes.slice(start,end+1);
+ headers.set('content-range','bytes '+start+'-'+end+'/'+size);headers.set('content-length',String(body.length));
+ return new Response(body,{status:206,headers});
+}
+
 self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  if (MUSIC_FILES.has(url.pathname.split('/').pop())) {
+    event.respondWith(offlineMusic(request));return;
+  }
 
   const navigation = request.mode === 'navigate';
   const networkFirst = navigation || /\.(js|css|html)$/.test(url.pathname);
