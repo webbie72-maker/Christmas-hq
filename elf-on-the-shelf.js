@@ -38,6 +38,30 @@
  const blank=()=>({elfName:'',childName:'',touch:'look',story:'playful',extra:'',plans:{},letters:{}});
  function load(){try{const raw=JSON.parse(localStorage.getItem(key())||'null');return raw&&typeof raw==='object'?{...blank(),...raw,plans:raw.plans&&typeof raw.plans==='object'?raw.plans:{},letters:raw.letters&&typeof raw.letters==='object'?raw.letters:{}}:blank();}catch{return blank();}}
  function write(data,message){try{localStorage.setItem(key(),JSON.stringify(data));status=message;return true;}catch{status='Could not save on this device. Check that browser storage is available.';return false;}}
+ function validateBackup(value){
+  if(!value||value.version!==1||!value.data||typeof value.data!=='object'||Array.isArray(value.data))throw new Error('Invalid Elf backup.');
+  const raw=value.data,data=blank();
+  for(const [field,max] of [['elfName',40],['childName',60],['extra',500]]){
+   if(typeof raw[field]!=='string'||raw[field].length>max)throw new Error('Invalid Elf '+field+' in backup.');data[field]=raw[field];
+  }
+  if(!['look','gentle','grownup'].includes(raw.touch)||!['playful','traditional'].includes(raw.story))throw new Error('Invalid Elf family rules in backup.');
+  data.touch=raw.touch;data.story=raw.story;
+  if(!raw.plans||typeof raw.plans!=='object'||Array.isArray(raw.plans)||Object.keys(raw.plans).length>2000)throw new Error('Invalid Elf planner in backup.');
+  for(const [date,plan] of Object.entries(raw.plans)){
+   if(!/^20\d{2}-12-(0[1-9]|1\d|2[0-4])$/.test(date)||!plan||!IDEAS.some(i=>i.id===plan.idea)||typeof plan.done!=='boolean')throw new Error('Invalid Elf date or setup in backup.');
+   data.plans[date]={idea:plan.idea,done:plan.done};
+  }
+  if(!raw.letters||typeof raw.letters!=='object'||Array.isArray(raw.letters))throw new Error('Invalid Elf letters in backup.');
+  for(const [name,text] of Object.entries(raw.letters)){
+   if(!['arrival','goodbye'].includes(name)||typeof text!=='string'||text.length>2000)throw new Error('Invalid Elf letter in backup.');data.letters[name]=text;
+  }
+  return {version:1,data};
+ }
+ window.ChristmasHQElfBackup={
+  exportData(){return validateBackup({version:1,data:load()});},
+  validate:validateBackup,
+  restore(value){const checked=validateBackup(value);if(!write(checked.data,'Elf planner, rules and letters restored.'))throw new Error('Could not restore Elf data on this device. Check browser storage.');}
+ };
  const date=()=>year+'-12-'+String(day).padStart(2,'0');
  function matches(idea){return filter==='All'||filter==='Quick (5 min)'&&idea.minutes<=5||filter==='No mess'&&idea.noMess||filter==='No shopping'&&idea.noShopping||filter==='Funny'&&idea.kind==='funny'||filter==='Toddler-friendly'&&idea.toddler;}
  function photo(idea){return `<span class="hq-elf-photo" role="img" aria-label="Example setup: ${escape(idea.name)}" style="background-position:${idea.index%4*100/3}% ${Math.floor(idea.index/4)*20}%"></span>`;}
@@ -50,7 +74,7 @@
  function noteText(data,type){const who=data.childName||'Christmas friends',elf=data.elfName||'Your Christmas elf';if(type==='goodbye')return `Dear ${who},\n\nThank you for all the Christmas fun! I’m heading back to the North Pole for Christmas Eve. Keep sharing kindness and making happy memories.\n\nUntil next Christmas,\n${elf}`;return `Hello ${who}!\n\nI’m ${elf}, and I’m here for some Christmas adventures. Look for a new little surprise in the mornings. ${data.story==='traditional'?'In our story, I tell Santa about our days together.':'I’m here for fun and kindness — no naughty lists.'}\n\n${data.touch==='gentle'?'Gentle touching is welcome in our family.':data.touch==='grownup'?'Please ask a grown-up before moving me.':'Please enjoy looking without touching.'}${data.extra?'\n'+data.extra:''}\n\nLet the Christmas fun begin!\n${elf}`;}
  let letterType='arrival';
  function letters(data){const text=data.letters[letterType]??noteText(data,letterType);return `<form class="card form" data-elf-form="letter"><h3>Arrival &amp; goodbye notes</h3><p>Add your elf’s name in Family rules, then edit a note here.</p><label>Note<select class="field" data-elf-letter-type><option value="arrival" ${letterType==='arrival'?'selected':''}>Arrival</option><option value="goodbye" ${letterType==='goodbye'?'selected':''}>Goodbye</option></select></label><label>Your note<textarea class="field" name="text" id="hqElfLetter" rows="12" maxlength="2000">${escape(text)}</textarea></label><div class="btnrow"><button class="btn" type="submit">Save note</button>${button('print','Print note')}${button('resetLetter','Use family-rules wording')}</div><p class="muted-note">Save your edits before changing notes. Print uses the current text.</p></form>`;}
- function screen(){const data=load();return bigheading('LITTLE ELF, BIG MAGIC',TAB,'Easy ideas for a little surprise each morning.')+subnav('magic',['Advent','Activities','Movie night','Music','Santa letter',TAB])+`<div class="hq-elf"><div class="subtabs" aria-label="Elf sections">${['Ideas','24-night planner','Family rules','Letters'].map(v=>`<button type="button" data-elf="view" data-view="${v}" class="${view===v?'selected':''}" aria-pressed="${view===v}">${v}</button>`).join('')}</div><p class="muted-note">Your elf planner and rules save on this device. They do not sync to Family HQ.</p><p class="hq-elf-status" role="status">${escape(status)}</p>${view==='Ideas'?ideas():view==='24-night planner'?planner(data):view==='Family rules'?rules(data):letters(data)}</div>`;}
+ function screen(){const data=load();return bigheading('LITTLE ELF, BIG MAGIC',TAB,'Easy ideas for a little surprise each morning.')+subnav('magic',['Advent','Activities','Movie night','Music','Santa letter',TAB])+`<div class="hq-elf"><div class="subtabs" aria-label="Elf sections">${['Ideas','24-night planner','Family rules','Letters'].map(v=>`<button type="button" data-elf="view" data-view="${v}" class="${view===v?'selected':''}" aria-pressed="${view===v}">${v}</button>`).join('')}</div><p class="muted-note">Your elf planner and rules save on this device. They are included in Export backup in Settings. They do not sync to Family HQ.</p><p class="hq-elf-status" role="status">${escape(status)}</p>${view==='Ideas'?ideas():view==='24-night planner'?planner(data):view==='Family rules'?rules(data):letters(data)}</div>`;}
  const oldSubnav=subnav;subnav=function(tab,items){return oldSubnav(tab,tab==='magic'&&!items.includes(TAB)?[...items,TAB]:items);};
  const oldMagic=magic;magic=function(){return ui.sub.magic===TAB?screen():oldMagic();};
  function redraw(){if(ui.tab==='magic'&&ui.sub.magic===TAB)render(false);}
