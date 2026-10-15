@@ -518,12 +518,14 @@
     window.ChristmasHQPhoneBack?.record();
   }
 
+  function paintIfChat(){ if(typeof ui!=='undefined' && ui.tab==='chat') draw(); }
+
   async function loadHub(force){
     const client=db();
-    if(!client){chat.error='Christmas Chat is still connecting.';draw();return;}
+    if(!client){chat.error='Christmas Chat is still connecting.';paintIfChat();return;}
     const key=chat.mode+':'+(familyId()||'none');
-    if(!force && chat.loadedKey===key){draw();return;}
-    chat.loading=true;chat.error='';draw();
+    if(!force && chat.loadedKey===key){paintIfChat();return;}
+    chat.loading=true;chat.error='';paintIfChat();
     try{
       if(chat.mode==='family' && !familyId()){
         chat.categories=[];chat.threads=[];chat.loadedKey=key;return;
@@ -545,12 +547,12 @@
       chat.loadedKey=key;
       updateNavBadge();
     }catch(e){chat.error=e.message||'Could not load Christmas Chat.';}
-    finally{chat.loading=false;draw();}
+    finally{chat.loading=false;paintIfChat();}
   }
 
   async function loadThread(id){
     const client=db(); if(!client) return;
-    chat.loading=true;chat.error='';draw();
+    chat.loading=true;chat.error='';paintIfChat();
     try{
       const tr=await client.from('chat_threads').select('id,category_id,title,body,author_name,created_by,is_locked,is_pinned,created_at,updated_at,edited_at').eq('id',id).single();
       if(tr.error) throw tr.error;
@@ -568,7 +570,7 @@
       }
       updateNavBadge();
     }catch(e){chat.error=e.message||'Could not load this topic.';}
-    finally{chat.loading=false;draw(true);}
+    finally{chat.loading=false;if(typeof ui!=='undefined' && ui.tab==='chat') draw(true);}
   }
 
   /* LIVE CHRISTMAS CHAT */

@@ -238,7 +238,7 @@ function buildChristmasHeader() {
     <small>SECONDS</small>
     <strong id="hqChristmasSeconds">--</strong>
   </div>
-  <div class="hq-countdown-caption">✦ DAYS TIL CHRISTMAS ✦</div>
+  <div class="hq-countdown-caption">✦ DAYS TILL CHRISTMAS ✦</div>
 </div>
 
        

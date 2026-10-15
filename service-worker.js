@@ -1,4 +1,4 @@
-const CACHE = 'christmas-hq-pwa-v87';
+const CACHE = 'christmas-hq-pwa-v88';
 const CACHE_PREFIX = 'christmas-hq-pwa-';
 
 const CORE = [
@@ -14,10 +14,10 @@ const FEATURES = [
   './gift-photo-personal.webp', './gift-photo-under-50.webp', './gift-photo-kids.webp', './gift-photo-experience.webp', './gift-photo-foodie.webp', './gift-photo-tech.webp', './gift-photo-fitness.webp', './gift-photo-home.webp', './gift-photo-practical.webp', './gift-photo-outdoors.webp',
   './hq-built-in-music.js?v=1', './hq-admin-stats.js?v=2', './gift-match.js?v=1', './brownie-desserts.js?v=1', './terms.html', './account-deletion.js?v=1', './delete-account.html', './privacy.html',
   './gift-library-2600.js', './checklist-links-fix.js?v=4',
-  './christmas-hq-festive-live.js?v=25', './christmas-chat.js?v=7',
+  './christmas-hq-festive-live.js?v=26', './christmas-chat.js?v=8',
   './recipe-food-tiles.js?v=2', './panel-transitions.js?v=7',
   './exact-recipe-photos.js?v=2', './christmas-hq-kitchen-v5.js?v=1',
-  './christmas-hq-panel-theme.js?v=8', './gift-detail-sheet.js?v=1',
+  './gift-detail-sheet.js?v=1',
   './explore-detail-sheet.js?v=1', './metric-links.js?v=1',
   './tap-fixes.js?v=1', './countdown-reminders.js?v=1',
   './kitchen-fixes.js?v=5', './welcome-tour.js?v=5', './phone-back.js?v=3', './family-invitations.js?v=4', './direct-chat.js?v=2'
