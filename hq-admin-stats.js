@@ -121,3 +121,67 @@ setInterval(()=>refresh(),2000);refresh();
 })();
 
 (()=>{const style=document.createElement('style');style.textContent='#screen #hqWorldCounts{background:#fff8e6!important;color:#174c3a!important}#screen #hqWorldCounts h4,#screen #hqWorldCounts th,#screen #hqWorldCounts td,#screen #hqWorldCounts p{color:#174c3a!important}#hqWorldCounts table{margin-top:10px}#hqWorldCounts th,#hqWorldCounts td{padding:8px 4px!important;border-bottom:1px solid #d8dfd2}';document.head.appendChild(style);})();
+
+(()=>{
+'use strict';
+const admins=new Set(['7f41d607-bc14-4ba6-83ad-4b92a94be55c','73683ed7-20f5-4fad-a508-1878c78325ff']);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const BLOCKED='No reports visible. If you expect some, admin read access may need turning on in Supabase.';
+const perth=t=>{try{return new Date(t).toLocaleString('en-AU',{timeZone:'Australia/Perth',day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'})+' AWST';}catch{return '';}};
+const snip=s=>{s=String(s??'').trim();return s.length>160?s.slice(0,157)+'…':s;};
+let user='',rows=null,status='Loading reports…',busy=false,updated=0,queued=false;
+const style=document.createElement('style');
+style.textContent='#hqAdminReports.card{background:#fff8e6!important;color:#174c3a!important;border:1px solid #d8bd76!important}#hqAdminReports h4{font-size:16px;color:#174c3a!important;margin:0 0 8px}#hqAdminReports .hq-rep{border-top:1px solid #d8dfd2;padding:8px 0;font-size:12px;color:#174c3a!important}#hqAdminReports .hq-rep-type{display:inline-block;font-weight:800;font-size:10px;padding:2px 7px;border-radius:8px;background:#174c3a;color:#fff5da!important;margin-right:6px}#hqAdminReports .hq-rep-type.msg{background:#8a2a2a}#hqAdminReports .hq-rep-text{margin:4px 0;padding:6px 8px;background:#fff;border-left:3px solid #c6a34b;border-radius:6px;white-space:pre-wrap;word-break:break-word}#hqAdminReports .hq-rep-meta{font-size:10px;color:#526b5c!important}#hqAdminReports p{color:#174c3a!important}';
+document.head.appendChild(style);
+function draw(){
+ const id=window.ChristmasHQFamilyCloud?.session?.user?.id||'';
+ const existing=document.getElementById('hqAdminReports');
+ if(!admins.has(id)||typeof ui==='undefined'||ui.tab!=='settings'){existing?.remove();return;}
+ const anchor=document.getElementById('hqWorldCounts')||document.getElementById('hqAdminStats');if(!anchor)return;
+ const card=existing||document.createElement('section');card.id='hqAdminReports';card.className='card';
+ const list=rows&&rows.length?rows.map(r=>'<div class="hq-rep"><span class="hq-rep-type'+(r.kind==='Message'?' msg':'')+'">'+esc(r.kind)+'</span><strong>'+esc(r.reason||'(no reason)')+'</strong>'+(r.details?'<div>'+esc(r.details)+'</div>':'')+'<div class="hq-rep-text">'+(r.text?esc(r.text):'<em>Reported content not available'+(r.targetId?' (id '+esc(r.targetId)+')':'')+'</em>')+'</div><div class="hq-rep-meta">'+esc(perth(r.created_at))+'</div></div>').join(''):'';
+ const html='<h4>🚩 Reports</h4><button type="button" class="btn small alt" id="hqReportsRefresh">↻ Refresh reports</button><p role="status" style="font-size:12px;margin:8px 0">'+esc(status)+'</p><div style="max-height:420px;overflow:auto">'+list+'</div>';
+ if(card.dataset.rendered!==html){card.innerHTML=html;card.dataset.rendered=html;}
+ if(!existing||card.previousElementSibling!==anchor)anchor.insertAdjacentElement('afterend',card);
+}
+async function lookup(db,table,ids,cols){
+ if(!ids.length)return {};
+ try{const r=await db.from(table).select(cols).in('id',ids);if(r.error)return {};const m={};(r.data||[]).forEach(x=>m[x.id]=x);return m;}catch{return {};}
+}
+async function load(force=false){
+ const cloud=window.ChristmasHQFamilyCloud,id=cloud?.session?.user?.id||'',db=cloud?.client;
+ if(id!==user){user=id;rows=null;status='Loading reports…';updated=0;}
+ draw();
+ if(!admins.has(id)||!db||typeof ui==='undefined'||ui.tab!=='settings'||document.hidden)return;
+ if(busy){if(force)queued=true;return;}
+ if(!force&&updated&&Date.now()-updated<60000)return;
+ if(!navigator.onLine){status='You’re offline. Reconnect and tap Refresh reports.';draw();return;}
+ busy=true;
+ try{
+  const [c,d]=await Promise.allSettled([
+   db.from('chat_reports').select('*').order('created_at',{ascending:false}).limit(30),
+   db.from('hq_dm_reports').select('*').order('created_at',{ascending:false}).limit(30)
+  ]);
+  if(user!==id)return;
+  const ok=x=>x.status==='fulfilled'&&!x.value.error;
+  const errs=[];if(!ok(c))errs.push('community');if(!ok(d))errs.push('message');
+  const cr=ok(c)?(c.value.data||[]):[],dr=ok(d)?(d.value.data||[]):[];
+  const [msgs,threads,dms]=await Promise.all([
+   lookup(db,'chat_messages',[...new Set(cr.map(r=>r.message_id).filter(Boolean))],'id,body,author_name,is_deleted'),
+   lookup(db,'chat_threads',[...new Set(cr.filter(r=>!r.message_id).map(r=>r.thread_id).filter(Boolean))],'id,title,body,author_name'),
+   lookup(db,'hq_direct_messages',[...new Set(dr.map(r=>r.message_id).filter(Boolean))],'id,body,sender_id')
+  ]);
+  if(user!==id)return;
+  const all=[
+   ...cr.map(r=>{const m=r.message_id?msgs[r.message_id]:threads[r.thread_id];const text=m?(m.is_deleted?'[deleted]':snip((m.title?m.title+' — ':'')+(m.body||''))):'';return {kind:'Community',reason:r.reason,details:r.details,created_at:r.created_at,targetId:r.message_id||r.thread_id,text:text&&m?.author_name?text+'  — '+m.author_name:text};}),
+   ...dr.map(r=>{const m=dms[r.message_id];return {kind:'Message',reason:r.reason,details:r.details,created_at:r.created_at,targetId:r.message_id,text:m?snip(m.body):''};})
+  ].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0)).slice(0,30);
+  rows=all;updated=Date.now();
+  if(errs.length)status=(all.length?'Could not load '+errs.join(' and ')+' reports. ':'')+BLOCKED;
+  else status=all.length?all.length+' latest report'+(all.length===1?'':'s')+' · updated '+perth(updated):BLOCKED;
+ }catch{rows=[];status=BLOCKED;}
+ finally{busy=false;draw();if(queued){queued=false;load(true);}}
+}
+document.addEventListener('click',e=>{if(e.target.closest('#hqReportsRefresh,#hqAdminRefresh'))load(true);});
+setInterval(()=>load(),2000);load();
+})();
