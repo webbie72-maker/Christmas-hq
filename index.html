@@ -3,6 +3,15 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#103b31"><meta name="description" content="Christmas HQ — your family Christmas planning, gifts, food and fun in one place."><meta property="og:type" content="website"><meta property="og:title" content="Christmas HQ"><meta property="og:description" content="Your whole Christmas, sorted."><meta property="og:url" content="https://christmas-hq-mu.vercel.app"><meta property="og:image" content="https://christmas-hq-mu.vercel.app/icon-512.png"><meta name="twitter:card" content="summary_large_image">
 <title>Christmas HQ — Your whole Christmas, sorted</title>
+<script>
+(function(){try{var K='hq-play-twa',on=false;
+try{if(/(^|[?&])src=twa(&|$)/.test(location.search.slice(1)))on=true;}catch(e){}
+try{if(String(document.referrer||'').indexOf('android-app://app.christmas.hq')===0)on=true;}catch(e){}
+try{if(sessionStorage.getItem(K)==='1'||localStorage.getItem(K)==='1')on=true;}catch(e){}
+if(on){document.documentElement.classList.add('hq-play');window.HQ_PLAY=true;try{sessionStorage.setItem(K,'1');localStorage.setItem(K,'1');}catch(e){}}
+}catch(e){}})();
+</script>
+<style>html.hq-play .hq-paid,html.hq-play #hqMyPlan,html.hq-play #santaLetterPay{display:none!important}</style>
 <script src="./pin-lock.js?v=5"></script>
   
  <style>
@@ -625,7 +634,7 @@ function secretScreen(){let group=participating(),s=state.santa,draw=drawPresent
  <div id="santaLetterPay" class="card" style="background:linear-gradient(145deg,#17614f,#0b463a);border:2px solid #e7c56a;color:#fff8df">
   <h3 style="color:#fff8df">✉️ Personalised letter from Santa</h3>
   <p class="muted-note" style="color:#f3e2b0">A letter written for one person in the draw. It stays locked until a real payment is connected. Nothing here takes a payment yet.</p>
- </div>`:`<div class="card"><h3>✉️ Personalised letter from Santa</h3><p class="muted-note">Premium only. It stays locked until a real payment is connected.</p></div>`}
+ </div>`:`<div class="card hq-paid"><h3>✉️ Personalised letter from Santa</h3><p class="muted-note">Premium only. It stays locked until a real payment is connected.</p></div>`}
 
 `}
 function hqPlan(){return 'free';}
