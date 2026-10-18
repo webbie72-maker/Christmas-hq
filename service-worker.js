@@ -1,4 +1,4 @@
-const CACHE = 'christmas-hq-pwa-v91';
+const CACHE = 'christmas-hq-pwa-v92';
 const CACHE_PREFIX = 'christmas-hq-pwa-';
 
 const CORE = [
@@ -12,7 +12,7 @@ const FEATURES = [
   './hq-offline-music.js?v=1',
   './elf-on-the-shelf.js?v=2', './elf-setup-pictures.webp',
   './gift-photo-personal.webp', './gift-photo-under-50.webp', './gift-photo-kids.webp', './gift-photo-experience.webp', './gift-photo-foodie.webp', './gift-photo-tech.webp', './gift-photo-fitness.webp', './gift-photo-home.webp', './gift-photo-practical.webp', './gift-photo-outdoors.webp',
-  './hq-built-in-music.js?v=1', './hq-admin-stats.js?v=3', './gift-match.js?v=1', './brownie-desserts.js?v=1', './terms.html', './account-deletion.js?v=1', './delete-account.html', './privacy.html',
+  './hq-built-in-music.js?v=1', './hq-admin-stats.js?v=3', './hq-admin-alert.js?v=1', './gift-match.js?v=1', './brownie-desserts.js?v=1', './terms.html', './account-deletion.js?v=1', './delete-account.html', './privacy.html',
   './gift-library-2600.js', './checklist-links-fix.js?v=4',
   './christmas-hq-festive-live.js?v=26', './christmas-chat.js?v=8',
   './recipe-food-tiles.js?v=2', './panel-transitions.js?v=7',
