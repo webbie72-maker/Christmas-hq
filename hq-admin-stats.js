@@ -69,15 +69,62 @@ const countries=new Intl.DisplayNames(['en'],{type:'region'});
 const options=[];
 for(let a=65;a<=90;a++)for(let b=65;b<=90;b++){const code=String.fromCharCode(a,b);const name=countries.of(code);if(name&&name!==code)options.push([code,name]);}
 options.sort((a,b)=>a[1].localeCompare(b[1]));
-let user='',own=null,counts=null,loaded=false,busy=false,updated=0,message='',worldMessage='',refreshQueued=false;
+let user='',own=null,counts=null,loaded=false,busy=false,updated=0,ownUpdated=0,message='',worldMessage='',refreshQueued=false,keepTopAnchor=null;
+const snoozed=new Set();/* "Not now" lasts for this app session only (in memory, per uid) */
+const PROMPT_ID='hqLocationPrompt';
+const hasLocation=()=>!!(own&&(own.city||own.country));
+const tab=()=>typeof ui==='undefined'?'':ui.tab;
+const promptStyle=document.createElement('style');
+promptStyle.textContent='#hqLocationProfile{scroll-margin-top:84px}#hqLocationProfile.hq-loc-top{border:1px solid #d8bd76!important;box-shadow:0 0 0 3px #f4d68a55!important}#hqLocationProfile.hq-loc-flash{animation:hqLocFlash 1.4s ease}@keyframes hqLocFlash{0%,100%{box-shadow:0 0 0 3px #f4d68a55}35%{box-shadow:0 0 0 6px #e0b54fcc}}'+
+'#'+PROMPT_ID+'{margin:12px 0 4px;position:relative;background:linear-gradient(145deg,#fffdf6 0%,#f7f0de 55%,#eaf3e8 100%);border:1px solid #e4d7b4;border-radius:20px;padding:16px 16px 14px;box-shadow:0 8px 28px #2547330b;overflow:hidden}'+
+'#'+PROMPT_ID+'::before{content:"✦";position:absolute;right:10px;top:6px;font-size:28px;color:#c4984d;opacity:.55;pointer-events:none}'+
+'#'+PROMPT_ID+' .hlp-kicker{font-size:10px;font-weight:850;letter-spacing:1.2px;text-transform:uppercase;color:#9d742e;margin:0 0 6px}'+
+'#'+PROMPT_ID+' .hlp-row{display:flex;gap:12px;align-items:flex-start}'+
+'#'+PROMPT_ID+' .hlp-icon{width:44px;height:44px;min-width:44px;border-radius:14px;background:#103b31;color:#f4e3b0;display:grid;place-items:center;font-size:22px;box-shadow:0 4px 0 #0b2a22}'+
+'#'+PROMPT_ID+' .hlp-copy{flex:1;min-width:0}'+
+'#'+PROMPT_ID+' .hlp-copy h3{margin:0 0 4px;font:700 16px Georgia,serif;color:#103b31}'+
+'#'+PROMPT_ID+' .hlp-copy p{margin:0;font-size:12px;color:#5f6b61;line-height:1.45}'+
+'#'+PROMPT_ID+' .hlp-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}'+
+'#'+PROMPT_ID+' .hlp-actions .btn{flex:1;min-width:90px}';
+document.head.appendChild(promptStyle);
+function blocked(){
+ const html=document.documentElement,pin=document.getElementById('hqPinLock'),tour=document.getElementById('hqWelcomeTour');
+ if(html.classList.contains('hq-pin-locked')||document.body?.classList.contains('hq-pin-locked'))return true;
+ if(pin&&!pin.classList.contains('hqpin-hidden')&&getComputedStyle(pin).display!=='none')return true;
+ if(tour&&tour.classList.contains('hqwt-on'))return true;
+ return false;
+}
+function drawPrompt(){
+ const id=window.ChristmasHQFamilyCloud?.session?.user?.id||'';
+ const existing=document.getElementById(PROMPT_ID);
+ const host=document.getElementById('screen');
+ if(!id||id!==user||!loaded||hasLocation()||snoozed.has(id)||tab()!=='home'||!host||blocked()){existing?.remove();return;}
+ const reminder=host.querySelector(':scope > #hqReminderCard');
+ if(existing&&existing.parentElement===host){if(reminder&&existing.nextElementSibling!==reminder)reminder.insertAdjacentElement('beforebegin',existing);return;}
+ const card=existing||document.createElement('div');
+ card.id=PROMPT_ID;card.setAttribute('role','region');card.setAttribute('aria-label','Add your city');
+ card.innerHTML='<div class="hlp-kicker">Welcome · Christmas HQ</div><div class="hlp-row"><div class="hlp-icon" aria-hidden="true">🌍</div><div class="hlp-copy"><h3>Where are you celebrating from?</h3><p>Add your city to the HQ world map. It’s optional and no exact location is shared.</p></div></div><div class="hlp-actions"><button type="button" class="btn small" data-hlp="add">Add my city</button><button type="button" class="btn small alt" data-hlp="later">Not now</button></div>';
+ const hero=host.querySelector(':scope > .hero'),summary=host.querySelector(':scope > .summary');
+ if(reminder)reminder.insertAdjacentElement('beforebegin',card);
+ else if(hero)hero.insertAdjacentElement('afterend',card);
+ else if(summary)summary.insertAdjacentElement('beforebegin',card);
+ else host.insertAdjacentElement('afterbegin',card);
+}
 function draw(){
  const cloud=window.ChristmasHQFamilyCloud,id=cloud?.session?.user?.id||'';
- if(typeof ui==='undefined'||ui.tab!=='settings'||!id){document.getElementById('hqLocationProfile')?.remove();document.getElementById('hqWorldCounts')?.remove();return;}
+ drawPrompt();
+ if(tab()!=='settings'||!id){document.getElementById('hqLocationProfile')?.remove();document.getElementById('hqWorldCounts')?.remove();return;}
  const host=document.getElementById('screen');if(!host)return;
  if(!document.getElementById('hqLocationProfile')&&loaded){
  const card=document.createElement('section');card.className='card';card.id='hqLocationProfile';
- card.innerHTML='<h3>🌍 Your corner of the world</h3><p class="muted-note" style="font-size:13px">Optional: share your city and country for the admin’s location tally. No names or exact locations appear in the tally.</p><form id="hqLocationForm"><label>City<input class="field" name="city" maxlength="80" placeholder="e.g. Perth" value="'+escape(own?.city)+'"></label><label>Country<select class="field" name="country"><option value="">Choose country</option>'+options.map(([c,n])=>'<option value="'+c+'" '+(own?.country===c?'selected':'')+'>'+escape(n)+'</option>').join('')+'</select></label><div class="btnrow"><button class="btn" type="submit">Save location</button><button class="btn alt" type="button" id="hqClearLocation">Remove location</button></div><p id="hqLocationStatus" role="status" style="font-size:12px">'+escape(message)+'</p></form>';
- host.append(card);
+ const anchor=host.querySelector(':scope > .cloud-card');
+ const top=!hasLocation()||(!!keepTopAnchor&&keepTopAnchor===anchor);
+ card.innerHTML='<h3>🌍 Your corner of the world</h3><p class="muted-note" style="font-size:13px">'+(top&&!hasLocation()?'Optional: add your city to the HQ world map. Only a city and country are used — no exact location, and no names appear in the tally.':'Optional: share your city and country for the admin’s location tally. No names or exact locations appear in the tally.')+'</p><form id="hqLocationForm"><label>City<input class="field" name="city" maxlength="80" placeholder="e.g. Perth" value="'+escape(own?.city)+'"></label><label>Country<select class="field" name="country"><option value="">Choose country</option>'+options.map(([c,n])=>'<option value="'+c+'" '+(own?.country===c?'selected':'')+'>'+escape(n)+'</option>').join('')+'</select></label><div class="btnrow"><button class="btn" type="submit">Save location</button>'+(hasLocation()?'<button class="btn alt" type="button" id="hqClearLocation">Remove location</button>':'')+'</div><p id="hqLocationStatus" role="status" style="font-size:12px">'+escape(message)+'</p></form>';
+ if(top){
+  card.classList.add('hq-loc-top');
+  if(anchor)anchor.insertAdjacentElement('afterend',card);
+  else{const intro=host.querySelector(':scope > .gift-intro');if(intro)intro.insertAdjacentElement('afterend',card);else host.prepend(card);}
+ }else host.append(card);
  }
  if(admins.has(id)){
  const admin=document.getElementById('hqAdminStats');if(!admin)return;
@@ -88,35 +135,83 @@ function draw(){
 }
 async function refresh(force=false){
  const cloud=window.ChristmasHQFamilyCloud,id=cloud?.session?.user?.id||'';
- if(user!==id){user=id;own=null;counts=null;loaded=false;updated=0;message='';worldMessage='';refreshQueued=false;document.getElementById('hqLocationProfile')?.remove();}
- draw();if(!id||typeof ui==='undefined'||ui.tab!=='settings'||document.hidden)return;
- if(!navigator.onLine){worldMessage='You’re offline. Reconnect to refresh location totals.';draw();return;}
+ if(user!==id){user=id;own=null;counts=null;loaded=false;updated=0;ownUpdated=0;message='';worldMessage='';refreshQueued=false;keepTopAnchor=null;document.getElementById('hqLocationProfile')?.remove();}
+ draw();
+ const t=tab(),onSettings=t==='settings',onHome=t==='home';
+ if(!id||!cloud?.client||(!onSettings&&!onHome)||document.hidden)return;
+ if(!navigator.onLine){if(onSettings){worldMessage='You’re offline. Reconnect to refresh location totals.';draw();}return;}
  if(busy){if(force)refreshQueued=true;return;}
- if(loaded&&!force&&Date.now()-updated<30000)return;
+ const wantCounts=onSettings&&admins.has(id)&&(force||!updated||Date.now()-updated>=30000);
+ const wantOwn=force||!loaded||Date.now()-ownUpdated>=(onSettings?30000:300000);
+ if(!wantOwn&&!wantCounts)return;
  busy=true;try{
- const requests=[cloud.client.rpc('hq_member_location')];
- if(admins.has(id))requests.push(cloud.client.rpc('hq_world_counts'));
+ const requests=[wantOwn?cloud.client.rpc('hq_member_location'):Promise.resolve(null)];
+ if(wantCounts)requests.push(cloud.client.rpc('hq_world_counts'));
  const results=await Promise.allSettled(requests);if(user!==id)return;
- const mine=results[0];
- if(mine.status==='fulfilled'&&!mine.value.error){own=mine.value.data;loaded=true;}
- else message='Could not load your saved location. Try again.';
- if(admins.has(id)){const tally=results[1];
+ if(wantOwn){const mine=results[0];
+  if(mine.status==='fulfilled'&&mine.value&&!mine.value.error){own=mine.value.data;loaded=true;ownUpdated=Date.now();}
+  else message='Could not load your saved location. Try again.';
+ }
+ if(wantCounts){const tally=results[1];
   if(tally.status==='fulfilled'&&!tally.value.error&&Array.isArray(tally.value.data?.locations)){counts=tally.value.data;worldMessage='';}
   else worldMessage='Could not refresh location totals. Tap Refresh locations to retry.';
+  updated=Date.now();
  }
- updated=Date.now();
  }catch{worldMessage='Could not refresh location totals. Tap Refresh locations to retry.';}
  finally{busy=false;draw();if(refreshQueued){refreshQueued=false;refresh(true);}}
 }
 async function save(city,country){
  const cloud=window.ChristmasHQFamilyCloud,id=cloud?.session?.user?.id;if(!id)return;
  const form=document.getElementById('hqLocationForm');form?.querySelectorAll('button').forEach(b=>b.disabled=true);
- try{const r=await cloud.client.rpc('hq_member_location',{p_city:city,p_country:country,p_save:true});if(r.error)throw r.error;if(cloud.session?.user?.id!==id)return;own=r.data;message=city?'Location saved.':'Location removed.';document.getElementById('hqLocationProfile')?.remove();await refresh(true);}
+ try{const r=await cloud.client.rpc('hq_member_location',{p_city:city,p_country:country,p_save:true});if(r.error)throw r.error;if(cloud.session?.user?.id!==id)return;
+  const card=document.getElementById('hqLocationProfile');
+  /* keep the card where it is for this Settings visit so it doesn't jump after saving */
+  keepTopAnchor=card&&card.classList.contains('hq-loc-top')?document.querySelector('#screen > .cloud-card'):null;
+  own=r.data;loaded=true;ownUpdated=Date.now();message=city?'Location saved.':'Location removed.';card?.remove();await refresh(true);}
  catch{const status=document.getElementById('hqLocationStatus');if(status)status.textContent='Could not save. Check your connection and try again.';}
  finally{form?.querySelectorAll('button').forEach(b=>b.disabled=false);}
 }
+function openLocationCard(){
+ if(typeof go==='function')go('settings');else if(typeof ui!=='undefined'){ui.tab='settings';if(typeof render==='function')render(true);}
+ let tries=0;
+ const seek=()=>{
+  draw();
+  const card=document.getElementById('hqLocationProfile');
+  if(!card){if(++tries<40)setTimeout(seek,75);return;}
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  card.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
+  card.classList.remove('hq-loc-flash');void card.offsetWidth;card.classList.add('hq-loc-flash');
+  const input=card.querySelector('input[name="city"]');
+  if(input)setTimeout(()=>{try{input.focus({preventScroll:true});}catch{input.focus();}},reduce?0:450);
+  /* cards added above it a moment later (e.g. the admin dashboard) would push it down: keep it in view for a short while unless the user scrolls */
+  let userMoved=false;const stop=()=>{userMoved=true;};
+  ['touchstart','wheel','keydown'].forEach(ev=>window.addEventListener(ev,stop,{once:true,passive:true}));
+  const started=Date.now();
+  const hold=()=>{
+   if(userMoved||!card.isConnected||tab()!=='settings')return;
+   const top=card.getBoundingClientRect().top;
+   if(Date.now()-started>700&&(top>window.innerHeight*0.45||top<0))card.scrollIntoView({behavior:'auto',block:'start'});
+   if(Date.now()-started<3500)setTimeout(hold,150);
+   else ['touchstart','wheel','keydown'].forEach(ev=>window.removeEventListener(ev,stop));
+  };
+  setTimeout(hold,150);
+ };
+ setTimeout(seek,60);
+}
 document.addEventListener('submit',e=>{if(e.target.id!=='hqLocationForm')return;e.preventDefault();const data=new FormData(e.target),city=String(data.get('city')).trim(),country=String(data.get('country'));if(!city||!country){document.getElementById('hqLocationStatus').textContent='Choose a city and country, or use Remove location.';return;}save(city,country);});
-document.addEventListener('click',e=>{if(e.target.closest('#hqClearLocation'))save('','');if(e.target.closest('#hqAdminRefresh,#hqWorldRefresh'))refresh(true);});
+document.addEventListener('click',e=>{
+ if(e.target.closest('#hqClearLocation'))save('','');
+ if(e.target.closest('#hqAdminRefresh,#hqWorldRefresh'))refresh(true);
+ const b=e.target.closest('#'+PROMPT_ID+' [data-hlp]');
+ if(b){
+  if(b.dataset.hlp==='later'){if(user)snoozed.add(user);document.getElementById(PROMPT_ID)?.remove();}
+  else{document.getElementById(PROMPT_ID)?.remove();openLocationCard();}
+ }
+});
+let queued=false;
+const quick=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;drawPrompt();});};
+const watch=()=>{const s=document.getElementById('screen');if(s)new MutationObserver(quick).observe(s,{childList:true});new MutationObserver(quick).observe(document.documentElement,{attributes:true,attributeFilter:['class']});};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',watch);else watch();
 setInterval(()=>refresh(),2000);refresh();
 })();
 
