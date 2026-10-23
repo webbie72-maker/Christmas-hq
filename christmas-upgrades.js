@@ -1102,6 +1102,32 @@ document.addEventListener('click', event => {
   `;
 }
 
+  function hqQuickAddBox(person) {
+    return `
+      <div class="card hq-quick-add" style="padding:12px 14px;margin-bottom:12px">
+        <div style="display:flex;gap:8px;align-items:stretch">
+          <input
+            class="field"
+            id="hqQuickAddInput"
+            type="text"
+            enterkeyhint="done"
+            autocomplete="off"
+            maxlength="100"
+            placeholder="Quick add a gift for ${esc(person)} — type and press Enter"
+            aria-label="Quick add a gift for ${esc(person)}"
+            style="flex:1 1 auto;min-width:0;margin:0">
+          <button
+            type="button"
+            class="btn small"
+            data-hq-quick-add
+            style="flex:0 0 auto;white-space:nowrap">
+            + Add
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
   function hqAddGiftForm(person = '') {
     return `
       <form class="card form" data-form="gift">
@@ -1247,6 +1273,8 @@ document.addEventListener('click', event => {
           `${esc(person)}'s gift list`,
           `<span class="pill green">${personGifts.length} gifts</span>`
         )}
+
+        ${hqQuickAddBox(person)}
 
         ${hqAddGiftForm(person)}
 
@@ -1429,6 +1457,72 @@ document.addEventListener('click', event => {
     if (next) next.focus();
 
     notice(text);
+  });
+
+  /* Quick add: type a gift name, press Enter (or tap + Add) to save it
+     for the person whose list is open. */
+  let hqQuickLast = { name: '', at: 0 };
+
+  function hqQuickAdd() {
+    const person = ui.hqGiftPerson;
+    const input = document.getElementById('hqQuickAddInput');
+    if (!person || !input) return;
+
+    const name = input.value.trim().slice(0, 100);
+    if (!name) {
+      input.value = '';
+      input.focus();
+      return;
+    }
+
+    const now = Date.now();
+    if (hqQuickLast.name === name && now - hqQuickLast.at < 400) return;
+    hqQuickLast = { name, at: now };
+
+    const member = state.family.find(
+      m => m.name.toLowerCase() === person.toLowerCase()
+    );
+
+    state.gifts.unshift({
+      id: uid(),
+      recipient: person,
+      name,
+      ...(member ? { recipientId: member.id } : {}),
+      price: 0,
+      bought: false
+    });
+
+    ui.hqGiftJustAdded = { person, text: `Added ${name} ✓` };
+    persist(`Added ${name} ✓`);
+
+    const next = document.getElementById('hqQuickAddInput');
+    if (next) next.focus();
+  }
+
+  document.addEventListener('keydown', event => {
+    if (
+      event.key === 'Enter' &&
+      !event.isComposing &&
+      event.target &&
+      event.target.id === 'hqQuickAddInput'
+    ) {
+      event.preventDefault();
+      hqQuickAdd();
+    }
+  });
+
+  /* keep the keyboard open when tapping + Add */
+  document.addEventListener('mousedown', event => {
+    if (event.target.closest('[data-hq-quick-add]')) event.preventDefault();
+  });
+  document.addEventListener('touchstart', event => {
+    if (event.target.closest('[data-hq-quick-add]')) event.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('click', event => {
+    if (event.target.closest('[data-hq-quick-add]')) {
+      hqQuickAdd();
+    }
   });
 
   document.addEventListener('click', event => {
