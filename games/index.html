@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b3d2e">
+<title>Christmas HQ Games</title>
+<style>
+:root{
+  --green-deep:#072a20; --green:#0f4a37; --green-mid:#17624a;
+  --red:#b3202a; --red-bright:#d8323c; --gold:#f6c945; --gold-dark:#b8891a;
+  --cream:#fffaf0; --ink:#1b1b1b;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;min-height:100%}
+html{background:#072a20}
+body{
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  color:var(--cream);
+  background:radial-gradient(ellipse at top,var(--green-mid) 0%,var(--green) 45%,var(--green-deep) 100%) fixed;
+  min-height:100vh; line-height:1.35; font-size:18px;
+  overflow-x:hidden;
+}
+#snow{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+#app{position:relative;z-index:1;width:100%;max-width:520px;margin:0 auto;padding:12px 12px 28px}
+.screen[hidden]{display:none}
+h1,h2{margin:0;font-family:Georgia,"Times New Roman",serif;color:var(--gold);text-shadow:0 2px 0 rgba(0,0,0,.35)}
+h1{font-size:clamp(22px,6.6vw,34px);text-align:center;line-height:1.1}
+h2{font-size:clamp(20px,6vw,26px);flex:1;min-width:0}
+.tagline{text-align:center;margin:6px 0 12px;color:var(--cream)}
+.countdown{
+  background:linear-gradient(180deg,var(--red-bright),var(--red));
+  border:2px solid var(--gold);border-radius:16px;padding:10px 12px;margin:0 0 14px;text-align:center;
+  font-weight:700;font-size:clamp(16px,4.8vw,20px);box-shadow:0 4px 0 rgba(0,0,0,.3);
+}
+.countdown b{color:var(--gold);font-size:1.35em}
+.menu{display:grid;gap:12px}
+.game-card{
+  display:flex;align-items:center;gap:12px;width:100%;min-height:84px;text-align:left;
+  background:rgba(7,42,32,.88);color:var(--cream);border:2px solid var(--gold);border-radius:18px;
+  padding:10px 14px;font:inherit;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.35);
+}
+.game-card:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.game-card .icon{font-size:40px;flex:none;width:52px;text-align:center}
+.game-card .txt{min-width:0;flex:1}
+.game-card .name{display:block;font-weight:800;font-size:clamp(18px,5.4vw,22px);color:var(--gold)}
+.game-card .desc{display:block;font-size:15px;opacity:.95}
+.game-card .best{display:block;font-size:14px;margin-top:2px;color:#ffe9a8}
+button{font:inherit}
+button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.btn{
+  min-height:52px;padding:10px 18px;border-radius:14px;border:2px solid var(--gold);
+  background:linear-gradient(180deg,var(--red-bright),var(--red));color:var(--cream);
+  font-weight:800;font-size:18px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.35);
+}
+.btn:active{transform:translateY(2px)}
+.btn.gold{background:linear-gradient(180deg,#ffe07a,var(--gold));color:#2a1c00;border-color:#fff3c0}
+.btn.green{background:linear-gradient(180deg,var(--green-mid),var(--green));}
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.topbar .back{min-height:48px;min-width:48px;padding:8px 14px;flex:none}
+.hud{
+  display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;
+}
+.hud span{
+  flex:1 1 auto;text-align:center;background:rgba(7,42,32,.9);border:1px solid var(--gold);border-radius:10px;
+  padding:5px 6px;font-weight:700;font-size:clamp(13px,3.8vw,15px);white-space:nowrap;
+}
+.hud b{color:var(--gold)}
+.stage{position:relative;width:100%;max-width:max(300px,min(440px,calc((100vh - 340px)*.75)));margin:0 auto;border:3px solid var(--gold);border-radius:14px;overflow:hidden;background:#0a1d3a;aspect-ratio:3/4;touch-action:none;user-select:none;-webkit-user-select:none}
+.stage canvas{display:block;width:100%;height:100%}
+.overlay{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  background:rgba(7,42,32,.9);text-align:center;padding:16px;
+}
+.overlay[hidden]{display:none}
+.overlay h3{margin:0;font-family:Georgia,serif;color:var(--gold);font-size:clamp(22px,7vw,30px)}
+.overlay p{margin:0;font-size:16px}
+.overlay .row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.controls{display:flex;gap:10px;max-width:440px;margin:10px auto 0}
+.controls .btn{flex:1;min-height:64px;font-size:24px;touch-action:none;user-select:none;-webkit-user-select:none}
+.hint{max-width:440px;margin:8px auto 0;text-align:center;font-size:14px;opacity:.95}
+/* chimney presents */
+.presents{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;max-width:440px;margin:10px auto 0}
+.present{
+  min-height:68px;min-width:0;padding:4px 2px;border-radius:12px;border:2px solid rgba(246,201,69,.55);
+  background:rgba(7,42,32,.92);color:var(--cream);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
+}
+.present .e{font-size:28px;line-height:1.1}
+.present .n{font-size:12px;font-weight:700}
+.present .k{font-size:11px;opacity:.85}
+.present[aria-pressed="true"]{background:linear-gradient(180deg,#ffe07a,var(--gold));color:#2a1c00;border-color:#fff;box-shadow:0 0 0 3px var(--red-bright)}
+.actions{display:flex;gap:10px;max-width:440px;margin:10px auto 0}
+.actions .btn{flex:1;min-height:60px;font-size:19px}
+/* trivia */
+.panel{background:rgba(7,42,32,.92);border:2px solid var(--gold);border-radius:16px;padding:14px;max-width:520px;margin:0 auto}
+.q-meta{display:flex;justify-content:space-between;gap:8px;font-weight:700;color:var(--gold);margin-bottom:8px;font-size:16px}
+.progress{height:8px;background:rgba(255,255,255,.2);border-radius:6px;overflow:hidden;margin-bottom:12px}
+.progress i{display:block;height:100%;background:var(--gold);width:0}
+.question{font-size:clamp(19px,5.6vw,24px);font-weight:700;margin:0 0 12px;overflow-wrap:anywhere}
+.options{display:grid;gap:10px}
+.opt{
+  min-height:58px;text-align:left;padding:10px 14px;border-radius:14px;border:2px solid var(--gold);
+  background:var(--green);color:var(--cream);font-size:18px;font-weight:600;cursor:pointer;overflow-wrap:anywhere;
+}
+.opt:active{transform:translateY(1px)}
+.opt.correct{background:#1c7f3b;border-color:#fff;color:#fff}
+.opt.wrong{background:#8f1d24;border-color:#fff;color:#fff}
+.opt:disabled{cursor:default;opacity:1}
+.feedback{min-height:28px;margin:10px 0 0;font-weight:800;font-size:18px}
+.result{text-align:center}
+.result .big{font-size:clamp(40px,14vw,64px);font-weight:900;color:var(--gold);margin:6px 0}
+/* memory */
+.mem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:420px;margin:0 auto}
+.card{
+  position:relative;aspect-ratio:1;border:2px solid var(--gold);border-radius:14px;padding:0;cursor:pointer;
+  background:repeating-linear-gradient(45deg,var(--red) 0 8px,var(--red-bright) 8px 16px);color:var(--cream);
+  font-size:clamp(28px,10vw,52px);display:flex;align-items:center;justify-content:center;min-width:0;
+}
+.card .face{display:none}
+.card .back{font-size:.6em;opacity:.95}
+.card.flipped,.card.matched{background:var(--cream);}
+.card.flipped .face,.card.matched .face{display:block}
+.card.flipped .back,.card.matched .back{display:none}
+.card.matched{border-color:#3bd16f;box-shadow:0 0 0 3px #3bd16f}
+.win{margin:14px auto 0;max-width:420px;text-align:center}
+.win[hidden]{display:none}
+.win .big{font-size:clamp(22px,7vw,30px);font-weight:800;color:var(--gold);margin-bottom:8px}
+.hint{display:block}
+@media (max-width:520px){.hint{display:none}}
+
+[hidden]{display:none!important}
+.menu .featured{min-height:96px;background:linear-gradient(180deg,#8f1d24,#5e1218);}
+.menu .featured .name{font-size:clamp(19px,5.8vw,24px)}
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.menu-grid .game-card{flex-direction:column;justify-content:center;text-align:center;min-height:112px;padding:8px 8px;gap:2px}
+.menu-grid .game-card .icon{font-size:34px;width:auto}
+.menu-grid .game-card .name{font-size:clamp(16px,4.6vw,19px)}
+.menu-grid .game-card .desc{font-size:14px;line-height:1.25}
+.menu-grid .game-card .best{font-size:13px}
+.ahud .a-energy{display:flex;align-items:center;gap:4px;min-width:104px}
+.bar{display:block;flex:1;min-width:48px;height:12px;border:1px solid var(--gold);border-radius:7px;background:rgba(0,0,0,.45);overflow:hidden}
+.bar>i{display:block;height:100%;width:50%;background:linear-gradient(90deg,#f6c945,#7dff8b)}
+.bar.low>i{background:linear-gradient(90deg,#ff5a5a,#ff9a5a)}
+.hud .a-boost{display:none!important}
+.bar.boost{box-shadow:0 0 0 2px #fff,0 0 10px 2px var(--gold)}
+.bar.boost>i{background:linear-gradient(90deg,#fff3a0,#f6c945)}
+.lift{width:100%;min-height:76px!important;font-size:22px!important}
+.ctl-chim{max-width:440px;margin:0 auto}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body>
+<canvas id="snow" aria-hidden="true"></canvas>
+<div id="app">
+
+<!-- MENU -->
+<section id="screen-menu" class="screen">
+  <h1>🎄 Christmas HQ Games 🎄</h1>
+  <p class="tagline">Pick a game and get festive!</p>
+  <div class="countdown" id="countdown" aria-live="polite"></div>
+  <div class="menu">
+    <button class="game-card featured" data-go="night"><span class="icon">🌙</span><span class="txt"><span class="name">Christmas Night Run</span><span class="desc">Fly ➜ Bobsled ➜ Chimneys! Cookies 🍪 &amp; milk 🥛 change your energy, speed and Santa's size.</span><span class="best" id="best-night"></span></span></button>
+    <div class="menu-grid">
+    <button class="game-card" data-go="fly"><span class="icon">🦌</span><span class="txt"><span class="name">Fly the Sleigh</span><span class="desc">Hold to lift, dodge storms</span><span class="best" id="best-fly"></span></span></button>
+    <button class="game-card" data-go="bob"><span class="icon">🛷</span><span class="txt"><span class="name">Bobsled Run</span><span class="desc">Swipe lanes, jump ramps</span><span class="best" id="best-bob"></span></span></button>
+    <button class="game-card" data-go="chimney"><span class="icon">🏠</span><span class="txt"><span class="name">Chimney Delivery</span><span class="desc">Right present, right child</span><span class="best" id="best-chimney"></span></span></button>
+    <button class="game-card" data-go="catch"><span class="icon">🎁</span><span class="txt"><span class="name">Catch the Gifts</span><span class="desc">Catch gifts, dodge coal</span><span class="best" id="best-catch"></span></span></button>
+    <button class="game-card" data-go="trivia"><span class="icon">❓</span><span class="txt"><span class="name">Christmas Trivia</span><span class="desc">10 festive questions</span><span class="best" id="best-trivia"></span></span></button>
+    <button class="game-card" data-go="memory"><span class="icon">🃏</span><span class="txt"><span class="name">Memory Match</span><span class="desc">Find the pairs</span><span class="best" id="best-memory"></span></span></button>
+    </div>
+  </div>
+</section>
+
+<section id="screen-night" class="screen" hidden></section>
+<section id="screen-fly" class="screen" hidden></section>
+<section id="screen-bob" class="screen" hidden></section>
+
+<!-- CATCH -->
+<section id="screen-catch" class="screen" hidden>
+  <div class="topbar"><button class="btn back" data-go="menu" aria-label="Back to menu">← Menu</button><h2>Catch the Gifts</h2></div>
+  <div class="hud"><span>Score <b id="c-score">0</b></span><span>Lives <b id="c-lives">❤❤❤</b></span><span>Best <b id="c-best">0</b></span></div>
+  <div class="stage" id="c-stage">
+    <canvas id="c-canvas" width="720" height="960" aria-label="Catch the Gifts game area"></canvas>
+    <div class="overlay" id="c-overlay">
+      <h3 id="c-ot">Catch the Gifts</h3>
+      <p id="c-om">Move the sleigh to catch gifts 🎁.<br>Avoid the lumps of coal!</p>
+      <div class="row"><button class="btn gold" id="c-start">Play</button></div>
+    </div>
+  </div>
+  <div class="controls"><button class="btn green" id="c-left" aria-label="Move left">◀</button><button class="btn green" id="c-right" aria-label="Move right">▶</button></div>
+  <p class="hint">Drag on the game, use the buttons, or press ← → keys.</p>
+</section>
+
+<!-- CHIMNEY -->
+<section id="screen-chimney" class="screen" hidden>
+  <div class="topbar"><button class="btn back" data-go="menu" aria-label="Back to menu">← Menu</button><h2>Chimney Delivery</h2></div>
+  <div class="hud"><span>Score <b id="h-score">0</b></span><span>Lives <b id="h-lives">❤❤❤</b></span><span>🍪 <b id="h-cookies">0/3</b></span><span>Best <b id="h-best">0</b></span></div>
+  <div class="stage" id="h-stage">
+    <canvas id="h-canvas" width="720" height="960" aria-label="Chimney Delivery game area"></canvas>
+    <div class="overlay" id="h-overlay">
+      <h3 id="h-ot">Chimney Delivery</h3>
+      <p id="h-om">Each child wants one present (see the speech bubble).<br>1. Pick the present. 2. When Santa is over the chimney, hit DROP.<br>Right gift = big points 😄. Wrong gift = lose a life 😢.<br>Hit GRAB for cookies &amp; milk: 3 plates = bonus life!</p>
+      <div class="row"><button class="btn gold" id="h-start">Play</button></div>
+    </div>
+  </div>
+  <div class="presents" id="h-presents" role="group" aria-label="Choose a present"></div>
+  <div class="actions"><button class="btn" id="h-drop">🎁 DROP</button><button class="btn green" id="h-grab">🍪🥛 GRAB</button></div>
+  <p class="hint">Keys: 1-5 choose present · Space/↓ drop · G/↑ grab</p>
+</section>
+
+<!-- TRIVIA -->
+<section id="screen-trivia" class="screen" hidden>
+  <div class="topbar"><button class="btn back" data-go="menu" aria-label="Back to menu">← Menu</button><h2>Christmas Trivia</h2></div>
+  <div class="panel" id="t-quiz">
+    <div class="q-meta"><span id="t-num">Question 1/10</span><span>Score <span id="t-score">0</span></span></div>
+    <div class="progress"><i id="t-prog"></i></div>
+    <p class="question" id="t-q"></p>
+    <div class="options" id="t-opts"></div>
+    <p class="feedback" id="t-fb" aria-live="polite"></p>
+    <button class="btn gold" id="t-next" hidden style="width:100%;margin-top:8px">Next ➜</button>
+  </div>
+  <div class="panel result" id="t-result" hidden>
+    <h2 style="text-align:center">All done! 🎅</h2>
+    <div class="big" id="t-final">0/10</div>
+    <p id="t-msg"></p>
+    <p>Best score: <b id="t-best">0</b>/10</p>
+    <div style="display:grid;gap:10px;margin-top:12px">
+      <button class="btn gold" id="t-again">Play again</button>
+      <button class="btn" data-go="menu">Back to menu</button>
+    </div>
+  </div>
+</section>
+
+<!-- MEMORY -->
+<section id="screen-memory" class="screen" hidden>
+  <div class="topbar"><button class="btn back" data-go="menu" aria-label="Back to menu">← Menu</button><h2>Memory Match</h2></div>
+  <div class="hud"><span>Moves <b id="m-moves">0</b></span><span>Pairs <b id="m-pairs">0/8</b></span><span>Best <b id="m-best">–</b></span></div>
+  <div class="mem-grid" id="m-grid"></div>
+  <div class="win" id="m-win" hidden>
+    <div class="big" id="m-wintext"></div>
+    <div class="row" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn gold" id="m-again">Play again</button>
+      <button class="btn" data-go="menu">Menu</button>
+    </div>
+  </div>
+  <p class="hint" id="m-hint">Flip two cards at a time. Fewer moves = better!</p>
+  <div style="text-align:center;margin-top:10px"><button class="btn green" id="m-restart">🔄 Restart</button></div>
+</section>
+
+</div>
+
+<script>
+(function(){
+'use strict';
+var $ = function(id){return document.getElementById(id);};
+var EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+
+/* ---------- storage ---------- */
+var memStore = {};
+function load(key, def){
+  try{ var v = window.localStorage.getItem('chqg:'+key); if(v===null) return def; var n = Number(v); return isNaN(n)?def:n; }
+  catch(e){ return (key in memStore)?memStore[key]:def; }
+}
+function save(key, val){
+  memStore[key]=val;
+  try{ window.localStorage.setItem('chqg:'+key, String(val)); }catch(e){}
+}
+
+/* ---------- countdown ---------- */
+function daysUntilChristmas(now){
+  now = now || new Date();
+  var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());   // local midnight
+  var xmas = new Date(now.getFullYear(), 11, 25);
+  if(today.getTime() > xmas.getTime()) xmas = new Date(now.getFullYear()+1, 11, 25);
+  return Math.round((xmas.getTime()-today.getTime())/86400000);           // round: safe across DST changes
+}
+function renderCountdown(){
+  var d = daysUntilChristmas(new Date()), el = $('countdown');
+  if(d===0) el.innerHTML = '🎅 It\'s Christmas Day! Merry Christmas! 🎁';
+  else if(d===1) el.innerHTML = '⏳ Only <b>1</b> day to go — it\'s Christmas Eve!';
+  else el.innerHTML = '⏳ <b>'+d+'</b> days until Christmas Day';
+}
+
+/* ---------- navigation ---------- */
+var current = 'menu';
+var games = {};
+function go(name){
+  if(games[current] && games[current].stop) games[current].stop();
+  var screens = document.querySelectorAll('.screen');
+  for(var i=0;i<screens.length;i++) screens[i].hidden = (screens[i].id !== 'screen-'+name);
+  current = name;
+  if(name==='menu'){ refreshBests(); renderCountdown(); }
+  if(games[name] && games[name].enter) games[name].enter();
+  window.scrollTo(0,0);
+}
+document.addEventListener('click', function(e){
+  var t = e.target.closest ? e.target.closest('[data-go]') : null;
+  if(t) go(t.getAttribute('data-go'));
+});
+function refreshBests(){
+  var c=load('catch',0), h=load('chimney',0), t=load('trivia',-1), m=load('memory',0);
+  var nf=load('fly',0), nb=load('bob',0), nn=load('night',0);
+  $('best-fly').textContent = nf? '🏆 '+nf : 'No score yet';
+  $('best-bob').textContent = nb? '🏆 '+nb : 'No score yet';
+  $('best-night').textContent = nn? '🏆 Best night: '+nn : 'No score yet — take the challenge!';
+  $('best-catch').textContent = c? '🏆 '+c : 'No score yet';
+  $('best-chimney').textContent = h? '🏆 '+h : 'No score yet';
+  $('best-trivia').textContent = t>=0? '🏆 '+t+'/10' : 'No score yet';
+  $('best-memory').textContent = m? '🏆 '+m+' moves' : 'No score yet';
+}
+
+/* ---------- helpers ---------- */
+function rand(a,b){return a+Math.random()*(b-a);}
+function shuffle(a){ for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;} return a; }
+function hearts(n){ var s=''; for(var i=0;i<n;i++) s+='❤'; return s||'💔'; }
+function rrect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath(); }
+function emoji(ctx,ch,x,y,size){ ctx.font=size+'px '+EMOJI_FONT; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#fff'; ctx.fillText(ch,x,y); }
+function setupCanvas(cv){ var ctx=cv.getContext('2d'); ctx.setTransform(2,0,0,2,0,0); return ctx; }
+var W=360, H=480;
+var starPts=[]; for(var si=0;si<40;si++) starPts.push([(si*97%360),(si*53%260),(si%3)+1]);
+function drawSky(ctx, ground){
+  var g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#071a3a'); g.addColorStop(1,'#1d4a63');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#fff'; for(var i=0;i<starPts.length;i++){ var s=starPts[i]; ctx.globalAlpha=.55; ctx.fillRect(s[0],s[1],s[2]*.8,s[2]*.8); } ctx.globalAlpha=1;
+  ctx.fillStyle='#f3efd2'; ctx.beginPath(); ctx.arc(310,48,17,0,7); ctx.fill();
+  ctx.fillStyle='#e8f1f7'; ctx.fillRect(0,ground,W,H-ground);
+  ctx.fillStyle='#c9dcea'; ctx.fillRect(0,ground,W,3);
+}
+function drawGift(ctx,x,y,s,body,ribbon){
+  var h=s/2;
+  ctx.fillStyle=body; ctx.fillRect(x-h,y-h,s,s);
+  ctx.fillStyle=ribbon; ctx.fillRect(x-3,y-h,6,s); ctx.fillRect(x-h,y-3,s,6);
+  ctx.beginPath(); ctx.ellipse(x-6,y-h-3,6,4,-.5,0,7); ctx.ellipse(x+6,y-h-3,6,4,.5,0,7); ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,.35)'; ctx.lineWidth=1.5; ctx.strokeRect(x-h,y-h,s,s);
+}
+function drawCoal(ctx,x,y,s){
+  var r=s/2, pts=[[-1,-.3],[-.6,-.9],[.1,-1],[.8,-.6],[1,.2],[.6,.9],[-.2,1],[-.9,.6]];
+  ctx.beginPath(); for(var i=0;i<pts.length;i++){ var px=x+pts[i][0]*r, py=y+pts[i][1]*r; if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);} ctx.closePath();
+  ctx.fillStyle='#262626'; ctx.fill(); ctx.strokeStyle='#e7e7e7'; ctx.lineWidth=2; ctx.stroke();
+  ctx.fillStyle='#6b6b6b'; ctx.beginPath(); ctx.moveTo(x-r*.5,y-r*.5); ctx.lineTo(x,y-r*.6); ctx.lineTo(x-r*.2,y-r*.1); ctx.closePath(); ctx.fill();
+}
+function drawSleigh(ctx,x,y,w){
+  // runner
+  ctx.strokeStyle='#f6c945'; ctx.lineWidth=4; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(x-w/2-4,y+26); ctx.lineTo(x+w/2-6,y+26); ctx.quadraticCurveTo(x+w/2+14,y+26,x+w/2+10,y+10); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x-w/4,y+16); ctx.lineTo(x-w/4,y+26); ctx.moveTo(x+w/4,y+16); ctx.lineTo(x+w/4,y+26); ctx.stroke();
+  // body
+  ctx.fillStyle='#c8212b'; ctx.beginPath();
+  ctx.moveTo(x-w/2,y-8); ctx.lineTo(x+w/2+4,y-8); ctx.quadraticCurveTo(x+w/2+8,y+16,x+w/2-8,y+18); ctx.lineTo(x-w/2+8,y+18); ctx.quadraticCurveTo(x-w/2-2,y+10,x-w/2,y-8); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle='#f6c945'; ctx.lineWidth=2.5; ctx.stroke();
+  ctx.fillStyle='#fffaf0'; ctx.fillRect(x-w/2+4,y-8,w-4,4);
+}
+
+
+var GROUND_Y=410;
+function drawHouseShared(c,h,GIFTS,cw,icons){
+  var cx=h.cx, chx=cx-26;
+  c.fillStyle=h.color; c.fillRect(cx-50,340,100,GROUND_Y-340);
+  c.fillStyle='#4a2f2a'; c.beginPath(); c.moveTo(cx-62,342); c.lineTo(cx,285); c.lineTo(cx+62,342); c.closePath(); c.fill();
+  c.fillStyle='#f4fbff'; c.beginPath(); c.moveTo(cx-62,342); c.lineTo(cx,285); c.lineTo(cx+62,342); c.lineTo(cx+54,342); c.lineTo(cx,294); c.lineTo(cx-54,342); c.closePath(); c.fill();
+  c.fillStyle='#8a3f33'; c.fillRect(chx-cw/2,296,cw,26); c.fillStyle='#f4fbff'; c.fillRect(chx-cw/2-2,292,cw+4,6);
+  c.fillStyle='#5a3418'; c.fillRect(cx-40,368,20,GROUND_Y-368);
+  c.fillStyle=h.result==='happy'?'#ffe58a':'#2d3b55'; c.fillRect(cx+4,350,38,38);
+  c.strokeStyle='#fffaf0'; c.lineWidth=2; c.strokeRect(cx+4,350,38,38);
+  emoji(c,h.result==='happy'?'😄':(h.result==='sad'?'😢':'🧒'),cx+23,371,26);
+  if(icons.length===2){ emoji(c,icons[0],chx-6,282,16); emoji(c,icons[1],chx+9,282,16); }
+  else if(icons.length===1){ emoji(c,icons[0],chx,280,20); }
+  if(h.result===null && cx<W+10){
+    var g=GIFTS[h.want], bw=68, bh=54, by=196;
+    var bx=Math.max(4,Math.min(W-bw-4,cx-bw/2));
+    var tb=Math.max(bx+16,Math.min(bx+bw-16,cx));
+    c.fillStyle='#fffaf0'; rrect(c,bx,by,bw,bh,12); c.fill(); c.strokeStyle='#b8891a'; c.lineWidth=2; c.stroke();
+    c.fillStyle='#fffaf0'; c.beginPath(); c.moveTo(tb-8,by+bh-1); c.lineTo(tb+8,by+bh-1); c.lineTo(tb+3,by+bh+14); c.closePath(); c.fill();
+    c.strokeStyle='#b8891a'; c.beginPath(); c.moveTo(tb-8,by+bh); c.lineTo(tb+3,by+bh+14); c.lineTo(tb+8,by+bh); c.stroke();
+    c.fillStyle='#fffaf0'; c.fillRect(tb-7,by+bh-3,14,4);
+    emoji(c,g.e,bx+bw/2,by+22,28);
+    c.fillStyle='#222'; c.font='bold 12px system-ui,Arial,sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillText(g.n,bx+bw/2,by+43);
+  }
+}
+
+/* ---------- generic canvas game base ---------- */
+function makeLoop(update, draw){
+  var raf=0, last=0, active=false;
+  function frame(ts){
+    if(!active) return;
+    var dt=Math.min(.05,(ts-last)/1000||0); last=ts;
+    update(dt); draw();
+    raf=requestAnimationFrame(frame);
+  }
+  return {
+    start:function(){ if(active) return; active=true; last=performance.now(); raf=requestAnimationFrame(frame); },
+    stop:function(){ active=false; cancelAnimationFrame(raf); },
+    isActive:function(){return active;}
+  };
+}
+
+/* =========================================================
+   GAME 1: CATCH THE GIFTS
+   ========================================================= */
+(function(){
+  var cv=$('c-canvas'), ctx=setupCanvas(cv), stage=$('c-stage');
+  var st={running:false,score:0,lives:3,items:[],spawn:0,sx:W/2,keys:{l:false,r:false},flash:0,btn:{l:false,r:false},best:load('catch',0)};
+  var SW=84, SY=H-62;
+  var COLORS=[['#d8323c','#f6c945'],['#1f7a4a','#fffaf0'],['#2d62c4','#f6c945'],['#fffaf0','#d8323c']];
+  function reset(){ st.score=0; st.lives=3; st.items=[]; st.spawn=.4; st.sx=W/2; st.flash=0; hud(); }
+  function hud(){ $('c-score').textContent=st.score; $('c-lives').textContent=hearts(st.lives); $('c-best').textContent=st.best; }
+  function start(){ reset(); st.running=true; $('c-overlay').hidden=true; loop.start(); }
+  function over(){
+    st.running=false;
+    var nb = st.score>st.best; if(nb){ st.best=st.score; save('catch',st.best); }
+    hud();
+    $('c-ot').textContent='Game over!';
+    $('c-om').innerHTML='You caught <b>'+st.score+'</b> point'+(st.score===1?'':'s')+'.<br>'+(nb?'🏆 New high score!':'High score: '+st.best);
+    $('c-start').textContent='Play again';
+    $('c-overlay').hidden=false;
+  }
+  function update(dt){
+    if(!st.running) return;
+    var dir=(st.keys.l||st.btn.l?-1:0)+(st.keys.r||st.btn.r?1:0);
+    st.sx=Math.max(SW/2+8,Math.min(W-SW/2-14,st.sx+dir*340*dt));
+    st.spawn-=dt;
+    if(st.spawn<=0){
+      st.spawn=Math.max(.35,.95-st.score*.012);
+      var pc=Math.min(.35,.18+st.score*.003), r=Math.random(), type=r<pc?'coal':(r>.95?'gold':'gift');
+      var c=COLORS[Math.floor(Math.random()*COLORS.length)];
+      st.items.push({x:rand(24,W-24),y:-20,vy:Math.min(330,120+st.score*2.2+rand(0,50)),type:type,size:type==='coal'?28:30,c:c});
+    }
+    for(var i=st.items.length-1;i>=0;i--){
+      var it=st.items[i]; it.y+=it.vy*dt;
+      var hit = it.y+it.size/2>=SY && it.y<SY+30 && Math.abs(it.x-st.sx)<SW/2+6;
+      if(hit){
+        st.items.splice(i,1);
+        if(it.type==='coal'){ st.lives--; st.flash=.35; }
+        else st.score += (it.type==='gold'?5:1);
+        hud();
+        if(st.lives<=0){ over(); return; }
+      } else if(it.y>H+30) st.items.splice(i,1);
+    }
+    if(st.flash>0) st.flash-=dt;
+  }
+  function draw(){
+    drawSky(ctx,H-26);
+    for(var i=0;i<st.items.length;i++){
+      var it=st.items[i];
+      if(it.type==='coal') drawCoal(ctx,it.x,it.y,it.size);
+      else if(it.type==='gold') drawGift(ctx,it.x,it.y,it.size+2,'#f6c945','#d8323c');
+      else drawGift(ctx,it.x,it.y,it.size,it.c[0],it.c[1]);
+    }
+    drawSleigh(ctx,st.sx,SY,SW);
+    if(st.flash>0){ ctx.fillStyle='rgba(216,50,60,'+(st.flash*1.2)+')'; ctx.fillRect(0,0,W,H); }
+  }
+  var loop=makeLoop(update,draw);
+  function ptr(e){
+    var r=cv.getBoundingClientRect(); var x=(e.clientX-r.left)/r.width*W;
+    st.sx=Math.max(SW/2+8,Math.min(W-SW/2-14,x));
+  }
+  stage.addEventListener('pointerdown',function(e){ ptr(e); });
+  stage.addEventListener('pointermove',function(e){ ptr(e); });
+  function hold(id,k){
+    var b=$(id);
+    function on(e){ e.preventDefault(); st.btn[k]=true; }
+    function off(){ st.btn[k]=false; }
+    b.addEventListener('pointerdown',on); b.addEventListener('pointerup',off); b.addEventListener('pointerleave',off); b.addEventListener('pointercancel',off);
+  }
+  hold('c-left','l'); hold('c-right','r');
+  $('c-start').addEventListener('click',start);
+  games.catch={
+    enter:function(){ st.running=false; st.best=load('catch',0); $('c-ot').textContent='Catch the Gifts'; $('c-om').innerHTML='Move the sleigh to catch gifts 🎁.<br>Avoid the lumps of coal!'; $('c-start').textContent='Play'; $('c-overlay').hidden=false; reset(); draw(); },
+    stop:function(){ loop.stop(); st.running=false; st.btn.l=st.btn.r=false; },
+    key:function(e,down){
+      if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A'){ st.keys.l=down; return true; }
+      if(e.key==='ArrowRight'||e.key==='d'||e.key==='D'){ st.keys.r=down; return true; }
+      return false;
+    },
+    state:st
+  };
+  document.addEventListener('visibilitychange',function(){ if(document.hidden && loop.isActive()) { loop.stop(); st.running && (function(){ $('c-ot').textContent='Paused'; $('c-om').textContent='Tap to continue.'; $('c-start').textContent='Resume'; $('c-overlay').hidden=false; st.running=false; st.paused=true; })(); } });
+  // resume support
+  var origStart=start;
+  $('c-start').removeEventListener('click',start);
+  $('c-start').addEventListener('click',function(){ if(st.paused){ st.paused=false; st.running=true; $('c-overlay').hidden=true; loop.start(); } else origStart(); });
+})();
+
+/* =========================================================
+   GAME 2: CHIMNEY DELIVERY
+   ========================================================= */
+(function(){
+  var cv=$('h-canvas'), ctx=setupCanvas(cv);
+  var GIFTS=[{e:'🧸',n:'Teddy'},{e:'🚂',n:'Train'},{e:'🪆',n:'Doll'},{e:'⚽',n:'Ball'},{e:'📚',n:'Book'}];
+  var SANTA_X=100, SANTA_Y=62, ZONE=40, GROUND=410, GAP=200;
+  var HOUSE_COLORS=['#b5533c','#3d7ea6','#c79a3b','#7b5aa6','#4f8f5a'];
+  var st={running:false,paused:false,score:0,lives:3,streak:0,cookies:0,sel:0,houses:[],drops:[],pops:[],speed:55,endTimer:0,best:load('chimney',0),t:0,cool:0};
+  // build present buttons
+  var pbox=$('h-presents'), pbtns=[];
+  GIFTS.forEach(function(g,i){
+    var b=document.createElement('button'); b.type='button'; b.className='present'; b.setAttribute('aria-pressed','false'); b.setAttribute('aria-label',g.n+' (key '+(i+1)+')');
+    b.innerHTML='<span class="e">'+g.e+'</span><span class="n">'+g.n+'</span><span class="k">'+(i+1)+'</span>';
+    b.addEventListener('click',function(){ select(i); });
+    pbox.appendChild(b); pbtns.push(b);
+  });
+  function select(i){ st.sel=i; for(var k=0;k<pbtns.length;k++) pbtns[k].setAttribute('aria-pressed',k===i?'true':'false'); }
+  function hud(){ $('h-score').textContent=st.score; $('h-lives').textContent=hearts(st.lives); $('h-cookies').textContent=st.cookies+'/3'; $('h-best').textContent=st.best; }
+  function newHouse(cx){ return {cx:cx,want:Math.floor(Math.random()*GIFTS.length),plate:Math.random()<.65,result:null,taken:false,color:HOUSE_COLORS[Math.floor(Math.random()*HOUSE_COLORS.length)]}; }
+  function chx(h){ return h.cx-26; }
+  function reset(){ st.score=0; st.lives=3; st.streak=0; st.cookies=0; st.houses=[newHouse(250)]; st.drops=[]; st.pops=[]; st.speed=55; st.endTimer=0; st.t=0; st.cool=0; select(0); hud(); }
+  function inZone(h){ return Math.abs(chx(h)-SANTA_X)<=ZONE; }
+  function target(){ for(var i=0;i<st.houses.length;i++){ var h=st.houses[i]; if(h.result===null && inZone(h)) return h; } return null; }
+  function plateHouse(){ for(var i=0;i<st.houses.length;i++){ var h=st.houses[i]; if(h.plate && !h.taken && inZone(h)) return h; } return null; }
+  function pop(x,y,text,color){ st.pops.push({x:x,y:y,text:text,color:color||'#fff',t:0}); }
+  function start(){ reset(); st.running=true; st.paused=false; $('h-overlay').hidden=true; loop.start(); }
+  function over(){
+    st.running=false;
+    var nb=st.score>st.best; if(nb){ st.best=st.score; save('chimney',st.best); }
+    hud();
+    $('h-ot').textContent='Game over!';
+    $('h-om').innerHTML='Final score: <b>'+st.score+'</b><br>'+(nb?'🏆 New high score!':'High score: '+st.best);
+    $('h-start').textContent='Play again';
+    $('h-overlay').hidden=false;
+  }
+  function drop(){
+    if(!st.running||st.endTimer>0||st.cool>0) return;
+    st.cool=.25;
+    var h=target(), g=GIFTS[st.sel];
+    if(!h){ st.drops.push({x:SANTA_X,y:SANTA_Y+22,tx:SANTA_X,ty:GROUND-6,t:0,e:g.e,fall:true}); pop(SANTA_X+30,SANTA_Y+40,'No chimney!','#ffd9d9'); return; }
+    st.drops.push({x:SANTA_X,y:SANTA_Y+22,tx:chx(h)+0,ty:300,t:0,e:g.e});
+    if(st.sel===h.want){
+      var pts=100+Math.min(st.streak,5)*10; st.score+=pts; st.streak++; h.result='happy';
+      pop(h.cx,230,'+'+pts+' 😄','#8dff9e');
+    } else {
+      st.lives--; st.streak=0; h.result='sad';
+      pop(h.cx,230,'Wrong gift! 😢','#ff9a9a');
+      if(st.lives<=0) st.endTimer=1;
+    }
+    hud();
+  }
+  function grab(){
+    if(!st.running||st.endTimer>0) return;
+    var h=plateHouse();
+    if(!h){ pop(SANTA_X+30,SANTA_Y+40,'Nothing to grab','#ffe9a8'); return; }
+    h.taken=true; st.score+=30; st.cookies++;
+    pop(chx(h),262,'+30 Yum! 🍪','#ffe9a8');
+    if(st.cookies>=3){ st.cookies=0; if(st.lives<5){ st.lives++; pop(SANTA_X,SANTA_Y-30,'+1 life ❤','#ffb3b3'); } else { st.score+=50; pop(SANTA_X,SANTA_Y-30,'+50 bonus','#ffe9a8'); } }
+    hud();
+  }
+  function update(dt){
+    if(!st.running) return;
+    st.t+=dt; if(st.cool>0) st.cool-=dt;
+    st.speed=55+Math.min(70,st.score/12);
+    for(var i=st.houses.length-1;i>=0;i--){
+      var h=st.houses[i]; h.cx-=st.speed*dt;
+      if(h.result===null && chx(h)<SANTA_X-ZONE){ h.result='sad'; st.streak=0; pop(SANTA_X,SANTA_Y+50,'Missed one!','#ffd9d9'); }
+      if(h.cx<-90) st.houses.splice(i,1);
+    }
+    var last=st.houses[st.houses.length-1];
+    while(!last || last.cx+GAP<W+100){ st.houses.push(newHouse((last?last.cx:W)+GAP)); last=st.houses[st.houses.length-1]; }
+    for(var d=st.drops.length-1;d>=0;d--){ var dr=st.drops[d]; dr.t+=dt/.35; if(dr.t>=1) st.drops.splice(d,1); }
+    for(var p=st.pops.length-1;p>=0;p--){ var po=st.pops[p]; po.t+=dt; if(po.t>1.1) st.pops.splice(p,1); }
+    if(st.endTimer>0){ st.endTimer-=dt; if(st.endTimer<=0){ over(); } }
+  }
+  function drawHouse(h){ drawHouseShared(ctx,h,GIFTS,16,(h.plate&&!h.taken)?['🍪','🥛']:[]); }
+  function draw(){
+    drawSky(ctx,GROUND);
+    var t=target(), c=ctx;
+    for(var i=0;i<st.houses.length;i++) drawHouse(st.houses[i]);
+    // guide line
+    c.save(); c.setLineDash([6,6]); c.lineWidth=3; c.strokeStyle=t?'#f6c945':'rgba(255,255,255,.45)';
+    c.beginPath(); c.moveTo(SANTA_X,SANTA_Y+30); c.lineTo(SANTA_X,GROUND-6); c.stroke(); c.restore();
+    if(t){ c.strokeStyle='#f6c945'; c.lineWidth=3; c.beginPath(); c.arc(chx(t),300,18+Math.sin(st.t*10)*2,0,7); c.stroke(); }
+    // santa + reindeer
+    emoji(c,'🦌',SANTA_X+62,SANTA_Y-4,28);
+    drawSleigh(c,SANTA_X,SANTA_Y,56);
+    emoji(c,'🎅',SANTA_X-2,SANTA_Y-14,30);
+    // selected present indicator
+    emoji(c,GIFTS[st.sel].e,SANTA_X-12,SANTA_Y+4,16);
+    // drops
+    for(var d=0;d<st.drops.length;d++){ var dr=st.drops[d]; var e=dr.t*dr.t; emoji(c,dr.e,dr.x+(dr.tx-dr.x)*dr.t,dr.y+(dr.ty-dr.y)*e,22); }
+    // pops
+    for(var p=0;p<st.pops.length;p++){ var po=st.pops[p]; c.globalAlpha=Math.max(0,1-po.t/1.1);
+      c.font='bold 17px system-ui,Arial,sans-serif'; c.textAlign='center'; c.textBaseline='middle';
+      var tx=Math.max(70,Math.min(W-70,po.x)), ty=po.y-po.t*34;
+      c.lineWidth=4; c.strokeStyle='rgba(0,0,0,.75)'; c.strokeText(po.text,tx,ty); c.fillStyle=po.color; c.fillText(po.text,tx,ty); c.globalAlpha=1; }
+  }
+  var loop=makeLoop(update,draw);
+  $('h-drop').addEventListener('click',drop);
+  $('h-grab').addEventListener('click',grab);
+  $('h-start').addEventListener('click',function(){ if(st.paused){ st.paused=false; st.running=true; $('h-overlay').hidden=true; loop.start(); } else start(); });
+  document.addEventListener('visibilitychange',function(){ if(document.hidden && loop.isActive() && st.running){ loop.stop(); st.running=false; st.paused=true; $('h-ot').textContent='Paused'; $('h-om').textContent='Tap to continue.'; $('h-start').textContent='Resume'; $('h-overlay').hidden=false; } });
+  games.chimney={
+    enter:function(){ st.running=false; st.paused=false; st.best=load('chimney',0); $('h-ot').textContent='Chimney Delivery'; $('h-om').innerHTML='Each child wants one present (see the speech bubble).<br>1. Pick the present. 2. When Santa is over the chimney, hit DROP.<br>Right gift = big points 😄. Wrong gift = lose a life 😢.<br>Hit GRAB for cookies &amp; milk: 3 plates = bonus life!'; $('h-start').textContent='Play'; $('h-overlay').hidden=false; reset(); draw(); },
+    stop:function(){ loop.stop(); st.running=false; st.paused=false; },
+    key:function(e,down){
+      if(!down) return /^[1-5]$/.test(e.key)||e.key===' '||e.key==='ArrowDown'||e.key==='ArrowUp'||e.key==='g'||e.key==='G';
+      if(/^[1-5]$/.test(e.key)){ select(+e.key-1); return true; }
+      if(e.key===' '||e.key==='ArrowDown'){ drop(); return true; }
+      if(e.key==='g'||e.key==='G'||e.key==='ArrowUp'){ grab(); return true; }
+      return false;
+    },
+    state:st, GIFTS:GIFTS, _target:target, _chx:chx
+  };
+})();
+
+/* =========================================================
+   GAME 3: CHRISTMAS TRIVIA
+   ========================================================= */
+(function(){
+  var BANK=[
+   ['Which reindeer has a famously shiny red nose?','Rudolph','Dasher','Blitzen','Comet'],
+   ['In which country did the modern Christmas tree tradition begin?','Germany','France','Spain','Canada'],
+   ['Who wrote the story "A Christmas Carol"?','Charles Dickens','Mark Twain','Roald Dahl','Hans Christian Andersen'],
+   ['What colour is the Grinch?','Green','Red','Blue','Purple'],
+   ['What is the name of the Grinch\'s dog?','Max','Rex','Buddy','Spot'],
+   ['Which of these was NOT a gift brought by the Three Wise Men?','Silver','Gold','Frankincense','Myrrh'],
+   ['How many reindeer pull Santa\'s sleigh in "A Visit from St. Nicholas" (before Rudolph)?','Eight','Six','Nine','Twelve'],
+   ['The poinsettia, a popular Christmas plant, is native to which country?','Mexico','Brazil','Italy','Norway'],
+   ['A candy cane is traditionally shaped like which letter?','J','L','C','T'],
+   ['In "Home Alone", what is the name of the boy left at home?','Kevin','Peter','Tommy','Charlie'],
+   ['In the song, what did my true love give to me on the first day of Christmas?','A partridge in a pear tree','Two turtle doves','Five gold rings','Three French hens'],
+   ['In "The Twelve Days of Christmas", how many lords are a-leaping?','Ten','Eight','Twelve','Six'],
+   ['Trafalgar Square in which city gets a big Christmas tree from Norway each year?','London','Paris','Edinburgh','Dublin'],
+   ['Where in New York City is a famous giant Christmas tree displayed with an ice rink?','Rockefeller Center','Brooklyn Bridge','Statue of Liberty','Yankee Stadium'],
+   ['In which language was "Silent Night" first written?','German','English','Latin','French'],
+   ['Who composed the music for the ballet "The Nutcracker"?','Tchaikovsky','Mozart','Beethoven','Bach'],
+   ['In the movie "Elf", what is the name of the human raised by elves?','Buddy','Kevin','Jack','Ernie'],
+   ['In "The Polar Express", where does the magical train take the children?','The North Pole','Iceland','Antarctica','The Moon'],
+   ['In "A Christmas Carol", what does Tiny Tim say?','"God bless us, every one!"','"Bah, humbug!"','"Ho ho ho!"','"Merry Christmas to all!"'],
+   ['Which phrase is Ebenezer Scrooge famous for saying?','"Bah, humbug!"','"Happy holidays!"','"Fa la la la la!"','"Jingle all the way!"'],
+   ['Complete the carol: "Deck the halls with boughs of ___"','Holly','Roses','Daisies','Tulips'],
+   ['Which traditional Christmas drink is made with milk, eggs and sugar?','Eggnog','Lemonade','Root beer','Orange juice'],
+   ['In which season does Christmas fall in Australia?','Summer','Winter','Autumn','Spring'],
+   ['On which date is Boxing Day?','26 December','24 December','25 December','1 January'],
+   ['Which saint is the character of Santa Claus based on?','Saint Nicholas','Saint Patrick','Saint George','Saint Valentine'],
+   ['Christmas crackers were first made in which country?','United Kingdom','United States','Japan','Brazil'],
+   ['What do many families open a little door on each day from 1 December?','An Advent calendar','A birthday cake','A snow globe','A cookie jar'],
+   ['In the song, what did Frosty the Snowman come to life from?','A magic silk hat','A lightning bolt','A wizard\'s wand','A snowball fight'],
+   ['Which plant is traditionally hung up for people to kiss under at Christmas?','Mistletoe','Ivy','Lavender','Clover'],
+   ['What colour coat is Santa Claus famous for wearing?','Red','Blue','Yellow','Purple'],
+   ['In popular tradition, where does Santa Claus live?','The North Pole','The Sahara Desert','The Amazon rainforest','The Moon'],
+   ['Which of these is one of Santa\'s eight reindeer?','Prancer','Bouncer','Pouncer','Trotter'],
+   ['In the Christmas story, in which town was Jesus born?','Bethlehem','Nazareth','Jerusalem','Cairo']
+  ];
+  var N=10, qs=[], idx=0, score=0, answered=false;
+  function best(){ return load('trivia',-1); }
+  function begin(){
+    var pool=BANK.slice(); shuffle(pool); qs=pool.slice(0,N).map(function(r){ return {q:r[0],a:r[1],opts:shuffle(r.slice(1))}; });
+    idx=0; score=0; $('t-quiz').hidden=false; $('t-result').hidden=true; show();
+  }
+  function show(){
+    var q=qs[idx]; answered=false;
+    $('t-num').textContent='Question '+(idx+1)+'/'+N; $('t-score').textContent=score;
+    $('t-prog').style.width=(idx/N*100)+'%';
+    $('t-q').textContent=q.q; $('t-fb').textContent=''; $('t-next').hidden=true;
+    var box=$('t-opts'); box.innerHTML='';
+    q.opts.forEach(function(o){
+      var b=document.createElement('button'); b.type='button'; b.className='opt'; b.textContent=o;
+      b.addEventListener('click',function(){ answer(b,o); }); box.appendChild(b);
+    });
+  }
+  function answer(btn,o){
+    if(answered) return; answered=true;
+    var q=qs[idx], ok=(o===q.a);
+    if(ok) score++;
+    var bs=$('t-opts').children;
+    for(var i=0;i<bs.length;i++){
+      bs[i].disabled=true;
+      if(bs[i].textContent===q.a){ bs[i].classList.add('correct'); if(bs[i]!==btn) bs[i].textContent='✓ '+bs[i].textContent; }
+    }
+    if(ok) btn.textContent='✓ '+btn.textContent; else { btn.classList.add('wrong'); btn.textContent='✗ '+btn.textContent; }
+    $('t-fb').textContent= ok?'🎉 Correct!':'Not quite — the answer is highlighted.';
+    $('t-score').textContent=score;
+    $('t-prog').style.width=((idx+1)/N*100)+'%';
+    $('t-next').textContent= idx===N-1?'See my score ➜':'Next ➜'; $('t-next').hidden=false;
+    $('t-next').focus({preventScroll:true});
+  }
+  function next(){
+    if(idx<N-1){ idx++; show(); return; }
+    var nb = score>best(); if(nb) save('trivia',score);
+    $('t-quiz').hidden=true; $('t-result').hidden=false;
+    $('t-final').textContent=score+'/'+N;
+    $('t-msg').textContent= (nb?'🏆 New best score! ':'')+(score>=9?'Christmas genius! 🌟':score>=6?'Great job, festive friend! 🎄':'Good try — have another go! 🎁');
+    $('t-best').textContent=best();
+  }
+  $('t-next').addEventListener('click',next);
+  $('t-again').addEventListener('click',begin);
+  games.trivia={ enter:begin, bank:BANK };
+})();
+
+/* =========================================================
+   GAME 4: MEMORY MATCH
+   ========================================================= */
+(function(){
+  var FACES=['🎅','🎄','🎁','⛄','🦌','🔔','⭐','🍪'];
+  var first=null, second=null, lock=false, moves=0, pairs=0, timer=0;
+  function bestTxt(){ var b=load('memory',0); $('m-best').textContent=b?b:'–'; }
+  function begin(){
+    clearTimeout(timer); first=second=null; lock=false; moves=0; pairs=0;
+    $('m-moves').textContent=0; $('m-pairs').textContent='0/8'; $('m-win').hidden=true; bestTxt();
+    var deck=shuffle(FACES.concat(FACES)), grid=$('m-grid'); grid.innerHTML='';
+    deck.forEach(function(f,i){
+      var b=document.createElement('button'); b.type='button'; b.className='card'; b.setAttribute('data-face',f);
+      b.setAttribute('aria-label','Card '+(i+1)+', face down');
+      b.innerHTML='<span class="back" aria-hidden="true">🎄</span><span class="face" aria-hidden="true">'+f+'</span>';
+      b.addEventListener('click',function(){ flip(b); });
+      grid.appendChild(b);
+    });
+  }
+  function flip(b){
+    if(lock||b.classList.contains('flipped')||b.classList.contains('matched')) return;
+    b.classList.add('flipped'); b.setAttribute('aria-label','Card '+b.getAttribute('data-face'));
+    if(!first){ first=b; return; }
+    second=b; moves++; $('m-moves').textContent=moves;
+    if(first.getAttribute('data-face')===second.getAttribute('data-face')){
+      first.classList.remove('flipped'); second.classList.remove('flipped'); first.classList.add('matched'); second.classList.add('matched');
+      first.disabled=second.disabled=true; first=second=null; pairs++; $('m-pairs').textContent=pairs+'/8';
+      if(pairs===8) win();
+    } else {
+      lock=true; var a=first,c=second;
+      timer=setTimeout(function(){
+        a.classList.remove('flipped'); c.classList.remove('flipped');
+        a.setAttribute('aria-label','Card face down'); c.setAttribute('aria-label','Card face down');
+        first=second=null; lock=false;
+      },800);
+    }
+  }
+  function win(){
+    var b=load('memory',0), nb=(!b||moves<b); if(nb) save('memory',moves);
+    bestTxt();
+    $('m-wintext').textContent='🎉 You did it in '+moves+' moves!'+(nb?' New best!':'');
+    $('m-win').hidden=false;
+  }
+  $('m-again').addEventListener('click',begin); $('m-restart').addEventListener('click',begin);
+  games.memory={ enter:begin, stop:function(){ clearTimeout(timer); } };
+})();
+
+/* =========================================================
+   ACTION GAMES: Fly the Sleigh / Bobsled Run / Christmas Night Run
+   Shared run state: energy, Santa's size (fat), speed boost.
+   ========================================================= */
+(function(){
+  var GIFTS=[{e:'🧸',n:'Teddy'},{e:'🚂',n:'Train'},{e:'🪆',n:'Doll'},{e:'⚽',n:'Ball'},{e:'📚',n:'Book'}];
+  var HOUSE_COLORS=['#b5533c','#3d7ea6','#c79a3b','#7b5aa6','#4f8f5a'];
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+  function fatScale(f){return 1+0.8*clamp(f,0,1);}
+  function sizeLabel(f){return f<.15?'Slim':f<.4?'Jolly':f<.7?'Round':'Mega';}
+  function newRun(){return {score:0,lives:3,energy:70,fat:0,boost:0,chew:0};}
+
+  function drawNightSky(c,off){
+    var g=c.createLinearGradient(0,0,0,H); g.addColorStop(0,'#071a3a'); g.addColorStop(1,'#245068');
+    c.fillStyle=g; c.fillRect(0,0,W,H);
+    c.fillStyle='#fff';
+    for(var i=0;i<starPts.length;i++){ var s=starPts[i]; var x=(((s[0]-off*.05*s[2])%W)+W)%W; c.globalAlpha=.6; c.fillRect(x,s[1]*1.6,s[2]*.9,s[2]*.9); } c.globalAlpha=1;
+    c.fillStyle='#f3efd2'; c.beginPath(); c.arc(300,60,17,0,7); c.fill();
+    c.fillStyle='#0d2e3a'; c.beginPath(); c.moveTo(0,H);
+    for(var x2=0;x2<=W;x2+=10) c.lineTo(x2,H-26+Math.sin((x2+off*.35)/42)*12);
+    c.lineTo(W,H); c.closePath(); c.fill();
+    c.strokeStyle='#e8f1f7'; c.lineWidth=3; c.beginPath();
+    for(var x3=0;x3<=W;x3+=10){ var yy=H-26+Math.sin((x3+off*.35)/42)*12; if(x3===0) c.moveTo(x3,yy); else c.lineTo(x3,yy);} c.stroke();
+  }
+  function drawCloud(c,x,y,r,col){
+    c.fillStyle=col; c.beginPath();
+    c.arc(x-r*.55,y+r*.15,r*.6,0,7); c.arc(x,y-r*.2,r*.75,0,7); c.arc(x+r*.6,y+r*.15,r*.6,0,7); c.arc(x,y+r*.3,r*.65,0,7); c.fill();
+  }
+
+  /* ---------------- FLY STAGE ---------------- */
+  function FlyStage(g,dur){
+    var SX=90, y=H/2, vy=0, hold=false, obs=[], picks=[], t=0, sp=1.2, pp=2, inv=0, off=0;
+    var st={ctl:'fly',done:false,title:'Fly the Sleigh',
+      intro:'<b>HOLD</b> to lift, <b>release</b> to dive.<br>Dodge 🐦 birds, ☁ clouds and ⛈ storms.<br>🍪 = energy (but rounder Santa!) · 🥛 = speed boost',
+      label:'Fly!', obs:obs, picks:picks,
+      get y(){return y;}, get t(){return t;}, get inv(){return inv;},
+      progress:function(){return dur===Infinity?0:t/dur;},
+      skip:function(){t=dur;},
+      setHold:function(v){hold=v;},
+      key:function(e,d){ if(e.key===' '||e.key==='ArrowUp'||e.key==='w'||e.key==='W'){ hold=d; return true; } return false; },
+      release:function(){hold=false;}
+    };
+    function spawnObs(){
+      var r=Math.random(), ty=(t>5&&r>.72)?'storm':(r<.45?'bird':'cloud');
+      var o={type:ty,x:W+50,dx:0,ph:Math.random()*6,bt:Math.random()*1.5};
+      if(ty==='bird'){ o.y0=rand(40,H-80); o.y=o.y0; o.r=12; o.dx=45; }
+      else if(ty==='cloud'){ o.y=rand(40,H-90); o.r=rand(26,34); }
+      else { o.y=rand(50,H-190); o.r=32; }
+      obs.push(o);
+    }
+    function spawnPick(){ picks.push({type:Math.random()<.62?'cookie':'milk',x:W+30,y:rand(50,H-70),r:16}); }
+    st.update=function(dt){
+      var m=g.speedMul(); t+=dt; var v=(125+Math.min(90,t*2.2))*m;
+      off+=v*dt;
+      vy+=(hold?-950:900)*dt; vy=clamp(vy,-260,280); y+=vy*dt;
+      if(y<28){y=28;vy=0;} if(y>H-48){y=H-48;vy=0;}
+      sp-=dt*m; if(sp<=0){ sp=Math.max(.75,1.5-t*.012); spawnObs(); }
+      pp-=dt; if(pp<=0){ pp=rand(2,3.2); spawnPick(); }
+      if(inv>0) inv-=dt;
+      var r=13*g.scale(), i;
+      for(i=obs.length-1;i>=0;i--){
+        var o=obs[i]; o.x-=(v+o.dx)*dt; o.ph+=dt; o.bt+=dt;
+        if(o.type==='bird') o.y=o.y0+Math.sin(o.ph*3)*22;
+        if(o.x<-80){ obs.splice(i,1); continue; }
+        if(inv>0) continue;
+        var hit=false, dx=o.x-SX, dy=o.y-y;
+        if(Math.sqrt(dx*dx+dy*dy)<r+o.r*.82) hit=true;
+        if(o.type==='storm' && (o.bt%1.6)>1.1){
+          if(Math.abs(SX-o.x)<6+r*.8 && y+r*.6>o.y+o.r && y-r*.6<o.y+o.r+90) hit=true;
+        }
+        if(hit){ inv=1.6; g.hurt(o.type==='bird'?'Bird! 🐦':o.type==='cloud'?'Bonk! ☁':'Zap! ⚡',SX+30,y-30); }
+      }
+      for(i=picks.length-1;i>=0;i--){
+        var p=picks[i]; p.x-=v*dt;
+        if(p.x<-40){ picks.splice(i,1); continue; }
+        var ddx=p.x-SX, ddy=p.y-y;
+        if(Math.sqrt(ddx*ddx+ddy*ddy)<r+p.r){ picks.splice(i,1); if(p.type==='cookie') g.eat(p.x,p.y); else g.drink(p.x,p.y); g.addScore(15); }
+      }
+      g.addScore(dt*6);
+      if(dur!==Infinity && t>=dur) st.done=true;
+    };
+    st.draw=function(c){
+      drawNightSky(c,off);
+      var i;
+      for(i=0;i<picks.length;i++){ var p=picks[i]; emoji(c,p.type==='cookie'?'🍪':'🥛',p.x,p.y,28); }
+      for(i=0;i<obs.length;i++){
+        var o=obs[i];
+        if(o.type==='bird') emoji(c,'🐦',o.x,o.y,28);
+        else if(o.type==='cloud') drawCloud(c,o.x,o.y,o.r,'#e9eef4');
+        else {
+          var on=(o.bt%1.6)>1.1, warn=(o.bt%1.6)>.8&&!on;
+          drawCloud(c,o.x,o.y,o.r,'#3a4160');
+          c.strokeStyle='rgba(180,200,255,.7)'; c.lineWidth=2; for(var k=-1;k<=1;k++){ c.beginPath(); c.moveTo(o.x+k*14,o.y+o.r*.8); c.lineTo(o.x+k*14-4,o.y+o.r*.8+12); c.stroke(); }
+          if(on||(warn&&Math.floor(o.bt*12)%2)){
+            c.strokeStyle=on?'#ffe94a':'rgba(255,233,74,.45)'; c.lineWidth=on?6:2; c.beginPath();
+            var by=o.y+o.r; c.moveTo(o.x,by); c.lineTo(o.x-8,by+30); c.lineTo(o.x+6,by+48); c.lineTo(o.x-6,by+90); c.stroke();
+          }
+        }
+      }
+      g.drawSanta(c,SX,y,vy/900,inv>0&&Math.floor(inv*10)%2===0?.4:1);
+    };
+    return st;
+  }
+
+  /* ---------------- BOBSLED STAGE ---------------- */
+  function BobStage(g,dur){
+    var LX=[100,180,260], SY=H-100, lane=1, sx=180, items=[], t=0, dist=0, next=60, air=0, inv=0, off=0;
+    var st={ctl:'bob',done:false,title:'Bobsled Run',
+      intro:'Swipe, tap ◀ ▶ or use ← → to change lanes.<br>Hit a <b>ramp</b> to fly over trouble!<br>Avoid 🪨 rocks and ⛄ snowmen. 🍪 / 🥛 as usual.',
+      label:'Bobsled!', items:items,
+      get lane(){return lane;}, get air(){return air;}, get t(){return t;}, get sx(){return sx;},
+      progress:function(){return dur===Infinity?0:t/dur;},
+      skip:function(){t=dur;},
+      moveLane:function(d){ lane=clamp(lane+d,0,2); },
+      key:function(e,d){ if(!d) return (e.key==='ArrowLeft'||e.key==='ArrowRight'||e.key==='a'||e.key==='d'||e.key==='A'||e.key==='D'); if(e.repeat) return true;
+        if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A'){ lane=clamp(lane-1,0,2); return true; }
+        if(e.key==='ArrowRight'||e.key==='d'||e.key==='D'){ lane=clamp(lane+1,0,2); return true; } return false; }
+    };
+    function spawnRow(){
+      var r=Math.random(), free=[0,1,2], i;
+      function take(){ return free.splice(Math.floor(Math.random()*free.length),1)[0]; }
+      if(t>2 && r<.2){ items.push({type:'ramp',lane:take(),y:-50}); if(Math.random()<.5) items.push({type:Math.random()<.5?'rock':'snowman',lane:take(),y:-50}); }
+      else if(r<.82){ var n=(t>8&&Math.random()<.4)?2:1; for(i=0;i<n;i++) items.push({type:Math.random()<.5?'rock':'snowman',lane:take(),y:-50}); }
+      if(free.length&&Math.random()<.4) items.push({type:Math.random()<.6?'cookie':'milk',lane:free[Math.floor(Math.random()*free.length)],y:-50});
+    }
+    st.update=function(dt){
+      var m=g.speedMul(); t+=dt; var v=(200+Math.min(120,t*3))*m;
+      off+=v*dt; dist+=v*dt; while(dist>=next){ spawnRow(); next+=170; }
+      var target=LX[lane], step=520/g.scale()*dt; sx+= clamp(target-sx,-step,step);
+      if(air>0) air-=dt; if(inv>0) inv-=dt;
+      for(var i=items.length-1;i>=0;i--){
+        var o=items[i]; o.y+=v*dt; if(o.y>H+50){ items.splice(i,1); continue; }
+        var dy=Math.abs(o.y-SY), dx=Math.abs(LX[o.lane]-sx);
+        if(dy<28 && dx<40){
+          if(o.type==='ramp'){ if(air<=0){ air=1.0; g.addScore(20); g.pop('Whee! 🚀',LX[o.lane],SY-50,'#ffe9a8'); } }
+          else if(o.type==='cookie'||o.type==='milk'){ if(air<=0){ items.splice(i,1); if(o.type==='cookie') g.eat(LX[o.lane],SY-30); else g.drink(LX[o.lane],SY-30); g.addScore(15); } }
+          else if(air<=0 && inv<=0){ items.splice(i,1); inv=1.2; g.hurt(o.type==='rock'?'Crash! 🪨':'Splat! ⛄',LX[o.lane],SY-40); }
+        }
+      }
+      g.addScore(dt*6);
+      if(dur!==Infinity && t>=dur) st.done=true;
+    };
+    function rock(c,x,y){ c.fillStyle='#6d6f78'; c.beginPath(); c.moveTo(x-22,y+14); c.lineTo(x-16,y-10); c.lineTo(x-2,y-20); c.lineTo(x+16,y-12); c.lineTo(x+23,y+14); c.closePath(); c.fill(); c.strokeStyle='#2b2d33'; c.lineWidth=2; c.stroke(); c.fillStyle='#9a9ca6'; c.beginPath(); c.moveTo(x-12,y-6); c.lineTo(x-2,y-14); c.lineTo(x+4,y-4); c.lineTo(x-8,y+2); c.closePath(); c.fill(); }
+    function snowman(c,x,y){ c.strokeStyle='#5f7f96'; c.lineWidth=2; c.fillStyle='#fff';
+      c.beginPath(); c.arc(x,y+8,16,0,7); c.fill(); c.stroke(); c.beginPath(); c.arc(x,y-11,12,0,7); c.fill(); c.stroke(); c.beginPath(); c.arc(x,y-27,9,0,7); c.fill(); c.stroke();
+      c.fillStyle='#222'; c.fillRect(x-7,y-41,14,6); c.fillRect(x-4,y-47,8,8); c.fillRect(x-4,y-30,2,2); c.fillRect(x+2,y-30,2,2);
+      c.fillStyle='#f08a24'; c.beginPath(); c.moveTo(x,y-27); c.lineTo(x+10,y-25); c.lineTo(x,y-24); c.fill(); }
+    function ramp(c,x,y){ c.fillStyle='#8a5a2b'; c.beginPath(); c.moveTo(x-30,y+24); c.lineTo(x-22,y-24); c.lineTo(x+22,y-24); c.lineTo(x+30,y+24); c.closePath(); c.fill(); c.strokeStyle='#3b2410'; c.lineWidth=2; c.stroke();
+      c.strokeStyle='#c99a5b'; c.lineWidth=3; for(var k=-12;k<=18;k+=10){ c.beginPath(); c.moveTo(x-24,y+k); c.lineTo(x+24,y+k); c.stroke(); }
+      c.fillStyle='#ffd23f'; c.beginPath(); c.moveTo(x,y-14); c.lineTo(x-10,y+2); c.lineTo(x+10,y+2); c.closePath(); c.fill(); }
+    st.draw=function(c){
+      c.fillStyle='#dfeaf2'; c.fillRect(0,0,W,H);
+      c.fillStyle='#c4d8e6'; c.fillRect(0,0,58,H); c.fillRect(302,0,58,H);
+      for(var i=-1;i<7;i++){ var ty=((i*90+off)%(H+90))-45; tree(c,26,ty); tree(c,334,ty+45); }
+      c.fillStyle='#b4d0e4'; c.fillRect(58,0,244,H);
+      c.strokeStyle='#7da3bd'; c.lineWidth=4; c.beginPath(); c.moveTo(58,0); c.lineTo(58,H); c.moveTo(302,0); c.lineTo(302,H); c.stroke();
+      c.strokeStyle='#fff'; c.lineWidth=3; c.setLineDash([16,16]); c.lineDashOffset=-off; for(var l=140;l<=220;l+=80){ c.beginPath(); c.moveTo(l,0); c.lineTo(l,H); c.stroke(); } c.setLineDash([]);
+      var sorted=items.slice().sort(function(a,b){return a.y-b.y;});
+      for(var k=0;k<sorted.length;k++){ var o=sorted[k], x=LX[o.lane];
+        if(o.type==='rock') rock(c,x,o.y); else if(o.type==='snowman') snowman(c,x,o.y); else if(o.type==='ramp') ramp(c,x,o.y); else emoji(c,o.type==='cookie'?'🍪':'🥛',x,o.y,30); }
+      // sled
+      var p=air>0?1-air/1.0:0, lift=air>0?Math.sin(p*Math.PI)*34:0, s=g.scale()*(1+lift/110);
+      if(air>0){ c.fillStyle='rgba(0,0,0,.22)'; c.beginPath(); c.ellipse(sx,SY+4,22*g.scale(),9*g.scale(),0,0,7); c.fill(); }
+      c.save(); c.translate(sx,SY-lift); c.scale(s,s); if(inv>0&&Math.floor(inv*10)%2===0) c.globalAlpha=.4;
+      c.strokeStyle='#f6c945'; c.lineWidth=4; c.lineCap='round'; c.beginPath(); c.moveTo(-23,-30); c.lineTo(-23,32); c.moveTo(23,-30); c.lineTo(23,32); c.stroke();
+      c.fillStyle='#c8212b'; rrect(c,-18,-32,36,64,13); c.fill(); c.strokeStyle='#f6c945'; c.lineWidth=2.5; c.stroke();
+      c.fillStyle='#fffaf0'; c.fillRect(-18,12,36,5);
+      emoji(c,'🎅',0,-6,30); c.restore();
+    };
+    function tree(c,x,y){ c.fillStyle='#1d5a3a'; c.beginPath(); c.moveTo(x,y-26); c.lineTo(x+18,y+10); c.lineTo(x-18,y+10); c.closePath(); c.fill(); c.fillStyle='#fff'; c.beginPath(); c.moveTo(x,y-26); c.lineTo(x+8,y-12); c.lineTo(x-8,y-12); c.closePath(); c.fill(); c.fillStyle='#5a3418'; c.fillRect(x-3,y+10,6,6); }
+    return st;
+  }
+
+  /* ---------------- CHIMNEY SQUEEZE STAGE ---------------- */
+  function ChimStage(g,total){
+    var SANTA_X=100, SANTA_Y=90, ZONE=40, GAP=200, CWS=[17,22,30];
+    var houses=[], drops=[], sel=0, spawned=0, finished=0, t=0, cool=0, endT=0, streak=0;
+    var st={ctl:'chim',done:false,title:'Chimney Squeeze',
+      intro:'Pick the present each child wants, then <b>DROP</b> when Santa is over the chimney.<br><b>Cookies make Santa rounder</b> — narrow chimneys get stuck! 🍪<br>GRAB 🍪/🥛 from chimneys. Milk = boost (x2 points, faster houses).',
+      label:'House 1', houses:houses,
+      get finished(){return finished;}, get sel(){return sel;},
+      progress:function(){return finished/total;},
+      skip:function(){finished=total; endT=.01;},
+      select:function(i){ sel=i; g.showSel(i); }
+    };
+    function newHouse(cx,first){
+      var r=Math.random();
+      return {cx:cx,want:Math.floor(Math.random()*GIFTS.length),cw:first?30:CWS[Math.floor(Math.random()*3)],
+        plate:r<.4?'cookie':(r<.68?'milk':null),taken:false,result:null,color:HOUSE_COLORS[Math.floor(Math.random()*HOUSE_COLORS.length)]};
+    }
+    function chx(h){return h.cx-26;}
+    function inZone(h){return Math.abs(chx(h)-SANTA_X)<=ZONE;}
+    function target(){ for(var i=0;i<houses.length;i++){ var h=houses[i]; if(h.result===null&&inZone(h)) return h; } return null; }
+    function plateHouse(){ for(var i=0;i<houses.length;i++){ var h=houses[i]; if(h.plate&&!h.taken&&inZone(h)) return h; } return null; }
+    st.target=target; st.chx=chx;
+    st.drop=function(){
+      if(cool>0||endT>0) return; cool=.3;
+      var h=target(), gift=GIFTS[sel];
+      if(!h){ g.pop('No chimney!',SANTA_X+40,SANTA_Y+44,'#ffd9d9'); return; }
+      var belly=14*g.scale();
+      if(belly>h.cw){
+        g.run.fat=Math.max(0,g.run.fat-.12); cool=.6;
+        g.pop('Stuck! 😅',chx(h)+10,250,'#ffb3b3'); g.addEnergy(-20); return;
+      }
+      drops.push({x:SANTA_X,y:SANTA_Y+22,tx:chx(h),ty:300,t:0,e:gift.e});
+      if(sel===h.want){ var pts=100+Math.min(streak,5)*10; g.addScore(pts); streak++; h.result='happy'; g.pop('+'+Math.round(pts*(g.run.boost>0?2:1))+' 😄',h.cx,230,'#8dff9e'); }
+      else { streak=0; h.result='sad'; g.hurt('Wrong gift! 😢',h.cx,230); }
+      finished++;
+    };
+    st.grab=function(){
+      if(endT>0) return;
+      var h=plateHouse();
+      if(!h){ g.pop('Nothing to grab',SANTA_X+40,SANTA_Y+44,'#ffe9a8'); return; }
+      h.taken=true; if(h.plate==='cookie') g.eat(chx(h),262); else g.drink(chx(h),262); g.addScore(10);
+    };
+    st.key=function(e,d){
+      var k=e.key;
+      if(!d) return /^[1-5]$/.test(k)||k===' '||k==='ArrowDown'||k==='ArrowUp'||k==='g'||k==='G';
+      if(/^[1-5]$/.test(k)){ st.select(+k-1); return true; }
+      if(k===' '||k==='ArrowDown'){ if(!e.repeat) st.drop(); return true; }
+      if(k==='g'||k==='G'||k==='ArrowUp'){ if(!e.repeat) st.grab(); return true; }
+      return false;
+    };
+    st.update=function(dt){
+      t+=dt; if(cool>0) cool-=dt;
+      var sp=(50+Math.min(35,finished*6))*g.speedMul();
+      for(var i=houses.length-1;i>=0;i--){
+        var h=houses[i]; h.cx-=sp*dt;
+        if(h.result===null&&chx(h)<SANTA_X-ZONE){ h.result='sad'; streak=0; finished++; g.pop('Missed one!',SANTA_X+20,SANTA_Y+50,'#ffd9d9'); }
+        if(h.cx<-90) houses.splice(i,1);
+      }
+      var last=houses[houses.length-1];
+      while(spawned<total&&(!last||last.cx+GAP<W+100)){ houses.push(newHouse(last?last.cx+GAP:250,spawned===0)); spawned++; last=houses[houses.length-1]; }
+      for(var d=drops.length-1;d>=0;d--){ drops[d].t+=dt/.35; if(drops[d].t>=1) drops.splice(d,1); }
+      st.label='House '+Math.min(total,finished+1)+'/'+total;
+      if(finished>=total){ if(endT<=0) endT=1; endT-=dt; if(endT<=0) st.done=true; }
+    };
+    st.draw=function(c){
+      drawSky(c,GROUND_Y);
+      var t0=target(), i;
+      for(i=0;i<houses.length;i++){ var h=houses[i]; drawHouseShared(c,h,GIFTS,h.cw,(h.plate&&!h.taken)?[h.plate==='cookie'?'🍪':'🥛']:[]); }
+      var belly=14*g.scale();
+      c.save(); c.setLineDash([6,6]); c.lineWidth=3; c.strokeStyle=t0?'#f6c945':'rgba(255,255,255,.45)'; c.beginPath(); c.moveTo(SANTA_X,SANTA_Y+30); c.lineTo(SANTA_X,GROUND_Y-6); c.stroke(); c.restore();
+      if(t0){
+        var fits=belly<=t0.cw, col=fits?'#5dff8a':'#ff6a6a';
+        c.strokeStyle=col; c.lineWidth=3; c.beginPath(); c.arc(chx(t0),304,t0.cw/2+8+Math.sin(t*10)*1.5,0,7); c.stroke();
+        c.font='bold 13px system-ui,Arial,sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.lineWidth=3; c.strokeStyle='rgba(0,0,0,.8)';
+        var msg=fits?'✓ fits':'✗ too tight'; c.strokeText(msg,chx(t0),340-70+4); c.fillStyle=col; c.fillText(msg,chx(t0),340-70+4);
+      }
+      g.drawSanta(c,SANTA_X,SANTA_Y,0,1);
+      for(i=0;i<drops.length;i++){ var dr=drops[i]; emoji(c,dr.e,dr.x+(dr.tx-dr.x)*dr.t,dr.y+(dr.ty-dr.y)*dr.t*dr.t,22); }
+    };
+    return st;
+  }
+
+  /* ---------------- GAME CONTROLLER ---------------- */
+  function makeGame(cfg){
+    var root=$('screen-'+cfg.id);
+    root.innerHTML=
+      '<div class="topbar"><button class="btn back" data-go="menu" aria-label="Back to menu">← Menu</button><h2>'+cfg.title+'</h2></div>'+
+      '<div class="hud ahud"><span>Score <b class="a-score">0</b></span><span class="a-lives">❤❤❤</span><span class="a-energy" title="Energy">⚡<i class="bar"><i></i></i></span><span class="a-size">🎅 <b>Slim</b></span><span class="a-boost" hidden>⚡ x2</span></div>'+
+      '<div class="stage"><canvas width="720" height="960" aria-label="'+cfg.title+' game area"></canvas><div class="overlay"><h3></h3><p></p><div class="row"><button class="btn gold go">Play</button></div></div></div>'+
+      '<div class="controls ctl-fly" hidden><button class="btn lift" aria-label="Hold to lift the sleigh">⬆ HOLD TO LIFT</button></div>'+
+      '<div class="controls ctl-bob" hidden><button class="btn green bl" aria-label="Move left">◀</button><button class="btn green br" aria-label="Move right">▶</button></div>'+
+      '<div class="ctl-chim" hidden><div class="presents" role="group" aria-label="Choose a present"></div><div class="actions"><button class="btn drop">🎁 DROP</button><button class="btn green grab">🍪🥛 GRAB</button></div></div>'+
+      '<p class="hint"></p>';
+    var q=function(s){return root.querySelector(s);};
+    var cv=q('canvas'), ctx=setupCanvas(cv), stageEl=q('.stage'), ov=q('.overlay');
+    var run=null, stage=null, idx=0, state='ready', pops=[], flash=0, loop;
+    var pbtns=[], pbox=q('.presents');
+    GIFTS.forEach(function(gf,i){
+      var b=document.createElement('button'); b.type='button'; b.className='present'; b.setAttribute('aria-pressed','false'); b.setAttribute('aria-label',gf.n+' (key '+(i+1)+')');
+      b.innerHTML='<span class="e">'+gf.e+'</span><span class="n">'+gf.n+'</span><span class="k">'+(i+1)+'</span>';
+      b.addEventListener('click',function(){ if(stage&&stage.select) stage.select(i); });
+      pbox.appendChild(b); pbtns.push(b);
+    });
+    var hint={fly:'Hold the button (or the screen / Space / ↑) to lift.',bob:'Swipe the screen, use the buttons, or ← → keys.',chim:'Keys: 1-5 choose present · Space/↓ drop · G/↑ grab'};
+
+    var g={
+      get run(){return run;},
+      scale:function(){return fatScale(run.fat);},
+      speedMul:function(){return (run.boost>0?1.3:1)*(run.energy<25?.8:1);},
+      addScore:function(n){run.score+=n*(run.boost>0?2:1);},
+      addEnergy:function(n){ run.energy=Math.min(100,run.energy+n); if(run.energy<=0){ run.energy=40; g.hurt('Out of energy! 😴',W/2,H/2); } },
+      eat:function(x,y){ run.fat=Math.min(1,run.fat+.2); run.chew=.6; g.pop('😋 Om nom! +energy, rounder!',x,y,'#ffe9a8'); g.addEnergy(24); },
+      drink:function(x,y){ run.fat=Math.min(1,run.fat+.04); run.boost=5; g.pop('🥛 Glug! BOOST!',x,y,'#bfe9ff'); g.addEnergy(12); },
+      hurt:function(msg,x,y){ if(state!=='play') return; run.lives--; flash=.35; g.pop(msg||'Ouch!',x||W/2,y||H/2,'#ff9a9a'); if(run.lives<=0) end(); },
+      pop:function(text,x,y,color){ pops.push({text:text,x:x,y:y,color:color||'#fff',t:0}); },
+      showSel:function(i){ for(var k=0;k<pbtns.length;k++) pbtns[k].setAttribute('aria-pressed',k===i?'true':'false'); },
+      drawSanta:function(c,x,y,tilt,alpha){
+        var s=fatScale(run.fat); c.save(); c.translate(x,y); c.rotate(tilt); c.scale(s,s); c.globalAlpha=alpha;
+        emoji(c,'🦌',62,-4,28); drawSleigh(c,0,0,56); emoji(c,run.chew>0?'😋':'🎅',-2,-14,30); c.restore(); c.globalAlpha=1;
+      }
+    };
+
+    function best(){return load(cfg.bestKey,0);}
+    function setStage(i){
+      idx=i; stage=cfg.stages[i](g);
+      q('.ctl-fly').hidden=stage.ctl!=='fly'; q('.ctl-bob').hidden=stage.ctl!=='bob'; q('.ctl-chim').hidden=stage.ctl!=='chim';
+      q('.hint').textContent=hint[stage.ctl];
+      if(stage.ctl==='chim') stage.select(0);
+    }
+    function hud(){
+      q('.a-score').textContent=Math.floor(run.score);
+      q('.a-lives').textContent=hearts(run.lives);
+      var bar=q('.bar'); bar.firstChild.style.width=clamp(run.energy,0,100)+'%'; bar.classList.toggle('low',run.energy<25); bar.classList.toggle('boost',run.boost>0);
+      q('.a-energy').firstChild.nodeValue=run.boost>0?'🚀':'⚡';
+      q('.a-size b').textContent=sizeLabel(run.fat);
+      q('.a-boost').hidden=!(run.boost>0);
+    }
+    function showOverlay(title,msg,btn){ ov.querySelector('h3').textContent=title; ov.querySelector('p').innerHTML=msg; ov.querySelector('.go').textContent=btn; ov.hidden=false; }
+    function readyMsg(){
+      if(cfg.night) return 'Three stages in one night:<br>🦌 Fly ➜ 🛷 Bobsled ➜ 🏠 Chimneys.<br>🍪 cookies = energy but a rounder Santa; 🥛 milk = speed boost. Keep your ⚡ energy up!<br><b>Stage 1: Fly!</b> Hold to lift, release to dive.<br>Best: '+best();
+      return stage.intro+'<br>Best: '+best();
+    }
+    function begin(){ run=newRun(); pops=[]; flash=0; setStage(0); state='play'; ov.hidden=true; hud(); loop.start(); }
+    function end(){
+      state='over'; var sc=Math.floor(run.score), nb=sc>best(); if(nb) save(cfg.bestKey,sc);
+      showOverlay('Game over!','Score: <b>'+sc+'</b><br>'+(nb?'🏆 New best!':'Best: '+best()),'Play again'); hud();
+    }
+    function win(){
+      state='win';
+      var bonus=run.lives*150+Math.round(run.energy)*2, total=Math.floor(run.score)+bonus, nb=total>best(); if(nb) save(cfg.bestKey,total);
+      run.score=total; hud();
+      showOverlay('Night complete! 🎄','Santa delivered the presents!<br>Score + bonus (lives &amp; energy): <b>'+total+'</b> (+'+bonus+')<br>'+(nb?'🏆 New best night!':'Best: '+best()),'Another night');
+    }
+    function update(dt){
+      if(state!=='play') return;
+      stage.update(dt);
+      if(state!=='play') return;
+      run.energy-=2*dt; if(run.energy<=0){ run.energy=40; g.hurt('Out of energy! 😴',W/2,H/2); }
+      if(run.boost>0) run.boost-=dt; if(run.chew>0) run.chew-=dt; run.fat=Math.max(0,run.fat-.012*dt);
+      for(var p=pops.length-1;p>=0;p--){ pops[p].t+=dt; if(pops[p].t>1.2) pops.splice(p,1); }
+      if(flash>0) flash-=dt;
+      if(state==='play' && stage.done){
+        if(idx+1>=cfg.stages.length) win();
+        else { setStage(idx+1); state='intro'; showOverlay('Stage '+(idx+1)+'/'+cfg.stages.length+': '+stage.title,stage.intro,'Go!'); }
+      }
+      hud();
+    }
+    function draw(){
+      stage.draw(ctx);
+      var i;
+      for(i=0;i<pops.length;i++){ var po=pops[i]; ctx.globalAlpha=Math.max(0,1-po.t/1.2); ctx.font='bold 15px system-ui,Arial,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        var tx=clamp(po.x,80,W-80), ty=po.y-po.t*30; ctx.lineWidth=4; ctx.strokeStyle='rgba(0,0,0,.75)'; ctx.strokeText(po.text,tx,ty); ctx.fillStyle=po.color; ctx.fillText(po.text,tx,ty); ctx.globalAlpha=1; }
+      if(cfg.night&&stage){
+        ctx.fillStyle='rgba(7,42,32,.78)'; ctx.fillRect(0,0,W,22);
+        ctx.fillStyle='#f6c945'; ctx.font='bold 12px system-ui,Arial,sans-serif'; ctx.textAlign='left'; ctx.textBaseline='middle';
+        ctx.fillText('Stage '+(idx+1)+'/'+cfg.stages.length+' · '+stage.label,8,11);
+        ctx.fillStyle='rgba(255,255,255,.25)'; ctx.fillRect(W-130,7,120,8); ctx.fillStyle='#f6c945'; ctx.fillRect(W-130,7,120*clamp(stage.progress(),0,1),8);
+      }
+      if(run.boost>0){ ctx.font='bold 13px system-ui,Arial,sans-serif'; ctx.textAlign='right'; ctx.textBaseline='middle'; ctx.lineWidth=3; ctx.strokeStyle='rgba(0,0,0,.8)'; var bt='🚀 BOOST x2 '+run.boost.toFixed(1)+'s'; ctx.strokeText(bt,W-8,36); ctx.fillStyle='#ffe07a'; ctx.fillText(bt,W-8,36); }
+      if(flash>0){ ctx.fillStyle='rgba(216,50,60,'+Math.min(.5,flash*1.3)+')'; ctx.fillRect(0,0,W,H); }
+    }
+    loop=makeLoop(update,draw);
+
+    function preview(){ run=newRun(); pops=[]; flash=0; setStage(0); hud(); draw(); }
+    ov.querySelector('.go').addEventListener('click',function(){
+      if(state==='ready'||state==='over'||state==='win') begin();
+      else if(state==='intro'||state==='paused'){ state='play'; ov.hidden=true; loop.start(); }
+    });
+    // inputs
+    var lift=q('.lift');
+    function holdOn(e){ if(stage&&stage.setHold&&state==='play') stage.setHold(true); }
+    function holdOff(){ if(stage&&stage.setHold) stage.setHold(false); }
+    lift.addEventListener('pointerdown',function(e){ e.preventDefault(); try{lift.setPointerCapture(e.pointerId);}catch(_){} holdOn(); });
+    ['pointerup','pointercancel','lostpointercapture'].forEach(function(n){ lift.addEventListener(n,holdOff); });
+    var sx0=null;
+    stageEl.addEventListener('pointerdown',function(e){ sx0=e.clientX; if(stage&&stage.ctl==='fly') holdOn(); });
+    stageEl.addEventListener('pointermove',function(e){
+      if(sx0!==null&&stage&&stage.ctl==='bob'&&state==='play'&&Math.abs(e.clientX-sx0)>26){ stage.moveLane(e.clientX>sx0?1:-1); sx0=e.clientX; }
+    });
+    ['pointerup','pointercancel','pointerleave'].forEach(function(n){ stageEl.addEventListener(n,function(){ sx0=null; if(stage&&stage.ctl==='fly') holdOff(); }); });
+    q('.bl').addEventListener('click',function(){ if(stage&&stage.moveLane&&state==='play') stage.moveLane(-1); });
+    q('.br').addEventListener('click',function(){ if(stage&&stage.moveLane&&state==='play') stage.moveLane(1); });
+    q('.drop').addEventListener('click',function(){ if(stage&&stage.drop&&state==='play') stage.drop(); });
+    q('.grab').addEventListener('click',function(){ if(stage&&stage.grab&&state==='play') stage.grab(); });
+    document.addEventListener('visibilitychange',function(){
+      if(document.hidden&&state==='play'&&current===cfg.id){ loop.stop(); state='paused'; showOverlay('Paused','Tap to continue.','Resume'); }
+    });
+
+    games[cfg.id]={
+      enter:function(){ state='ready'; preview(); showOverlay(cfg.title,readyMsg(),'Play'); },
+      stop:function(){ loop.stop(); holdOff(); state='ready'; },
+      key:function(e,d){ if(state!=='play'||!stage||!stage.key) return false; return stage.key(e,d); },
+      dbg:{g:g,stage:function(){return stage;},run:function(){return run;},state:function(){return state;},idx:function(){return idx;}}
+    };
+  }
+
+  makeGame({id:'fly',title:'Fly the Sleigh',bestKey:'fly',night:false,stages:[function(g){return FlyStage(g,Infinity);}]});
+  makeGame({id:'bob',title:'Bobsled Run',bestKey:'bob',night:false,stages:[function(g){return BobStage(g,Infinity);}]});
+  makeGame({id:'night',title:'Christmas Night Run',bestKey:'night',night:true,stages:[
+    function(g){return FlyStage(g,30);}, function(g){return BobStage(g,30);}, function(g){return ChimStage(g,6);}
+  ]});
+})();
+
+/* ---------- keyboard ---------- */
+document.addEventListener('keydown',function(e){
+  var g=games[current]; if(g&&g.key&&g.key(e,true)) e.preventDefault();
+});
+document.addEventListener('keyup',function(e){
+  var g=games[current]; if(g&&g.key) g.key(e,false);
+});
+
+/* ---------- snowfall ---------- */
+(function(){
+  var cv=$('snow'), c=cv.getContext('2d'), flakes=[], w=0, h=0, dpr=1;
+  var reduce=window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function size(){ dpr=Math.min(2,window.devicePixelRatio||1); w=window.innerWidth; h=window.innerHeight; cv.width=w*dpr; cv.height=h*dpr; c.setTransform(dpr,0,0,dpr,0,0);
+    var n=Math.round(Math.min(70,w/9)); if(reduce) n=Math.round(n/3); while(flakes.length<n) flakes.push({x:Math.random()*w,y:Math.random()*h,r:rand(1,3.2),v:rand(18,48),d:rand(0,6.28)}); flakes.length=n; }
+  size(); window.addEventListener('resize',size);
+  var last=performance.now();
+  function frame(ts){
+    var dt=Math.min(.05,(ts-last)/1000); last=ts;
+    c.clearRect(0,0,w,h); c.fillStyle='rgba(255,255,255,.85)';
+    for(var i=0;i<flakes.length;i++){
+      var f=flakes[i]; if(!reduce){ f.y+=f.v*dt; f.d+=dt; f.x+=Math.sin(f.d)*14*dt; }
+      if(f.y>h+4){ f.y=-4; f.x=Math.random()*w; }
+      c.beginPath(); c.arc(f.x,f.y,f.r,0,6.3); c.fill();
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+
+/* ---------- init ---------- */
+refreshBests(); renderCountdown();
+setInterval(renderCountdown,60000);
+window.__hq={daysUntilChristmas:daysUntilChristmas,games:games,go:go};
+})();
+</script>
+</body>
+</html>

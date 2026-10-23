@@ -1344,6 +1344,12 @@ I
 .mast[data-hq-page="home"] + .container .section-line:first-of-type{
   margin-top:28px!important;
 }
+      .hq-game-card.arcade{grid-column:1/-1;min-height:0;background:linear-gradient(135deg,#c23b3b,#8f1f2c)!important;color:#fff8df!important}
+      .hq-game-card.arcade b{color:#fff!important}.hq-game-card.arcade small{color:#f3e6c0!important}
+      .hq-arcade{scroll-margin-top:6px;display:flex;flex-direction:column;gap:10px;width:100%;max-width:100%;box-sizing:border-box}
+      .hq-arcade-frame{display:block;width:100%;max-width:100%;height:calc(100vh - 100px);height:calc(100dvh - 100px);min-height:480px;border:0;border-radius:20px;background:#072a20;box-shadow:0 8px 26px rgba(30,60,44,.18)}
+      .hq-arcade .hq-game-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+      .hq-arcade .hq-game-toolbar a{text-decoration:none}
       @media(max-width:420px){
         .hq-games-grid{grid-template-columns:1fr 1fr}
         .hq-game-card{padding:13px;min-height:137px}
@@ -1437,6 +1443,7 @@ I
       ${onlineHtml()}
       ${live}
       <div class="hq-games-grid">
+        <button class="hq-game-card arcade" data-hq-game="arcade"><span class="big">🕹️</span><b>Christmas Arcade</b><small>Christmas Night Run, Fly the Sleigh, Bobsled Run, Chimney Delivery, Catch the Gifts, Trivia and Memory Match.</small></button>
         <button class="hq-game-card trivia" data-hq-game="trivia"><span class="big">🧠</span><b>Christmas Trivia</b><small>Live questions, answers and family leaderboard.</small></button>
         <button class="hq-game-card song" data-hq-game="song"><span class="big">🎵</span><b>Guess the Song</b><small>Christmas song clues — fastest family brain wins.</small></button>
         <button class="hq-game-card would" data-hq-game="would"><span class="big">↔️</span><b>Would You Rather?</b><small>Vote together and reveal the family split.</small></button>
@@ -1604,22 +1611,41 @@ I
     </div>`;
   }
 
+  function arcadeStage() {
+    return `<div class="hq-arcade">
+      <div class="hq-game-toolbar">
+        <button class="btn alt" data-hq-action="backHub">← Games</button>
+        <a class="btn alt" href="./games/index.html" target="_blank" rel="noopener">Open full screen ↗</a>
+      </div>
+      <iframe id="hqArcadeFrame" class="hq-arcade-frame" src="./games/index.html" title="Christmas Arcade games" loading="eager" allow="fullscreen" referrerpolicy="no-referrer"></iframe>
+    </div>`;
+  }
+
   function gamesPage() {
     if (hqLocalView === 'hub') return gameHub();
     if (hqLocalView === 'bingo') return bingoStage();
     if (hqLocalView === 'memory') return memoryStage();
+    if (hqLocalView === 'arcade') return arcadeStage();
     return liveGameStage();
   }
 
   window.ChristmasHQGamesNavigation = {
     snapshot(){return hqLocalView;},
-    restore(view){hqLocalView=['hub','trivia','song','would','bingo','wheel','memory'].includes(view)?view:'hub';}
+    restore(view){hqLocalView=['hub','trivia','song','would','bingo','wheel','memory','arcade'].includes(view)?view:'hub';}
   };
 
   function renderGames(top = true) {
   document.getElementById('bottomNav')?.classList.remove('nav-open');
   document.getElementById('navToggle')?.setAttribute('aria-expanded','false');
   buildChristmasHeader();
+
+  /* Never rebuild the Arcade iframe while a game is running (live-state refreshes call renderGames). */
+  if (hqLocalView === 'arcade' && screen.querySelector('#hqArcadeFrame')) {
+    ensureGamesNav();
+    addSnow();
+    ensureMusicDock();
+    return;
+  }
 
   screen.innerHTML = gamesPage();
 
@@ -1633,6 +1659,11 @@ I
       top: 0,
       behavior: 'instant'
     });
+  }
+
+  /* Arcade: bring the games up under the banner so they fill the phone screen. */
+  if (hqLocalView === 'arcade') {
+    requestAnimationFrame(() => document.querySelector('.hq-arcade')?.scrollIntoView({block:'start',behavior:'instant'}));
   }
 }
 
@@ -2193,7 +2224,7 @@ renderFestiveAfter();
       event.stopImmediatePropagation();
       const type = gameCard.dataset.hqGame;
 
-      if (type === 'bingo' || type === 'memory') {
+      if (type === 'bingo' || type === 'memory' || type === 'arcade') {
         hqLocalView = type;
         renderGames(false);
         return;
