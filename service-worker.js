@@ -1,9 +1,9 @@
-const CACHE = 'christmas-hq-pwa-v95';
+const CACHE = 'christmas-hq-pwa-v96';
 const CACHE_PREFIX = 'christmas-hq-pwa-';
 
 const CORE = [
   './', './index.html', './snowflake-icons.css?v=1', './hq-family-data.js?v=1', './family-cloud.js?v=10',
-  './christmas-upgrades.js?v=10', './pin-lock.js?v=5', './lock-village.jpg',
+  './christmas-upgrades.js?v=11', './pin-lock.js?v=5', './lock-village.jpg',
   './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'
 ];
 

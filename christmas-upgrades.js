@@ -1102,32 +1102,6 @@ document.addEventListener('click', event => {
   `;
 }
 
-  function hqQuickAddBox(person) {
-    return `
-      <div class="card hq-quick-add" style="padding:12px 14px;margin-bottom:12px">
-        <div style="display:flex;gap:8px;align-items:stretch">
-          <input
-            class="field"
-            id="hqQuickAddInput"
-            type="text"
-            enterkeyhint="done"
-            autocomplete="off"
-            maxlength="100"
-            placeholder="Quick add a gift for ${esc(person)} — type and press Enter"
-            aria-label="Quick add a gift for ${esc(person)}"
-            style="flex:1 1 auto;min-width:0;margin:0">
-          <button
-            type="button"
-            class="btn small"
-            data-hq-quick-add
-            style="flex:0 0 auto;white-space:nowrap">
-            + Add
-          </button>
-        </div>
-      </div>
-    `;
-  }
-
   function hqAddGiftForm(person = '') {
     return `
       <form class="card form" data-form="gift">
@@ -1274,8 +1248,6 @@ document.addEventListener('click', event => {
           `<span class="pill green">${personGifts.length} gifts</span>`
         )}
 
-        ${hqQuickAddBox(person)}
-
         ${hqAddGiftForm(person)}
 
         <div class="list">
@@ -1330,7 +1302,12 @@ document.addEventListener('click', event => {
                     gift => gift.bought
                   ).length;
 
+                  const open =
+                    ui.hqQuickCard === person.name.toLowerCase();
+
                   return `
+                    <div class="hq-pc-wrap">
+                    <div class="hq-pc-top">
                     <button
                       type="button"
                       class="family-card"
@@ -1366,6 +1343,34 @@ document.addEventListener('click', event => {
                         </span>
                       </div>
                     </button>
+                    <button
+                      type="button"
+                      class="hq-pc-plus ${open ? 'is-open' : ''}"
+                      data-hq-card-plus="${esc(person.name)}"
+                      aria-expanded="${open ? 'true' : 'false'}"
+                      aria-label="Quick add gift for ${esc(person.name)}">+</button>
+                    </div>
+                    ${
+                      open
+                        ? `<div class="hq-pc-quick">
+                            <input
+                              class="hq-pc-input"
+                              type="text"
+                              maxlength="100"
+                              autocomplete="off"
+                              enterkeyhint="done"
+                              data-hq-card-input="${esc(person.name)}"
+                              placeholder="Add a gift…"
+                              aria-label="Quick add gift for ${esc(person.name)}">
+                            <button
+                              type="button"
+                              class="hq-pc-go"
+                              data-hq-card-go
+                              aria-label="Save gift for ${esc(person.name)}">✓</button>
+                          </div>`
+                        : ''
+                    }
+                    </div>
                   `;
                 }).join('')}
               </div>
@@ -1459,25 +1464,80 @@ document.addEventListener('click', event => {
     notice(text);
   });
 
-  /* Quick add: type a gift name, press Enter (or tap + Add) to save it
-     for the person whose list is open. */
-  let hqQuickLast = { name: '', at: 0 };
+  /* Quick add from a person card on the gifts overview: the small +
+     opens a one-line input under the card; Enter or ✓ saves a gift. */
+  ui.hqQuickCard = ui.hqQuickCard || '';
+  let hqCardLast = { key: '', at: 0 };
 
-  function hqQuickAdd() {
-    const person = ui.hqGiftPerson;
-    const input = document.getElementById('hqQuickAddInput');
-    if (!person || !input) return;
+  if (!document.getElementById('hqCardQuickStyle')) {
+    const css = document.createElement('style');
+    css.id = 'hqCardQuickStyle';
+    css.textContent = `
+      .hq-pc-wrap{margin-bottom:12px}
+      .hq-pc-wrap .family-card{margin-bottom:0}
+      .hq-pc-top{position:relative}
+      .hq-pc-top .item-info{margin-right:40px;min-width:0}
+      .hq-pc-plus{
+        position:absolute;top:50%;right:46px;transform:translateY(-50%);
+        width:32px;height:32px;padding:0;border-radius:50%;
+        border:1.5px solid #c4984d;background:#fffaf0;color:#154f3d;
+        font:800 20px/1 Georgia,serif;display:flex;align-items:center;
+        justify-content:center;cursor:pointer;box-shadow:none;
+        -webkit-tap-highlight-color:transparent;
+      }
+      .hq-pc-plus.is-open{background:#eaf3e8;border-color:#2c7554;color:#2c7554}
+      .hq-pc-quick{
+        display:flex;gap:8px;align-items:center;margin:6px 0 0;
+        padding:8px 10px;background:#fffdf6;border:1px solid #e4d3a6;
+        border-radius:16px;
+      }
+      .hq-pc-input{
+        flex:1 1 auto;min-width:0;margin:0;height:38px;padding:0 12px;
+        border:1.5px solid #e1c98e;border-radius:12px;background:#fff;
+        font-size:16px;color:#25372e;box-sizing:border-box;
+      }
+      .hq-pc-input:focus{outline:none;border-color:#2c7554}
+      .hq-pc-go{
+        flex:0 0 auto;width:38px;height:38px;padding:0;border-radius:50%;
+        border:0;background:#195342;color:#fff;font:800 17px/1 system-ui,sans-serif;
+        display:flex;align-items:center;justify-content:center;cursor:pointer;
+      }
+    `;
+    document.head.appendChild(css);
+  }
 
+  function hqFocusCardInput() {
+    const input = screen.querySelector('[data-hq-card-input]');
+    if (!input) return;
+    input.focus({ preventScroll: true });
+    const reveal = () => {
+      try {
+        input.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      } catch (_) {
+        input.scrollIntoView();
+      }
+    };
+    reveal();
+    setTimeout(reveal, 320);
+  }
+
+  function hqCardAdd() {
+    const input = screen.querySelector('[data-hq-card-input]');
+    if (!input) return;
+
+    const person = input.dataset.hqCardInput;
     const name = input.value.trim().slice(0, 100);
-    if (!name) {
+
+    if (!person || !name) {
       input.value = '';
-      input.focus();
+      input.focus({ preventScroll: true });
       return;
     }
 
+    const key = person.toLowerCase() + '|' + name.toLowerCase();
     const now = Date.now();
-    if (hqQuickLast.name === name && now - hqQuickLast.at < 400) return;
-    hqQuickLast = { name, at: now };
+    if (hqCardLast.key === key && now - hqCardLast.at < 400) return;
+    hqCardLast = { key, at: now };
 
     const member = state.family.find(
       m => m.name.toLowerCase() === person.toLowerCase()
@@ -1492,11 +1552,14 @@ document.addEventListener('click', event => {
       bought: false
     });
 
-    ui.hqGiftJustAdded = { person, text: `Added ${name} ✓` };
+    ui.hqQuickCard = person.toLowerCase();
     persist(`Added ${name} ✓`);
 
-    const next = document.getElementById('hqQuickAddInput');
-    if (next) next.focus();
+    const next = screen.querySelector('[data-hq-card-input]');
+    if (next) {
+      next.focus({ preventScroll: true });
+      next.scrollIntoView({ block: 'nearest' });
+    }
   }
 
   document.addEventListener('keydown', event => {
@@ -1504,27 +1567,44 @@ document.addEventListener('click', event => {
       event.key === 'Enter' &&
       !event.isComposing &&
       event.target &&
-      event.target.id === 'hqQuickAddInput'
+      event.target.matches &&
+      event.target.matches('[data-hq-card-input]')
     ) {
       event.preventDefault();
-      hqQuickAdd();
+      hqCardAdd();
     }
   });
 
-  /* keep the keyboard open when tapping + Add */
+  /* keep the keyboard open when tapping the ✓ */
   document.addEventListener('mousedown', event => {
-    if (event.target.closest('[data-hq-quick-add]')) event.preventDefault();
+    if (event.target.closest('[data-hq-card-go]')) event.preventDefault();
   });
-  document.addEventListener('touchstart', event => {
-    if (event.target.closest('[data-hq-quick-add]')) event.preventDefault();
-  }, { passive: false });
 
   document.addEventListener('click', event => {
-    if (event.target.closest('[data-hq-quick-add]')) {
-      hqQuickAdd();
+    const plus = event.target.closest('[data-hq-card-plus]');
+
+    if (plus) {
+      const key = String(plus.dataset.hqCardPlus || '').toLowerCase();
+      ui.hqQuickCard = ui.hqQuickCard === key ? '' : key;
+      render(false);
+      if (ui.hqQuickCard) hqFocusCardInput();
+      return;
+    }
+
+    if (event.target.closest('[data-hq-card-go]')) {
+      hqCardAdd();
+      return;
+    }
+
+    if (ui.hqQuickCard && !event.target.closest('.hq-pc-quick')) {
+      ui.hqQuickCard = '';
+      document.querySelectorAll('.hq-pc-quick').forEach(el => el.remove());
+      document.querySelectorAll('.hq-pc-plus.is-open').forEach(el => {
+        el.classList.remove('is-open');
+        el.setAttribute('aria-expanded', 'false');
+      });
     }
   });
-
   document.addEventListener('click', event => {
     if (
       event.target.closest('[data-action="idea"]') &&
