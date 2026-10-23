@@ -983,6 +983,7 @@ document.addEventListener('click', event => {
   const previousGiftsScreen = gifts;
 
   ui.hqGiftPerson = ui.hqGiftPerson || '';
+  ui.hqGiftJustAdded = ui.hqGiftJustAdded || null;
 
   function hqGiftRecipient(gift) {
     if (gift.recipientId) {
@@ -1108,8 +1109,16 @@ document.addEventListener('click', event => {
         ${
           person
             ? `
+              ${
+                ui.hqGiftJustAdded &&
+                ui.hqGiftJustAdded.person.toLowerCase() === person.toLowerCase()
+                  ? `<div class="callout hq-gift-added" role="status" style="background:#eaf3e8;color:#154f3d;font-weight:800">${esc(ui.hqGiftJustAdded.text)}</div>`
+                  : ''
+              }
+
               <div class="callout">
                 Adding a gift for <b>${esc(person)}</b>
+                &mdash; keep adding, then tap Done.
               </div>
 
               <input
@@ -1172,8 +1181,14 @@ document.addEventListener('click', event => {
         </div>
 
         <button type="submit" class="btn full">
-          + Save gift
+          ${person ? `+ Save gift &amp; add another for ${esc(person)}` : '+ Save gift'}
         </button>
+
+        ${
+          person
+            ? `<button type="button" class="btn alt full" data-hq-gifts-back style="margin-top:10px">✓ Done</button>`
+            : ''
+        }
       </form>
     `;
   }
@@ -1364,6 +1379,12 @@ document.addEventListener('click', event => {
     const personButton =
       event.target.closest('[data-hq-gift-person]');
 
+    if (event.target.closest(
+      '[data-hq-gift-person],[data-hq-gifts-back],[data-nav],[data-action="sub"],[data-action="shortcut"],[data-action="back"]'
+    )) {
+      ui.hqGiftJustAdded = null;
+    }
+
     if (personButton) {
       ui.hqGiftPerson =
         personButton.dataset.hqGiftPerson || '';
@@ -1378,6 +1399,44 @@ document.addEventListener('click', event => {
     if (backButton) {
       ui.hqGiftPerson = '';
       render(true);
+    }
+  });
+
+  /* Keep adding gifts for the same person: after a save, stay on that
+     person's list with the form cleared and ready for the next gift. */
+  let hqGiftsBefore = 0;
+
+  document.addEventListener('submit', event => {
+    const form = event.target;
+    if (!form || !form.dataset || form.dataset.form !== 'gift') return;
+    hqGiftsBefore = state.gifts.length;
+  }, true);
+
+  document.addEventListener('submit', event => {
+    const form = event.target;
+    if (!form || !form.dataset || form.dataset.form !== 'gift') return;
+    if (state.gifts.length <= hqGiftsBefore) return;
+
+    const saved = state.gifts[0];
+    const person = hqGiftRecipient(saved);
+    const text = `Added ${saved.name} for ${person} ✓`;
+
+    ui.hqGiftPerson = person;
+    ui.hqGiftJustAdded = { person, text };
+    render(false);
+
+    const next = screen.querySelector('form[data-form="gift"] [name="name"]');
+    if (next) next.focus();
+
+    notice(text);
+  });
+
+  document.addEventListener('click', event => {
+    if (
+      event.target.closest('[data-action="idea"]') &&
+      ui.hqGiftPerson
+    ) {
+      notice(`Gift idea ready for ${ui.hqGiftPerson} — tap Save.`);
     }
   });
 })();
