@@ -994,6 +994,134 @@ document.addEventListener('click', event => {
     return String(gift.recipient || 'Unassigned').trim() || 'Unassigned';
   }
 
+  /* Per-person budgets live in their own key so the main data shape is untouched. */
+  const HQ_BUDGET_KEY = 'christmas-hq-gift-budgets-v1';
+
+  function hqBudgets() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(HQ_BUDGET_KEY) || '{}');
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+        ? parsed
+        : {};
+    } catch (_) {
+      return {};
+    }
+  }
+
+  function hqBudgetFor(person) {
+    const value = Number(hqBudgets()[String(person || '').toLowerCase()]);
+    return Number.isFinite(value) && value > 0 ? value : 0;
+  }
+
+  function hqSaveBudget(person, amount) {
+    try {
+      const all = hqBudgets();
+      const key = String(person || '').toLowerCase();
+      if (amount > 0) all[key] = Math.round(amount * 100) / 100;
+      else delete all[key];
+      localStorage.setItem(HQ_BUDGET_KEY, JSON.stringify(all));
+      return true;
+    } catch (_) {
+      notice('This phone could not save the budget.');
+      return false;
+    }
+  }
+
+  function hqPlanned(list) {
+    return list.reduce((sum, gift) => sum + Number(gift.price || 0), 0);
+  }
+
+  function hqBudgetState(planned, budget) {
+    const ratio = budget > 0 ? planned / budget : 0;
+    return {
+      pct: Math.max(0, Math.min(100, Math.round(ratio * 100))),
+      tone: ratio > 1 ? 'over' : ratio >= 0.9 ? 'warn' : 'ok',
+      over: Math.max(0, planned - budget)
+    };
+  }
+
+  function hqBudgetBar(planned, budget, compact) {
+    if (!(budget > 0)) return '';
+    const st = hqBudgetState(planned, budget);
+    const label = st.tone === 'over'
+      ? `Over budget by ${currency(st.over)}`
+      : `${currency(planned)} of ${currency(budget)}`;
+    return `
+      <div class="hq-budget-bar ${compact ? 'compact' : ''} tone-${st.tone}">
+        <div
+          class="hq-budget-track"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="${st.pct}"
+          aria-label="Budget used">
+          <span style="width:${st.pct}%"></span>
+        </div>
+        <small>${esc(label)}</small>
+      </div>
+    `;
+  }
+
+  function hqBudgetPanel(person, personGifts) {
+    const budget = hqBudgetFor(person);
+    const planned = hqPlanned(personGifts);
+    const editing =
+      ui.hqBudgetEdit &&
+      ui.hqBudgetEdit === String(person).toLowerCase();
+
+    return `
+      <div class="hq-budget-panel">
+        ${
+          budget > 0
+            ? `
+              <div class="hq-budget-head">
+                <span>💰 Budget <b>${currency(budget)}</b></span>
+                <button
+                  type="button"
+                  class="hq-budget-btn"
+                  data-hq-budget-edit>
+                  ${editing ? 'Close' : 'Change'}
+                </button>
+              </div>
+              ${hqBudgetBar(planned, budget, false)}
+            `
+            : `
+              <button
+                type="button"
+                class="hq-budget-btn set"
+                data-hq-budget-edit>
+                ${editing ? 'Close' : '＋ Set budget'}
+              </button>
+            `
+        }
+        ${
+          editing
+            ? `
+              <form class="hq-budget-form" data-hq-budget-form>
+                <input
+                  class="field"
+                  name="budget"
+                  type="number"
+                  inputmode="decimal"
+                  min="0"
+                  step="1"
+                  placeholder="Budget for ${esc(person)} (AUD)"
+                  aria-label="Budget for ${esc(person)}"
+                  value="${budget > 0 ? esc(String(budget)) : ''}">
+                <button type="submit" class="btn small">Save</button>
+                ${
+                  budget > 0
+                    ? '<button type="button" class="btn small alt" data-hq-budget-clear>Clear</button>'
+                    : ''
+                }
+              </form>
+            `
+            : ''
+        }
+      </div>
+    `;
+  }
+
   function hqGiftItem(gift) {
   const hasLink =
     /^https?:\/\//i.test(
@@ -1010,6 +1138,7 @@ document.addEventListener('click', event => {
             type="checkbox"
             data-action="giftToggle"
             data-id="${esc(gift.id)}"
+            aria-label="Mark ${esc(gift.name)} as bought"
             ${gift.bought ? 'checked' : ''}>
 
           <span>
@@ -1036,6 +1165,11 @@ document.addEventListener('click', event => {
         <span class="hq-gift-details">
           <strong>${esc(gift.name)}</strong>
           <small>${currency(gift.price)}</small>
+          ${
+            gift.note
+              ? `<em class="hq-gift-note">📌 ${esc(gift.note)}</em>`
+              : ''
+          }
         </span>
 
         <span class="hq-gift-arrow">›</span>
@@ -1158,6 +1292,15 @@ document.addEventListener('click', event => {
             maxlength="100">
         </label>
 
+        <label>
+          Note (optional)
+          <input
+            class="field"
+            name="note"
+            maxlength="140"
+            placeholder="Where bought, size, where it's hidden…">
+        </label>
+
         <div class="two">
           <label>
             Budget (AUD)
@@ -1248,6 +1391,8 @@ document.addEventListener('click', event => {
           `<span class="pill green">${personGifts.length} gifts</span>`
         )}
 
+        ${hqBudgetPanel(person, personGifts)}
+
         ${hqAddGiftForm(person)}
 
         <div class="list">
@@ -1331,6 +1476,7 @@ document.addEventListener('click', event => {
                             ${bought} bought ·
                             ${currency(total)}
                           </div>
+                          ${hqBudgetBar(total, hqBudgetFor(person.name), true)}
                         </div>
 
                         <span
@@ -1416,6 +1562,7 @@ document.addEventListener('click', event => {
       '[data-hq-gift-person],[data-hq-gifts-back],[data-nav],[data-action="sub"],[data-action="shortcut"],[data-action="back"]'
     )) {
       ui.hqGiftJustAdded = null;
+      ui.hqBudgetEdit = '';
     }
 
     if (personButton) {
@@ -1438,11 +1585,19 @@ document.addEventListener('click', event => {
   /* Keep adding gifts for the same person: after a save, stay on that
      person's list with the form cleared and ready for the next gift. */
   let hqGiftsBefore = 0;
+  let hqPendingNote = '';
 
   document.addEventListener('submit', event => {
     const form = event.target;
     if (!form || !form.dataset || form.dataset.form !== 'gift') return;
     hqGiftsBefore = state.gifts.length;
+
+    try {
+      const field = form.querySelector('[name="note"]');
+      hqPendingNote = field ? String(field.value || '').trim().slice(0, 140) : '';
+    } catch (_) {
+      hqPendingNote = '';
+    }
   }, true);
 
   document.addEventListener('submit', event => {
@@ -1456,7 +1611,14 @@ document.addEventListener('click', event => {
 
     ui.hqGiftPerson = person;
     ui.hqGiftJustAdded = { person, text };
-    render(false);
+
+    if (hqPendingNote) {
+      saved.note = hqPendingNote;
+      hqPendingNote = '';
+      persist();
+    } else {
+      render(false);
+    }
 
     const next = screen.querySelector('form[data-form="gift"] [name="name"]');
     if (next) next.focus();
@@ -1613,6 +1775,57 @@ document.addEventListener('click', event => {
       notice(`Gift idea ready for ${ui.hqGiftPerson} — tap Save.`);
     }
   });
+
+  /* Tick a gift as bought straight from the list: small confirmation. */
+  document.addEventListener('change', event => {
+    const box = event.target;
+    if (
+      !box ||
+      !box.matches ||
+      !box.matches('input[data-action="giftToggle"]') ||
+      !ui.hqGiftPerson
+    ) return;
+
+    const gift = state.gifts.find(item => item.id === box.dataset.id);
+    if (gift) {
+      notice(gift.bought ? `${gift.name} bought ✓` : `${gift.name} back on the shopping list`);
+    }
+  });
+
+  /* Per-person budget controls. */
+  document.addEventListener('click', event => {
+    if (event.target.closest('[data-hq-budget-edit]')) {
+      const key = String(ui.hqGiftPerson || '').toLowerCase();
+      ui.hqBudgetEdit = ui.hqBudgetEdit === key ? '' : key;
+      render(false);
+
+      const field = screen.querySelector('.hq-budget-form [name="budget"]');
+      if (field) field.focus({ preventScroll: true });
+      return;
+    }
+
+    if (event.target.closest('[data-hq-budget-clear]')) {
+      if (hqSaveBudget(ui.hqGiftPerson, 0)) {
+        ui.hqBudgetEdit = '';
+        render(false);
+        notice('Budget cleared');
+      }
+    }
+  });
+
+  document.addEventListener('submit', event => {
+    const form = event.target;
+    if (!form || !form.matches || !form.matches('[data-hq-budget-form]')) return;
+
+    event.preventDefault();
+
+    const amount = Math.max(0, Number(new FormData(form).get('budget')) || 0);
+    if (hqSaveBudget(ui.hqGiftPerson, amount)) {
+      ui.hqBudgetEdit = '';
+      render(false);
+      notice(amount > 0 ? `Budget set to ${currency(amount)}` : 'Budget cleared');
+    }
+  });
 })();
 /* Christmas HQ — ADVANCED GIFT EDITOR */
 (() => {
@@ -1708,6 +1921,16 @@ document.addEventListener('click', event => {
             maxlength="120"
             required
             value="${esc(gift.name || '')}">
+        </label>
+
+        <label>
+          📌 Note (where bought, size, where hidden)
+          <input
+            class="field"
+            name="note"
+            maxlength="140"
+            placeholder="Optional short note"
+            value="${esc(gift.note || '')}">
         </label>
 
         <div class="two">
@@ -1895,6 +2118,12 @@ document.addEventListener('click', event => {
           0,
           Number(data.price) || 0
         );
+
+      {
+        const note = String(data.note || '').trim().slice(0, 140);
+        if (note) gift.note = note;
+        else delete gift.note;
+      }
 
       gift.bought =
         data.bought === 'true';
@@ -2293,6 +2522,139 @@ document.addEventListener('click', event => {
         grid-template-columns:repeat(2,minmax(0,1fr));
       }
     }
+
+    /* round tick to mark a gift bought */
+    .hq-gift-bought{
+      min-height:40px;
+      padding-right:10px;
+      cursor:pointer;
+    }
+    .hq-gift-bought input{
+      -webkit-appearance:none;
+      appearance:none;
+      width:30px;
+      height:30px;
+      min-width:30px;
+      margin:0;
+      border-radius:50%;
+      border:2px solid #c4984d;
+      background:#fffaf0;
+      display:grid;
+      place-items:center;
+      cursor:pointer;
+    }
+    #screen .hq-gift-bought input[type="checkbox"]{
+      background:#fffaf0 !important;
+      border:2px solid #c4984d !important;
+      border-radius:50% !important;
+    }
+    #screen .hq-gift-bought input[type="checkbox"]:checked{
+      background:#2c7554 !important;
+      border-color:#2c7554 !important;
+    }
+    .hq-gift-bought input[type="checkbox"]:checked::after{
+      content:"✓";
+      color:#fff;
+      font:900 17px/1 system-ui,sans-serif;
+    }
+    .hq-person-gift-card.bought .hq-gift-details strong{
+      text-decoration:line-through;
+      text-decoration-color:#9bb8a6;
+      color:#5d7568;
+    }
+
+    .hq-gift-note{
+      display:block;
+      margin-top:4px;
+      color:#735f3a;
+      font-size:12px;
+      font-style:normal;
+      font-weight:700;
+      line-height:1.4;
+      overflow-wrap:anywhere;
+    }
+
+    /* budgets */
+    .hq-budget-panel{
+      margin:2px 0 14px;
+      padding:10px 12px;
+      border:1px solid #e4d3a6;
+      border-radius:16px;
+      background:#fffdf6;
+    }
+    .hq-budget-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      font-size:13px;
+      font-weight:800;
+      color:#154f3d;
+    }
+    .hq-budget-btn{
+      border:1.5px solid #c4984d;
+      border-radius:999px;
+      background:#fffaf0;
+      color:#154f3d;
+      font-size:12px;
+      font-weight:900;
+      padding:6px 12px;
+      min-height:32px;
+    }
+    .hq-budget-btn.set{
+      width:100%;
+      border-style:dashed;
+    }
+    .hq-budget-form{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      margin-top:10px;
+    }
+    .hq-budget-form .field{
+      flex:1 1 auto;
+      min-width:0;
+      margin:0;
+      height:40px;
+      font-size:16px;
+    }
+    .hq-budget-form .btn{
+      flex:0 0 auto;
+      white-space:nowrap;
+    }
+    .hq-budget-bar{
+      margin-top:8px;
+    }
+    .hq-budget-bar.compact{
+      margin-top:6px;
+    }
+    .hq-budget-track{
+      height:8px;
+      border-radius:999px;
+      background:#ece8d8;
+      overflow:hidden;
+    }
+    .hq-budget-bar.compact .hq-budget-track{
+      height:6px;
+    }
+    .hq-budget-track span{
+      display:block;
+      height:100%;
+      border-radius:999px;
+      background:#2c7554;
+      transition:width .3s ease;
+    }
+    .hq-budget-bar.tone-warn .hq-budget-track span{background:#d89a1d}
+    .hq-budget-bar.tone-over .hq-budget-track span{background:#ba3446}
+    .hq-budget-bar small{
+      display:block;
+      margin-top:4px;
+      font-size:11px;
+      font-weight:800;
+      color:#6c776e;
+    }
+    .hq-budget-bar.tone-warn small{color:#9a6a0b}
+    .hq-budget-bar.tone-over small{color:#ba3446}
   `;
 
   document.head.appendChild(style);

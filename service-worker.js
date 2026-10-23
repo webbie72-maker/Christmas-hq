@@ -1,15 +1,15 @@
-const CACHE = 'christmas-hq-pwa-v96';
+const CACHE = 'christmas-hq-pwa-v97';
 const CACHE_PREFIX = 'christmas-hq-pwa-';
 
 const CORE = [
   './', './index.html', './snowflake-icons.css?v=1', './hq-family-data.js?v=1', './family-cloud.js?v=10',
-  './christmas-upgrades.js?v=11', './pin-lock.js?v=5', './lock-village.jpg',
+  './christmas-upgrades.js?v=12', './pin-lock.js?v=5', './lock-village.jpg',
   './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'
 ];
 
 // Preload the remaining local features without letting one missing file block installation.
 const FEATURES = [
-  './hq-offline-music.js?v=1',
+  './hq-offline-music.js?v=1', './gift-extras.js?v=1',
   './elf-on-the-shelf.js?v=2', './elf-setup-pictures.webp',
   './gift-photo-personal.webp', './gift-photo-under-50.webp', './gift-photo-kids.webp', './gift-photo-experience.webp', './gift-photo-foodie.webp', './gift-photo-tech.webp', './gift-photo-fitness.webp', './gift-photo-home.webp', './gift-photo-practical.webp', './gift-photo-outdoors.webp',
   './hq-built-in-music.js?v=1', './hq-admin-stats.js?v=4', './hq-admin-alert.js?v=1', './gift-match.js?v=1', './brownie-desserts.js?v=1', './terms.html', './account-deletion.js?v=1', './delete-account.html', './privacy.html',
