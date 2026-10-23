@@ -242,14 +242,26 @@
       counts[t.category_id]=(counts[t.category_id]||0)+1;
       if(isUnread(t)) unread[t.category_id]=(unread[t.category_id]||0)+1;
     });
-    return '<div class="hq-chat-list">'+chat.categories.map(c=>
+    const withTopics=chat.categories.filter(c=>counts[c.id]);
+    let shownCats=chat.categories, folderToggle='';
+    try{
+      if(chat.categories.length>3 && !chat.showAllFolders){
+        shownCats=withTopics.length?withTopics:chat.categories.slice(0,3);
+      }
+      if(chat.categories.length>3 && shownCats.length<chat.categories.length){
+        folderToggle='<button type="button" class="btn alt full" data-hq-chat-more-folders>More folders ('+(chat.categories.length-shownCats.length)+')</button>';
+      }else if(chat.categories.length>3 && chat.showAllFolders){
+        folderToggle='<button type="button" class="btn alt full" data-hq-chat-more-folders>Fewer folders</button>';
+      }
+    }catch(e){shownCats=chat.categories;}
+    return '<div class="hq-chat-list">'+shownCats.map(c=>
       '<button class="hq-chat-card" data-hq-chat-category="'+x(c.id)+'">'+
         '<span class="hq-chat-icon">'+(chat.mode==='family'?'🔒':c.is_system?'🎄':'💬')+'</span>'+
         '<span class="hq-chat-copy"><strong>'+x(c.name)+(unread[c.id]?'<span class="hq-chat-new">'+unread[c.id]+' NEW</span>':'')+'</strong><small>'+x(c.description||'Christmas discussion')+'</small><em>'+
         (counts[c.id]||0)+' '+((counts[c.id]||0)===1?'topic':'topics')+'</em></span>'+
         '<span class="hq-chat-chevron">›</span>'+
       '</button>'
-    ).join('')+'</div>';
+    ).join('')+'</div>'+folderToggle;
   }
 
   function hub(){
@@ -387,13 +399,13 @@
     const people=Object.keys(seen).filter(id=>!prefs.hidden[id]).slice(0,12);
     const hidden=Object.keys(prefs.hidden);
     const rows=people.map(id=>memberRow(seen[id],'Posts in Community',
-      '<button type="button" class="btn small warn" data-hq-chat-hide-user="'+x(id)+'" data-name="'+x(seen[id])+'" aria-label="Remove '+x(seen[id])+' from my Community Chat">✕ Remove</button>')).join('');
-    const hiddenRows=hidden.map(id=>memberRow(prefs.hidden[id]||'Christmas HQ member','Removed from your chat',
+      '<button type="button" class="btn small warn" data-hq-chat-hide-user="'+x(id)+'" data-name="'+x(seen[id])+'" aria-label="Block '+x(seen[id])+' in my Community Chat">🚫 Block</button>')).join('');
+    const hiddenRows=hidden.map(id=>memberRow(prefs.hidden[id]||'Christmas HQ member','Blocked on this phone',
       '<button type="button" class="btn small alt" data-hq-chat-unhide-user="'+x(id)+'" aria-label="Show '+x(prefs.hidden[id]||'this person')+' again">↺ Show again</button>')).join('');
     return '<details class="hq-chat-members" data-hq-chat-panel="community"'+(chat.panelOpen.community?' open':'')+'><summary>👥 Community people <span class="pill">'+people.length+'</span></summary>'+
       (rows?'<ul class="hq-chat-member-list">'+rows+'</ul>':'<p class="hq-chat-members-note">No other people have posted in the folders loaded here yet.</p>')+
       (hiddenRows?'<div class="hq-chat-members-sub">Removed from your chat</div><ul class="hq-chat-member-list">'+hiddenRows+'</ul>':'')+
-      '<p class="hq-chat-members-note">Community Chat is open to every Christmas HQ user, so nobody can be kicked out of it. “Remove” hides that person’s topics and replies on this phone. Use ⚑ Report on a post for anything that breaks the rules.</p>'+
+      '<p class="hq-chat-members-note">Community Chat is open to every Christmas HQ user, so nobody can be kicked out of it. “Block” hides that person’s topics and replies on this phone. Use ⚑ Report on a post for anything that breaks the rules.</p>'+
       '<button type="button" class="btn small warn" data-hq-chat-leave="community" aria-label="Leave Community Chat on this phone">🚪 Leave Community Chat</button>'+
     '</details>';
   }
@@ -481,6 +493,7 @@
         '<div class="hq-chat-actions">'+
           (mine?'<button class="btn small alt" data-hq-chat-edit-thread="'+x(t.id)+'">✎ Edit</button><button class="btn small warn" data-hq-chat-delete-thread="'+x(t.id)+'">🗑 Delete</button>':'')+
           (!mine && chat.mode==='community'?'<button class="btn small alt" data-hq-chat-report-thread="'+x(t.id)+'">⚑ Report</button>':'')+
+          (!mine && chat.mode==='community' && t.created_by?'<button class="btn small warn" data-hq-chat-hide-user="'+x(t.created_by)+'" data-name="'+x(t.author_name||'this person')+'">🚫 Block</button>':'')+
         '</div>'+
       '</article>'+
       '<div class="section-line"><h2>Replies</h2><span class="pill">'+shownMessages().length+'</span></div>'+
@@ -492,7 +505,7 @@
           '<p>'+(m.is_deleted?'<em>Message removed</em>':x(m.body).replace(/\n/g,'<br>'))+'</p>'+
           (!m.is_deleted?'<div class="hq-chat-actions">'+
             (myReply?'<button class="hq-chat-text-btn" data-hq-chat-edit-message="'+x(m.id)+'">Edit</button><button class="hq-chat-text-btn danger" data-hq-chat-delete-message="'+x(m.id)+'">Delete</button>':'')+
-            (!myReply && chat.mode==='community'?'<button class="hq-chat-text-btn" data-hq-chat-report-message="'+x(m.id)+'">Report</button>':'')+
+            (!myReply && chat.mode==='community'?'<button class="hq-chat-text-btn" data-hq-chat-report-message="'+x(m.id)+'">Report</button>'+(m.created_by?'<button class="hq-chat-text-btn danger" data-hq-chat-hide-user="'+x(m.created_by)+'" data-name="'+x(m.author_name||'this person')+'">Block</button>':''):'')+
           '</div>':'')+
           '</div></div>';
       }).join('') : '<div class="empty"><div class="big">💬</div><b>No replies yet</b><p>Be the first to reply.</p></div>')+'</div>'+
@@ -674,12 +687,15 @@
       return;
     }
 
+    if(e.target.closest('[data-hq-chat-more-folders]')){e.preventDefault();chat.showAllFolders=!chat.showAllFolders;draw();return;}
     const hideUser=e.target.closest('[data-hq-chat-hide-user]');
     if(hideUser){
       e.preventDefault();
       const name=hideUser.dataset.name||'this person';
-      if(confirm('Remove '+name+' from your Community Chat?\n\nTheir topics and replies will be hidden on this phone. Community Chat is open to everyone, so this doesn’t delete their account or posts for other people.')){
-        prefs.hidden[hideUser.dataset.hqChatHideUser]=name;savePrefs();draw();notice(name+' removed from your chat');
+      if(confirm('Block '+name+' in your Community Chat?\n\nTheir topics and replies will be hidden on this phone. Community Chat is open to everyone, so this doesn’t delete their account or posts for other people. Use Report to tell us about rule-breaking.')){
+        prefs.hidden[hideUser.dataset.hqChatHideUser]=name;savePrefs();
+        if(chat.currentThread&&chat.currentThread.created_by===hideUser.dataset.hqChatHideUser){chat.threadId='';chat.currentThread=null;chat.messages=[];}
+        draw();notice(name+' blocked on this phone');
       }
       return;
     }

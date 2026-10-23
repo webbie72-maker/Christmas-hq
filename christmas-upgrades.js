@@ -632,12 +632,12 @@ function familyMusicReady() {
         <h3>🎵 My Christmas music</h3>
         <p class="muted-note">
           ${songLibraryLocked
-            ? 'The song library stays locked until a real payment is connected.'
+            ? 'Adding your own songs is coming soon. The built-in Christmas songs are ready to play.'
             : 'Add your own Christmas song from your phone, or paste a Suno, YouTube, Spotify or other music link.'}
         </p>
       </div>
 
-      ${songLibraryLocked ? `<div class="card"><h3>Add my song</h3><p class="muted-note">The song library stays locked until a real payment is connected.</p></div>` : `<form class="card form" id="christmasSongForm">
+      ${songLibraryLocked ? `` : `<form class="card form" id="christmasSongForm">
         <h3>Add my song</h3>
 
         <label>
@@ -812,7 +812,7 @@ function familyMusicReady() {
 
     event.preventDefault();
     if (!window.hqFamily || !window.hqFamily()) {
-      notice('The song library stays locked until a real payment is connected.');
+      notice('Adding your own songs is coming soon.');
       return;
     }
 
@@ -1303,7 +1303,7 @@ document.addEventListener('click', event => {
 
         <div class="two">
           <label>
-            Budget (AUD)
+            Price (AUD)
             <input
               class="field"
               name="price"
@@ -1395,10 +1395,30 @@ document.addEventListener('click', event => {
 
         ${hqAddGiftForm(person)}
 
+        ${
+          personGifts.length > 1
+            ? `<div class="hq-left-filter">
+                <button type="button"
+                  class="hq-left-chip ${ui.hqLeftOnly ? 'on' : ''}"
+                  data-hq-left-only
+                  aria-pressed="${ui.hqLeftOnly ? 'true' : 'false'}">
+                  ${ui.hqLeftOnly ? '✓ ' : ''}Show only what’s left to buy
+                </button>
+              </div>`
+            : ''
+        }
+
         <div class="list">
           ${
             personGifts.length
-              ? personGifts.map(hqGiftItem).join('')
+              ? (() => {
+                  const shown = ui.hqLeftOnly
+                    ? personGifts.filter(item => !item.bought)
+                    : personGifts;
+                  return shown.length
+                    ? shown.map(hqGiftItem).join('')
+                    : empty('🎉', 'All bought!', `Everything for ${esc(person)} is ticked off.`);
+                })()
               : empty(
                   '🎁',
                   'No gifts yet',
@@ -1426,10 +1446,9 @@ document.addEventListener('click', event => {
         people.get(key).gifts.push(gift);
       });
 
-      content += `
-        ${line('Add a gift')}
-        ${hqAddGiftForm()}
+      const addOpen = !!(ui.hqAddOpen || ui.giftRecipientPreset);
 
+      content += `
         ${line('Your gift list')}
 
         ${
@@ -1527,6 +1546,19 @@ document.addEventListener('click', event => {
                 'Add the first present or browse the gift idea library.'
               )
         }
+
+        <div class="hq-addgift">
+          <button
+            type="button"
+            class="btn full hq-addgift-toggle"
+            data-hq-addgift-toggle
+            aria-expanded="${addOpen ? 'true' : 'false'}">
+            ${addOpen ? '− Close' : '+ Add a gift'}
+          </button>
+          <div class="hq-addgift-body" ${addOpen ? '' : 'hidden'}>
+            ${hqAddGiftForm()}
+          </div>
+        </div>
 
         <div style="margin-top:14px">
           <button
@@ -1826,6 +1858,59 @@ document.addEventListener('click', event => {
       notice(amount > 0 ? `Budget set to ${currency(amount)}` : 'Budget cleared');
     }
   });
+
+  /* Collapsible "Add a gift" form on the overview + "left to buy" filter. */
+  const hqSetAddOpen = open => {
+    ui.hqAddOpen = !!open;
+    const body = document.querySelector('.hq-addgift-body');
+    const toggle = document.querySelector('[data-hq-addgift-toggle]');
+    if (body) body.hidden = !open;
+    if (toggle) {
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      toggle.textContent = open ? '− Close' : '+ Add a gift';
+    }
+    return body;
+  };
+
+  document.addEventListener('click', event => {
+    try {
+      const target = event.target;
+      if (!target || !target.closest) return;
+
+      if (target.closest('[data-hq-addgift-toggle]')) {
+        const body = hqSetAddOpen(!ui.hqAddOpen);
+        if (ui.hqAddOpen && body) {
+          const field = body.querySelector('[name="recipient"]');
+          if (field) field.focus({ preventScroll: true });
+          body.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+        return;
+      }
+
+      /* "+ List" on a gift idea fills the form, so make sure it is showing. */
+      if (target.closest('button[data-action="idea"]') && ui.tab === 'gifts') {
+        hqSetAddOpen(true);
+        const body = document.querySelector('.hq-addgift-body');
+        if (body) body.scrollIntoView({ block: 'center', behavior: 'instant' });
+        return;
+      }
+
+      if (target.closest('[data-hq-left-only]')) {
+        ui.hqLeftOnly = !ui.hqLeftOnly;
+        render(false);
+      }
+    } catch (err) {
+      try { console.warn('Christmas HQ gifts', err); } catch (_) {}
+    }
+  });
+
+  /* A saved gift or leaving the page closes the form again. */
+  document.addEventListener('submit', event => {
+    if (event.target && event.target.dataset && event.target.dataset.form === 'gift') {
+      ui.hqAddOpen = false;
+      ui.giftRecipientPreset = '';
+    }
+  }, true);
 })();
 /* Christmas HQ — ADVANCED GIFT EDITOR */
 (() => {
@@ -1935,7 +2020,7 @@ document.addEventListener('click', event => {
 
         <div class="two">
           <label>
-            Budget / price (AUD)
+            Price (AUD)
             <input
               class="field"
               name="price"
@@ -2574,6 +2659,23 @@ document.addEventListener('click', event => {
       overflow-wrap:anywhere;
     }
 
+
+    /* collapsible add-gift + left-to-buy chip */
+    .hq-addgift{margin-top:16px}
+    .hq-addgift-body{margin-top:12px}
+    .hq-addgift-body[hidden]{display:none!important}
+    .hq-left-filter{margin:0 0 12px}
+    .hq-left-chip{
+      border:2px solid #d6a638;
+      background:#fffaf0;
+      color:#154f3d;
+      border-radius:999px;
+      padding:8px 14px;
+      font-size:12px;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .hq-left-chip.on{background:#2c7554;border-color:#2c7554;color:#fff}
     /* budgets */
     .hq-budget-panel{
       margin:2px 0 14px;

@@ -216,7 +216,7 @@
           }
           var row = document.createElement('div');
           row.className = 'hq-print-row';
-          row.innerHTML = '<button type="button" class="btn alt" data-action="printGroceryList">🖨️ Print list</button>';
+          row.innerHTML = '<button type="button" class="btn alt" data-action="printGroceryList">🖨️ Print list</button><button type="button" class="btn alt" data-hq-share-list="grocery">📤 Share list</button>';
           if (anchor && anchor.parentNode) {
             if (anchor.classList && anchor.classList.contains('section-line')) {
               anchor.parentNode.insertBefore(row, anchor);
@@ -235,7 +235,7 @@
         if (!screen.querySelector('[data-action="printGiftList"]')) {
           var row2 = document.createElement('div');
           row2.className = 'hq-print-row';
-          row2.innerHTML = '<button type="button" class="btn alt" data-action="printGiftList">🖨️ Print list</button>';
+          row2.innerHTML = '<button type="button" class="btn alt" data-action="printGiftList">🖨️ Print list</button><button type="button" class="btn alt" data-hq-share-list="gifts">📤 Share list</button>';
           var giftHead = null;
           var hs = screen.querySelectorAll('.section-line h2, h3');
           for (var j = 0; j < hs.length; j++) {
@@ -308,6 +308,117 @@
   }, true);
 
   window.addEventListener('afterprint', closePrintView);
+
+  /* ---- Share list (plain text): navigator.share, else WhatsApp link + Copy ---- */
+  function listText(kind) {
+    var out = [];
+    if (kind === 'gifts') {
+      var gifts = (typeof state !== 'undefined' && Array.isArray(state.gifts)) ? state.gifts : [];
+      out.push('🎁 My Christmas gift list', '');
+      if (!gifts.length) out.push('(no gifts added yet)');
+      groupGifts(gifts).forEach(function (g) {
+        out.push(g.title);
+        g.items.forEach(function (x) {
+          var price = Number(x.price) > 0 ? ' – ' + money(x.price) : '';
+          out.push((x.bought ? '☑ ' : '☐ ') + x.name + price + (x.bought ? ' (bought)' : ''));
+        });
+        out.push('');
+      });
+      var total = gifts.reduce(function (n, x) { return n + (Number(x.price) || 0); }, 0);
+      if (total > 0) out.push('Total: ' + money(total));
+    } else {
+      var items = (typeof state !== 'undefined' && Array.isArray(state.shopping)) ? state.shopping : [];
+      out.push('🛒 Christmas grocery list', '');
+      if (!items.length) out.push('(no items yet)');
+      groupShopping(items).forEach(function (g) {
+        out.push(g.title);
+        g.items.forEach(function (x) { out.push((x.bought ? '☑ ' : '☐ ') + x.name); });
+        out.push('');
+      });
+    }
+    out.push('— Christmas HQ');
+    return out.join('\n').replace(/\n{3,}/g, '\n\n');
+  }
+
+  function closeShareSheet() {
+    var el = document.getElementById('hqShareSheet');
+    if (el) el.remove();
+  }
+
+  function openShareSheet(title, text) {
+    closeShareSheet();
+    var box = document.createElement('div');
+    box.id = 'hqShareSheet';
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-modal', 'true');
+    box.innerHTML =
+      '<div class="hq-share-card"><h3>' + esc(title) + '</h3>' +
+      '<textarea readonly rows="8" aria-label="List text">' + esc(text) + '</textarea>' +
+      '<div class="hq-share-actions">' +
+      '<a class="btn" target="_blank" rel="noopener" href="https://wa.me/?text=' + encodeURIComponent(text) + '">💬 WhatsApp</a>' +
+      '<button type="button" class="btn alt" data-hq-share-copy>📋 Copy</button>' +
+      '<button type="button" class="btn alt" data-hq-share-close>Close</button></div>' +
+      '<p class="hq-share-msg" role="status"></p></div>';
+    document.body.appendChild(box);
+  }
+
+  function shareList(kind) {
+    var text = listText(kind);
+    var title = kind === 'gifts' ? 'Christmas gift list' : 'Christmas grocery list';
+    if (navigator.share) {
+      navigator.share({ title: title, text: text }).catch(function (err) {
+        if (err && err.name === 'AbortError') return;
+        openShareSheet(title, text);
+      });
+    } else {
+      openShareSheet(title, text);
+    }
+  }
+
+  function copyText(text, done) {
+    var fallback = function () {
+      try {
+        var ta = document.querySelector('#hqShareSheet textarea');
+        ta.focus(); ta.select();
+        done(document.execCommand('copy'));
+      } catch (e) { done(false); }
+    };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { done(true); }, fallback);
+      else fallback();
+    } catch (e) { fallback(); }
+  }
+
+  document.addEventListener('click', function (e) {
+    try {
+      var t = e.target;
+      if (!t || !t.closest) return;
+      var sh = t.closest('[data-hq-share-list]');
+      if (sh) { e.preventDefault(); e.stopPropagation(); shareList(sh.getAttribute('data-hq-share-list')); return; }
+      if (t.closest('[data-hq-share-close]') || t.id === 'hqShareSheet') { e.preventDefault(); closeShareSheet(); return; }
+      if (t.closest('[data-hq-share-copy]')) {
+        e.preventDefault();
+        var ta = document.querySelector('#hqShareSheet textarea');
+        copyText(ta ? ta.value : '', function (ok) {
+          var m = document.querySelector('#hqShareSheet .hq-share-msg');
+          if (m) m.textContent = ok ? 'Copied ✓ — paste it into any message.' : 'Could not copy. Press and hold the text to copy it.';
+        });
+      }
+    } catch (err) {}
+  }, true);
+
+  (function () {
+    var st = document.createElement('style');
+    st.textContent =
+      '#hqShareSheet{position:fixed;inset:0;z-index:2147482000;background:#103b3199;display:flex;align-items:flex-end;justify-content:center;padding:12px}' +
+      '#hqShareSheet .hq-share-card{width:100%;max-width:440px;background:#fff8e5;border:2px solid #c4984d;border-radius:20px;padding:16px;color:#103b31;max-height:90vh;overflow:auto}' +
+      '#hqShareSheet h3{margin:0 0 8px}' +
+      '#hqShareSheet textarea{width:100%;box-sizing:border-box;border:2px solid #d6a638;border-radius:12px;padding:10px;font:13px/1.45 system-ui,sans-serif;background:#fffdf9;color:#103b31;resize:none}' +
+      '#hqShareSheet .hq-share-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}' +
+      '#hqShareSheet .hq-share-actions .btn{flex:1;min-width:100px;text-align:center;text-decoration:none}' +
+      '#hqShareSheet .hq-share-msg{margin:8px 0 0;font-size:12px;font-weight:800;color:#2c7554;min-height:16px}';
+    document.head.appendChild(st);
+  })();
 
 
   /* Add Snacks filter (recipes use type Snacks but the chip row omitted it). */

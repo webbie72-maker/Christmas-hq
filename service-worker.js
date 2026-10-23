@@ -1,26 +1,26 @@
-const CACHE = 'christmas-hq-pwa-v98';
+const CACHE = 'christmas-hq-pwa-v99';
 const CACHE_PREFIX = 'christmas-hq-pwa-';
 
 const CORE = [
   './', './index.html', './snowflake-icons.css?v=1', './hq-family-data.js?v=1', './family-cloud.js?v=10',
-  './christmas-upgrades.js?v=12', './pin-lock.js?v=5', './lock-village.jpg',
+  './christmas-upgrades.js?v=13', './pin-lock.js?v=5', './lock-village.jpg',
   './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'
 ];
 
 // Preload the remaining local features without letting one missing file block installation.
 const FEATURES = [
-  './hq-offline-music.js?v=1', './gift-extras.js?v=1',
+  './hq-offline-music.js?v=2', './gift-extras.js?v=2', './hq-polish.js?v=1',
   './elf-on-the-shelf.js?v=2', './elf-setup-pictures.webp',
   './gift-photo-personal.webp', './gift-photo-under-50.webp', './gift-photo-kids.webp', './gift-photo-experience.webp', './gift-photo-foodie.webp', './gift-photo-tech.webp', './gift-photo-fitness.webp', './gift-photo-home.webp', './gift-photo-practical.webp', './gift-photo-outdoors.webp',
   './hq-built-in-music.js?v=1', './hq-admin-stats.js?v=4', './hq-admin-alert.js?v=1', './gift-match.js?v=1', './brownie-desserts.js?v=1', './terms.html', './account-deletion.js?v=1', './delete-account.html', './privacy.html',
-  './games/index.html', './gift-library-2600.js', './checklist-links-fix.js?v=4',
-  './christmas-hq-festive-live.js?v=27', './christmas-chat.js?v=8',
+  './games/index.html', './gift-library-2600.js', './checklist-links-fix.js?v=5',
+  './christmas-hq-festive-live.js?v=28', './christmas-chat.js?v=9',
   './recipe-food-tiles.js?v=2', './panel-transitions.js?v=7',
   './exact-recipe-photos.js?v=2', './christmas-hq-kitchen-v5.js?v=1',
   './gift-detail-sheet.js?v=1',
-  './explore-detail-sheet.js?v=1', './metric-links.js?v=1',
+  './explore-detail-sheet.js?v=2', './metric-links.js?v=1',
   './tap-fixes.js?v=1', './countdown-reminders.js?v=1',
-  './kitchen-fixes.js?v=5', './welcome-tour.js?v=5', './phone-back.js?v=3', './family-invitations.js?v=4', './direct-chat.js?v=2'
+  './kitchen-fixes.js?v=6', './welcome-tour.js?v=5', './phone-back.js?v=3', './family-invitations.js?v=5', './direct-chat.js?v=3'
 ];
 
 function usable(response, url) {

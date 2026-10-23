@@ -1417,7 +1417,7 @@ I
 
   function onlineHtml() {
     if (!hqSession || !hqFamilyId) {
-      return `<div class="hq-game-online"><span>☁️</span><b>Connect Family Cloud in Settings for live multiplayer.</b></div>`;
+      return '';
     }
 
     const names = hqPresence.length
@@ -1454,7 +1454,7 @@ I
       <div class="card" style="margin-top:14px;background:#f4f8f1">
         <h3>👪 Family multiplayer</h3>
         <p class="muted-note">${HQ_GAMES_UNLOCKED
-          ? 'All games are open to play now. Bingo and Memory Match work on this phone. Trivia, Guess the Song, Would You Rather and Spin the Wheel play solo here, and sync live when Family Cloud is connected.'
+          ? 'All games are open to play now. Bingo and Memory Match work on this phone. Trivia, Guess the Song, Would You Rather and Spin the Wheel play solo here, and sync live when Family Cloud is connected. Connect it in Settings for live multiplayer.'
           : 'Trivia, Guess the Song, Would You Rather and Spin the Wheel sync live between family members who have joined the same Christmas HQ family. Bingo and Memory Match work instantly on each phone.'}</p>
       </div>`;
   }
@@ -2070,7 +2070,7 @@ audio.volume = hqMusicVolume;
 
   function startQueue(list) {
     if (!window.hqFamily || !window.hqFamily()) {
-      notice('Play all and shuffle stay locked until a real payment is connected.');
+      notice('Play all and shuffle are coming soon.');
       return;
     }
     hqQueue = list.map(song => song.id);
@@ -2232,7 +2232,7 @@ renderFestiveAfter();
 
       /* HQ_GAMES_UNLOCKED bypasses the Family plan gate for games only. */
       if (!gamesFamilyOk()) {
-        notice('Live family games stay locked until a real payment is connected.');
+        notice('Live family games are coming soon.');
         return;
       }
       if (!soloGamesMode() && (!hqSession || !hqFamilyId)) {

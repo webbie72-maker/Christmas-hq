@@ -46,7 +46,7 @@
   card.innerHTML='<summary class="hq-invitations-toggle"><span>💌 Family invitations</span><span class="hq-invitations-arrow" aria-hidden="true">▾</span></summary>'+(!signedIn()?'<p>Sign in to receive family invitations, even when you are not in an HQ.</p><button class="btn" type="button" data-hq-chat-settings>Sign in →</button>':
    `<p id="hqInviteIdentity" class="muted-note">${identity?.display_name?`You are ${esc(identity.display_name)} · ${esc(identity.user_code)}.`:'Invitations are sent to your signed-in account.'} Accept to join, or decline to keep your current HQ. Your personal lists are kept.</p><div id="hqFamilyInviteList"></div><p id="hqInviteInboxNote" class="muted-note" role="status"></p>`+
    (cloud()?.familyId?`<details><summary>Invite someone by name</summary><form id="hqNameInviteForm"><label>Find a person<input class="field" name="name" minlength="2" maxlength="70" required placeholder="Their name…" value="${esc(query)}"></label><button class="btn" type="submit">Search names</button></form><p class="muted-note">Choose their name and HQ code to identify the right person. Their invite will appear in Chat.</p><div id="hqInviteNameResults"></div><p id="hqInviteSearchNote" class="muted-note" role="status"></p></details>`:'<p class="muted-note">Join or create an HQ in Settings to invite other people.</p>'));
-  shell.prepend(card);renderInbox();if(cloud()?.familyId)renderSearch();
+  {const sw=shell.querySelector('.hq-chat-switch');if(sw)sw.after(card);else shell.prepend(card);}renderInbox();if(cloud()?.familyId)renderSearch();
  }
  async function refresh(){
   const c=cloud(),uid=c?.session?.user?.id||'',fid=c?.familyId||'';

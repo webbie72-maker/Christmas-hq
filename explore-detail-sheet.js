@@ -488,7 +488,7 @@
           '<p class="ed-tip">' + esc(info.tip) + '</p>' +
           '<p class="ed-kids"><strong>Kids can help by</strong> ' + esc(info.kids) + '</p>' +
           '<div class="ed-actions">' +
-            '<button type="button" class="ed-btn ed-btn-plan" data-ed-act="plan">⭐ Add to our plans</button>' +
+            '<button type="button" class="ed-btn ed-btn-plan" data-ed-act="plan">⭐ Save as a plan</button>' +
             '<button type="button" class="ed-btn ed-btn-done' + (done ? ' is-done' : '') + '" data-ed-act="done">' +
               (done ? '✓ Done — nice work!' : '✓ We did it!') +
             '</button>' +

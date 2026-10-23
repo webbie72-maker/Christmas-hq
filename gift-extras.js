@@ -8,6 +8,7 @@
   var DISMISS_KEY = 'christmas-hq-posting-dismissed-v1';
   var SOURCE_URL = 'https://auspost.com.au/personal/sending/christmas-sending-dates';
   var BACKUP_APP = 'christmas-hq-backup';
+  var LAST_KEY = 'christmas-hq-last-backup-v1';
 
   function safe(fn, fallback) {
     try { return fn(); } catch (err) {
@@ -72,9 +73,13 @@
     var showAll = !!(typeof ui !== 'undefined' && ui.hqPostShowAll);
     var hidden = POSTING.filter(function (row) { return dismissed[row.id]; }).length;
 
-    var rows = POSTING.filter(function (row) {
+    var more = !!(typeof ui !== 'undefined' && ui.hqPostMore);
+    var visible = POSTING.filter(function (row) {
       return showAll || !dismissed[row.id];
-    }).map(function (row) {
+    });
+    var extra = 0;
+    if (!more && visible.length > 3) { extra = visible.length - 3; visible = visible.slice(0, 3); }
+    var rows = visible.map(function (row) {
       var d = row.date;
       var days = daysUntil(d);
       var dt = new Date(d[0], d[1] - 1, d[2]);
@@ -95,19 +100,22 @@
         (showAll ? 'Hide ticked items' : 'Show ' + hidden + ' ticked item' + (hidden === 1 ? '' : 's')) + '</button>'
       : '';
 
+    var moreBtn = (extra || (more && POSTING.length > 3))
+      ? '<button type="button" class="hq-post-link" data-hq-post-more>' + (more ? 'Show fewer dates' : 'Show ' + extra + ' more date' + (extra === 1 ? '' : 's')) + '</button>'
+      : '';
     return '<div class="card hq-post-card" id="hqPostingCard">' +
       '<div class="eyebrow">POSTING GIFTS</div>' +
       '<h3>📮 Last posting dates · Perth &amp; WA</h3>' +
       '<p class="muted-note" style="margin:4px 0 10px">Last days to post from a Perth metro Post Office for Christmas. ' +
       'Over-the-counter items by 2.30pm; regional or remote areas need extra days.</p>' +
-      '<div class="hq-post-list">' + rows + '</div>' + empty + toggle +
+      '<div class="hq-post-list">' + rows + '</div>' + empty + moreBtn + toggle +
       '<p class="hq-post-foot">Dates are a guide only and can change. Check ' +
       '<a href="' + SOURCE_URL + '" target="_blank" rel="noopener">Australia Post’s Christmas dates ↗</a> before you post. ' +
       'Checked 23 Oct 2026.</p></div>';
   }
 
   /* ---------------- 2. Backup & restore ---------------- */
-  var EXCLUDE = /([-_:]pin|pin[-_:]|pin$|pattern|[-_:]lock|lock[-_:]|auth|session|token|supabase|password|secret|family-id|cloud|draft|refresh|welcome-tour|terms-ack)/i;
+  var EXCLUDE = /([-_:]pin|pin[-_:]|pin$|pattern|[-_:]lock|lock[-_:]|auth|session|token|supabase|password|secret|family-id|cloud|draft|refresh|welcome-tour|terms-ack|last-backup)/i;
 
   function isBackupKey(key) {
     return typeof key === 'string' && /^christmas-?hq/i.test(key) && !EXCLUDE.test(key);
@@ -145,6 +153,7 @@
     document.body.appendChild(a);
     a.click();
     setTimeout(function () { a.remove(); URL.revokeObjectURL(url); }, 4000);
+    markBackedUp();
     window.notice && window.notice('Backup saved to your Downloads ✓');
   }
 
@@ -159,6 +168,7 @@
     var file = makeBackupFile();
     var f = new File([file.json], file.name, { type: 'application/json' });
     navigator.share({ files: [f], title: 'Christmas HQ backup' }).then(function () {
+      markBackedUp();
       window.notice && window.notice('Backup shared ✓');
     }).catch(function (err) {
       if (err && err.name === 'AbortError') return;
@@ -225,18 +235,119 @@
     return true;
   }
 
+  function lastBackupText() {
+    var raw = safe(function () { return localStorage.getItem(LAST_KEY); }, null);
+    var d = raw ? new Date(raw) : null;
+    if (!d || isNaN(d.getTime())) return 'Last backed up: not yet';
+    return 'Last backed up: ' + d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }) +
+      ', ' + d.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' });
+  }
+
+  function markBackedUp() {
+    try { localStorage.setItem(LAST_KEY, new Date().toISOString()); } catch (_) {}
+    var el = document.getElementById('hqLastBackup');
+    if (el) el.textContent = lastBackupText();
+  }
+
   function backupCard() {
     var share = canShareFiles()
       ? '<button type="button" class="btn alt full" data-hq-backup-share style="margin-top:10px">📤 Share backup file…</button>'
       : '';
+    var saving = (typeof storageAvailable !== 'undefined' && !storageAvailable)
+      ? '<p class="pill">⚠ Local saving blocked by this viewer</p>'
+      : '<p class="pill green">✓ Local saving available</p>';
     return '<div class="card hq-backup-card" id="hqBackupCard">' +
-      '<h3>🎁 Back up my Christmas HQ</h3>' +
+      '<h3>💾 Back up &amp; restore</h3>' +
       '<p class="muted-note">One file with everything saved on this phone: gifts and notes, per-person budgets, ' +
       'plans and settings. Your pattern lock and sign-in details are never included. Keep the file private.</p>' +
+      saving +
+      '<p class="muted-note" id="hqLastBackup" style="margin:8px 0 12px;font-weight:800">' + escHtml(lastBackupText()) + '</p>' +
       '<button type="button" class="btn full" data-hq-backup-download>⬇ Back up my Christmas HQ</button>' + share +
-      '<label class="btn alt full" for="hqRestoreFile" style="margin-top:10px;cursor:pointer">⬆ Restore from backup</label>' +
-      '<input id="hqRestoreFile" type="file" accept="application/json,.json,text/plain" style="display:none">' +
-      '<p class="muted-note" id="hqBackupMsg" role="status" style="margin-top:10px"></p></div>';
+      '<label class="btn alt full" for="importFile" style="margin-top:10px;cursor:pointer">⬆ Restore from backup file</label>' +
+      '<input id="importFile" type="file" accept="application/json,.json,text/plain" style="display:none">' +
+      '<p class="muted-note" id="hqBackupMsg" role="status" style="margin:10px 0 0">Works with new backups and with older exported files.</p>' +
+      '<details class="hq-backup-more"><summary>More backup options</summary>' +
+      '<p class="muted-note">Full backup: your plan plus a saved copy of Family HQ lists, the Elf planner and any songs stored on this phone. ' +
+      'Audio can make the file large, and it includes food needs and Secret Santa draws, so keep it private.</p>' +
+      '<button type="button" class="btn alt full" data-action="export">⬇ Full backup (with music &amp; Elf)</button>' +
+      '<label class="hq-backup-scope">When restoring a full backup, restore<select class="field" id="backupRestoreScope">' +
+      '<option value="personal">My personal plan</option><option value="family">Saved Family HQ lists into my personal plan</option></select></label>' +
+      '</details></div>';
+  }
+
+  function isIOS() {
+    return safe(function () {
+      var ua = navigator.userAgent || '';
+      return /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    }, false);
+  }
+
+  function installParagraph() {
+    var ios = isIOS();
+    var other = !!(typeof ui !== 'undefined' && ui.hqInstallOther);
+    var and = '<b>Android / Samsung:</b> tap the green Install app button below when it appears, or Chrome menu → Add to Home screen / Install app.';
+    var iph = '<b>iPhone / iPad:</b> open Christmas HQ in Safari → tap Share → Add to Home Screen → Add.';
+    var main = ios ? iph : and;
+    var alt = ios ? and : iph;
+    return '<p class="muted-note">' + main + (other ? '<br><br>' + alt : '') + '</p>' +
+      '<button type="button" class="hq-post-link" style="margin:0 0 10px;padding:2px 0" data-hq-install-other>' +
+      (other ? 'Hide other phone' : (ios ? 'Show Android steps' : 'Show iPhone steps')) + '</button>';
+  }
+
+  function tidySettings(html) {
+    // 1) one merged backup card
+    var start = html.indexOf('<div class="card"><h3>💾 Save your Christmas plan</h3>');
+    var endMarker = '<input id="importFile" type="file" accept="application/json,.json" style="display:none"></div></div>';
+    var end = start >= 0 ? html.indexOf(endMarker, start) : -1;
+    var card = safe(backupCard, '');
+    if (start >= 0 && end > start && card) {
+      html = html.slice(0, start) + card + html.slice(end + endMarker.length);
+    } else if (card) {
+      var marker = '<div class="card"><h3>Fresh start</h3>';
+      var at = html.indexOf(marker);
+      html = at >= 0 ? html.slice(0, at) + card + html.slice(at) : html + card;
+    }
+    // 2) only the install steps for this phone
+    var a = html.indexOf('<p class="muted-note"><b>Android / Samsung:</b>');
+    var aEnd = a >= 0 ? html.indexOf('</p>', a) : -1;
+    if (a >= 0 && aEnd > a) html = html.slice(0, a) + installParagraph() + html.slice(aEnd + 4);
+    // 3) shorter "What's included?"
+    var w = html.indexOf("<div class=\"card\"><h3>What's included?</h3>");
+    var wEnd = w >= 0 ? html.indexOf('</div>', w) : -1;
+    if (w >= 0 && wEnd > w) {
+      html = html.slice(0, w) + '<div class="card"><h3>What\'s included?</h3>' +
+        '<p class="muted-note">Gifts, planner, kitchen, Magic, Explore, games and chat — all in one place. Your plan stays on this phone; sign in to Family Cloud to share lists with family. ' +
+        'You can delete your account at any time from the account deletion page.</p>' + html.slice(wEnd);
+    }
+    return html;
+  }
+
+  /* Home: next gift to buy + posting pointer */
+  function nextPostingRow() {
+    var dismissed = readDismissed();
+    var rows = POSTING.filter(function (r) { return !dismissed[r.id] && daysUntil(r.date) >= 0; });
+    // Perth is the home base: show the WA parcel date when it is still ahead
+    var wa = rows.filter(function (r) { return r.id === 'wa-parcel'; })[0];
+    return wa || rows[0] || null;
+  }
+
+  function homePointer() {
+    if (new Date().getFullYear() !== 2026 || typeof state === 'undefined') return '';
+    var out = '';
+    var next = (state.gifts || []).filter(function (g) { return !g.bought; })[0];
+    if (next) {
+      out += '<button type="button" class="hq-home-line" data-action="shortcut" data-target="gifts"><span>🎁</span><span><b>Next gift to buy:</b> ' +
+        escHtml(next.name || 'a gift') + (next.recipient ? ' for ' + escHtml(next.recipient) : '') + '</span><i>›</i></button>';
+    }
+    var row = nextPostingRow();
+    if (row) {
+      var d = row.date;
+      var dt = new Date(d[0], d[1] - 1, d[2]);
+      var n = daysUntil(d);
+      out += '<button type="button" class="hq-home-line" data-hq-go-posting><span>📮</span><span><b>Post by ' + DAYS[dt.getDay()] + ' ' + d[2] + ' ' + MONTHS[d[1] - 1] +
+        '</b> (' + (n === 0 ? 'today' : n + ' day' + (n === 1 ? '' : 's')) + ')</span><i>›</i></button>';
+    }
+    return out ? '<div class="hq-home-lines">' + out + '</div>' : '';
   }
 
   /* ---------------- hook into screens ---------------- */
@@ -257,11 +368,20 @@
     var baseSettings = settings;
     settings = function () {
       var html = baseSettings.apply(this, arguments);
-      var card = safe(backupCard, '');
-      if (!card) return html;
-      var marker = '<div class="card"><h3>Fresh start</h3>';
-      var at = html.indexOf(marker);
-      return at >= 0 ? html.slice(0, at) + card + html.slice(at) : html + card;
+      return safe(function () { return tidySettings(html); }, html);
+    };
+  }
+
+  if (typeof home === 'function') {
+    var baseHome = home;
+    home = function () {
+      var html = baseHome.apply(this, arguments);
+      return safe(function () {
+        var extra = homePointer();
+        if (!extra) return html;
+        var at = html.indexOf('<div class="section-line"><h2>Your Christmas toolkit');
+        return at >= 0 ? html.slice(0, at) + extra + html.slice(at) : html;
+      }, html);
     };
   }
 
@@ -276,6 +396,12 @@
       var id = tick.getAttribute('data-hq-post-tick');
       if (map[id]) delete map[id]; else map[id] = 1;
       writeDismissed(map);
+      safe(function () { render(false); });
+      return;
+    }
+
+    if (target.closest('[data-hq-post-more]')) {
+      ui.hqPostMore = !ui.hqPostMore;
       safe(function () { render(false); });
       return;
     }
@@ -296,19 +422,52 @@
 
     if (target.closest('[data-hq-backup-share]')) {
       safe(shareBackup);
+      return;
+    }
+
+    if (target.closest('[data-hq-install-other]')) {
+      ui.hqInstallOther = !ui.hqInstallOther;
+      safe(function () { render(false); });
+      return;
+    }
+
+    if (target.closest('[data-hq-go-posting]')) {
+      safe(function () {
+        ui.hqGiftPerson = '';
+        ui.hqEditGiftId = '';
+        go('gifts', 'My gifts');
+        setTimeout(function () {
+          var card = document.getElementById('hqPostingCard');
+          if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 120);
+      });
     }
   });
 
+  /* One restore input. New-format backups are handled here; anything else (older
+     exports) is passed on untouched to the app's original import handler. */
   document.addEventListener('change', function (event) {
     var input = event.target;
-    if (!input || input.id !== 'hqRestoreFile') return;
+    if (!input || input.id !== 'importFile') return;
+    if (input.__hqLegacyPass) { input.__hqLegacyPass = false; return; }
 
     var file = input.files && input.files[0];
+    if (!file) return;
+    event.stopImmediatePropagation();
+
     var msg = document.getElementById('hqBackupMsg');
     var say = function (text) { if (msg) msg.textContent = text; };
-    if (!file) return;
+
+    var passOn = function () {
+      // older export file: hand it to the original importer
+      input.__hqLegacyPass = true;
+      try { input.dispatchEvent(new Event('change', { bubbles: true })); } catch (_) { input.__hqLegacyPass = false; }
+    };
 
     var done = function (text) {
+      var parsed = null;
+      try { parsed = JSON.parse(text); } catch (_) {}
+      if (!parsed || parsed.app !== BACKUP_APP) { passOn(); return; }
       try {
         restoreFromText(text);
       } catch (err) {
@@ -318,8 +477,9 @@
       try { input.value = ''; } catch (_) {}
     };
 
-    if (file.size > 25 * 1024 * 1024) {
+    if (file.size > 60 * 1024 * 1024) {
       say('That file is too large to be a Christmas HQ backup.');
+      try { input.value = ''; } catch (_) {}
       return;
     }
 
@@ -331,7 +491,16 @@
       reader.onerror = function () { say('Could not read that file.'); };
       reader.readAsText(file);
     }
-  });
+  }, true);
+
+  /* Remember when a full (older-style) backup was downloaded too */
+  if (typeof download === 'function') {
+    var baseDownload = download;
+    download = function (name) {
+      try { if (/^christmas-hq-backup/i.test(String(name))) markBackedUp(); } catch (_) {}
+      return baseDownload.apply(this, arguments);
+    };
+  }
 
   /* ---------------- styles ---------------- */
   var css = document.createElement('style');
@@ -353,6 +522,15 @@
     '.hq-post-link{display:block;margin:10px auto 0;border:0;background:none;color:#2c7554;font-weight:900;font-size:12px;text-decoration:underline;cursor:pointer;padding:6px}' +
     '.hq-post-foot{margin:10px 0 0;font-size:11px;line-height:1.5;color:#6c776e}' +
     '.hq-post-foot a{color:#2c7554;font-weight:800}' +
-    '.hq-post-row.tone-past .hq-post-days{color:#6c776e}';
+    '.hq-post-row.tone-past .hq-post-days{color:#6c776e}' +
+    '.hq-backup-more{margin-top:14px;border-top:1px dashed #d9ccaa;padding-top:10px}' +
+    '.hq-backup-more summary{cursor:pointer;font-weight:900;font-size:13px;color:#2c7554;padding:4px 0}' +
+    '.hq-backup-scope{display:block;margin-top:10px;font-size:12px;font-weight:800;color:#103b31}' +
+    '.hq-backup-scope select{margin-top:6px}' +
+    '.hq-home-lines{display:grid;gap:8px;margin:12px 0 4px}' +
+    '.hq-home-line{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:1px solid #e4d3a6;background:#fffdf6;border-radius:14px;padding:10px 12px;font:600 13px/1.35 system-ui,sans-serif;color:#103b31;cursor:pointer}' +
+    '.hq-home-line b{font-weight:900}' +
+    '.hq-home-line span:nth-child(2){flex:1;min-width:0;overflow-wrap:anywhere}' +
+    '.hq-home-line i{font-style:normal;font-size:20px;opacity:.5}';
   document.head.appendChild(css);
 })();

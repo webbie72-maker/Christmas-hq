@@ -56,8 +56,8 @@
   if(typeof ui==='undefined'||ui.tab!=='chat'){if(modal())close();return;}
   if(modal()&&context!==me()+'|'+cloud()?.familyId)close();
   const shell=document.querySelector('.hq-chat-shell');if(!shell||document.getElementById('hqPrivateMessagesButton'))return;
-  const button=document.createElement('button');button.id='hqPrivateMessagesButton';button.className='btn full';button.dataset.hqDmOpen='';button.textContent='🔒 Private messages · Find a family member';
-  const invites=document.getElementById('hqFamilyInvitations');if(invites)invites.after(button);else shell.prepend(button);
+  const button=document.createElement('button');button.id='hqPrivateMessagesButton';button.className='btn full';button.dataset.hqDmOpen='';button.textContent='💬 Private messages · Find a family member';
+  const invites=document.getElementById('hqFamilyInvitations');const sw=shell.querySelector('.hq-chat-switch');if(invites)invites.after(button);else if(sw)sw.after(button);else shell.prepend(button);
  }
  document.addEventListener('input',e=>{if(e.target.id==='hqDmSearch')list();});
  document.addEventListener('click',e=>{

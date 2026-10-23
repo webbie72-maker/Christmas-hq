@@ -54,6 +54,7 @@
     const [tab, sub] = checklistDestination(task);
     if (tab !== 'guide') {
       // Set the subpanel explicitly, then scroll after all render decorators finish.
+      if (/post gifts/i.test(task.text)) { ui.hqGiftPerson = ''; ui.hqEditGiftId = ''; }
       go(tab, sub);
       if (sub && ui.sub[tab] !== sub) { ui.sub[tab] = sub; render(false); }
       if (tab === 'kitchen' && sub === 'Recipes') {
@@ -66,7 +67,7 @@
         'plan:Calendar': '[data-form="event"]',
         'plan:Guests': '[data-form="guest"]',
         'plan:Checklist': '[data-form="task"]',
-        'gifts:My gifts': '[data-form="gift"]',
+        'gifts:My gifts': /post gifts/i.test(task.text) ? '#hqPostingCard' : '.hq-addgift-toggle, [data-form="gift"]',
         'kitchen:Recipes': '#recipeLibrary',
         'kitchen:Groceries': '[data-form="shopping"]',
         'kitchen:Cook plan': '[data-form="cookSchedule"]',
@@ -131,6 +132,18 @@
       if (state.tasks === tasks && tasks.includes(task) && ui.tab === tab && ui.sub[tab] === sub) openTask(task);
     }, DOUBLE_TAP_MS)};
   }
+  // Small "Open ›" links on a few checklist items (rendered by miniTask).
+  window.hqOpenChecklistTask = task => { try { openTask(task); } catch (err) {} };
+  document.addEventListener('click', event => {
+    const link = event.target.closest && event.target.closest('[data-hq-open-task]');
+    if (!link) return;
+    event.preventDefault(); event.stopPropagation();
+    try {
+      cancelPending();
+      const task = (state.tasks || []).find(t => t.id === link.getAttribute('data-hq-open-task'));
+      if (task) openTask(task);
+    } catch (err) {}
+  }, true);
   document.addEventListener('click', activate, true);
   document.addEventListener('dblclick', event => {
     if (taskRow(event.target)) { event.preventDefault(); event.stopImmediatePropagation(); }
@@ -147,14 +160,7 @@
       info.classList.add('hq-task-open'); info.tabIndex = 0; info.setAttribute('role', 'button');
       info.setAttribute('aria-label', 'Open ' + (info.querySelector('b')?.textContent || 'task'));
     });
-    if (typeof ui !== 'undefined' && ui.tab === 'plan' && ui.sub.plan === 'Checklist') {
-      const list = document.querySelector('#screen .list');
-      if (list && !document.getElementById('hqTaskTapHint')) {
-        const hint = document.createElement('p'); hint.id = 'hqTaskTapHint'; hint.className = 'muted-note';
-        hint.textContent = 'Tap a task to open it · Double tap to mark done or undo · Or use the checkbox';
-        list.before(hint);
-      }
-    }
+    document.getElementById('hqTaskTapHint')?.remove();
   }
   const style = document.createElement('style');
   style.textContent = '.item:has([data-action="taskToggle"]){cursor:pointer;touch-action:manipulation}.hq-checklist-destination{scroll-margin-top:18px;outline:2px solid #c4984d;outline-offset:5px}.hq-task-open{user-select:none}.hq-task-open:focus-visible{outline:3px solid #c4984d;outline-offset:4px;border-radius:6px}.hq-task-guide{max-width:420px;width:calc(100% - 36px);border:2px solid #c4984d;border-radius:20px;padding:24px;background:#fff8e5;color:#103b31}.hq-task-guide::backdrop{background:#103b3188}';
