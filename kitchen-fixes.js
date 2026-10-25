@@ -142,7 +142,7 @@
       body = groupGifts(gifts).map(function (g) {
         return '<h2>' + esc(g.title) + '</h2><ul>' + g.items.map(function (x) {
           return '<li><span class="hq-print-box' + (x.bought ? ' done' : '') + '" aria-hidden="true"></span><span><b>' + esc(x.name) + '</b>' +
-            '<span class="hq-print-meta">' + esc(money(x.price)) + (x.bought ? ' · Bought ✓' : ' · Still shopping') + '</span></span></li>';
+            '<span class="hq-print-meta">' + esc(money(x.price)) + (x.bought ? ' · Bought ✓' : ' · Still shopping') + (x.wrapped ? ' · Wrapped 🎀' : '') + (x.delivered ? ' · Delivered 📦' : '') + '</span></span></li>';
         }).join('') + '</ul>';
       }).join('');
     }
@@ -320,7 +320,8 @@
         out.push(g.title);
         g.items.forEach(function (x) {
           var price = Number(x.price) > 0 ? ' – ' + money(x.price) : '';
-          out.push((x.bought ? '☑ ' : '☐ ') + x.name + price + (x.bought ? ' (bought)' : ''));
+          var flags = [x.bought ? 'bought' : '', x.wrapped ? 'wrapped 🎀' : '', x.delivered ? 'delivered 📦' : ''].filter(Boolean).join(', ');
+          out.push((x.bought ? '☑ ' : '☐ ') + x.name + price + (flags ? ' (' + flags + ')' : ''));
         });
         out.push('');
       });

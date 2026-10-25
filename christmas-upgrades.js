@@ -1122,6 +1122,16 @@ document.addEventListener('click', event => {
     `;
   }
 
+  function hqGiftStatusChips(gift) {
+    try {
+      const chip = (flag, icon, label) => {
+        const on = !!gift[flag];
+        return `<button type="button" class="hq-status-chip${on ? ' on' : ''}" data-hq-gift-flag="${flag}" data-id="${esc(gift.id)}" aria-pressed="${on ? 'true' : 'false'}" aria-label="${esc(label)}: ${esc(gift.name)}">${icon} ${label}${on ? ' ✓' : ''}</button>`;
+      };
+      return `<div class="hq-gift-status">${chip('wrapped', '🎀', 'Wrapped')}${chip('delivered', '📦', 'Delivered')}</div>`;
+    } catch (e) { return ''; }
+  }
+
   function hqGiftItem(gift) {
   const hasLink =
     /^https?:\/\//i.test(
@@ -1154,6 +1164,8 @@ document.addEventListener('click', event => {
         </button>
 
       </div>
+
+      ${hqGiftStatusChips(gift)}
 
       <button
         type="button"
@@ -1465,6 +1477,8 @@ document.addEventListener('click', event => {
                   const bought = person.gifts.filter(
                     gift => gift.bought
                   ).length;
+                  const wrapped = person.gifts.filter(gift => gift.wrapped).length;
+                  const delivered = person.gifts.filter(gift => gift.delivered).length;
 
                   const open =
                     ui.hqQuickCard === person.name.toLowerCase();
@@ -1491,9 +1505,9 @@ document.addEventListener('click', event => {
                           </div>
 
                           <div class="family-meta">
-                            ${person.gifts.length} gifts ·
+                            ${person.gifts.length} ${person.gifts.length === 1 ? 'gift' : 'gifts'} ·
                             ${bought} bought ·
-                            ${currency(total)}
+                            ${wrapped ? `${wrapped} wrapped · ` : ''}${delivered ? `${delivered} delivered · ` : ''}${currency(total)}
                           </div>
                           ${hqBudgetBar(total, hqBudgetFor(person.name), true)}
                         </div>
@@ -1807,6 +1821,23 @@ document.addEventListener('click', event => {
       notice(`Gift idea ready for ${ui.hqGiftPerson} — tap Save.`);
     }
   });
+
+  /* Wrapped / Delivered chips: one tap toggles an optional boolean on the gift. */
+  document.addEventListener('click', event => {
+    try {
+      const btn = event.target && event.target.closest && event.target.closest('[data-hq-gift-flag]');
+      if (!btn) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const flag = btn.dataset.hqGiftFlag;
+      if (flag !== 'wrapped' && flag !== 'delivered') return;
+      const gift = (state.gifts || []).find(item => item.id === btn.dataset.id);
+      if (!gift) return;
+      gift[flag] = !gift[flag];
+      const label = flag === 'wrapped' ? 'wrapped 🎀' : 'delivered 📦';
+      persist(gift[flag] ? `${gift.name} ${label}` : `${gift.name} not ${flag} yet`);
+    } catch (e) {}
+  }, true);
 
   /* Tick a gift as bought straight from the list: small confirmation. */
   document.addEventListener('change', event => {
@@ -2606,6 +2637,38 @@ document.addEventListener('click', event => {
       .hq-gift-tools{
         grid-template-columns:repeat(2,minmax(0,1fr));
       }
+    }
+
+    /* Wrapped / Delivered chips */
+    .hq-gift-status{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin:2px 0 6px;
+    }
+    #screen .hq-status-chip{
+      appearance:none;
+      -webkit-appearance:none;
+      min-height:30px !important;
+      padding:4px 11px !important;
+      border-radius:999px !important;
+      border:1.5px solid #e0cfa6 !important;
+      background:#fffaf0 !important;
+      color:#6b5a35 !important;
+      font-family:inherit !important;
+      font-size:12px !important;
+      font-weight:800 !important;
+      line-height:1.2 !important;
+      box-shadow:none !important;
+      cursor:pointer;
+      white-space:nowrap;
+      width:auto !important;
+      margin:0 !important;
+    }
+    #screen .hq-status-chip.on{
+      background:#e5f2ea !important;
+      border-color:#2c7554 !important;
+      color:#1d5a40 !important;
     }
 
     /* round tick to mark a gift bought */
