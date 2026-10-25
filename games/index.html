@@ -268,16 +268,19 @@ function save(key, val){
 
 /* ---------- countdown ---------- */
 function daysUntilChristmas(now){
+  /* Same maths as the main app's top countdown (christmas-hq-festive-live.js updateChristmasCountdown):
+     whole days left until 25 Dec 00:00 local time, rolling to next year once that moment has passed. */
   now = now || new Date();
-  var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());   // local midnight
-  var xmas = new Date(now.getFullYear(), 11, 25);
-  if(today.getTime() > xmas.getTime()) xmas = new Date(now.getFullYear()+1, 11, 25);
-  return Math.round((xmas.getTime()-today.getTime())/86400000);           // round: safe across DST changes
+  var xmas = new Date(now.getFullYear(), 11, 25, 0, 0, 0);
+  if(xmas.getTime() <= now.getTime()) xmas = new Date(now.getFullYear()+1, 11, 25, 0, 0, 0);
+  return Math.floor((xmas.getTime()-now.getTime())/86400000);
 }
 function renderCountdown(){
-  var d = daysUntilChristmas(new Date()), el = $('countdown');
-  if(d===0) el.innerHTML = '🎅 It\'s Christmas Day! Merry Christmas! 🎁';
-  else if(d===1) el.innerHTML = '⏳ Only <b>1</b> day to go — it\'s Christmas Eve!';
+  var el = $('countdown'); if(!el) return;
+  var now = new Date(), d = daysUntilChristmas(now);
+  if(now.getMonth()===11 && now.getDate()===25) el.innerHTML = '🎅 It\'s Christmas Day!';
+  else if(d===0) el.innerHTML = '⏳ <b>0</b> days until Christmas Day — it\'s Christmas Eve!';
+  else if(d===1) el.innerHTML = '⏳ <b>1</b> day until Christmas Day';
   else el.innerHTML = '⏳ <b>'+d+'</b> days until Christmas Day';
 }
 
@@ -1158,7 +1161,7 @@ document.addEventListener('keyup',function(e){
 
 /* ---------- init ---------- */
 refreshBests(); renderCountdown();
-setInterval(renderCountdown,60000);
+setInterval(renderCountdown,15000);
 window.__hq={daysUntilChristmas:daysUntilChristmas,games:games,go:go};
 })();
 </script>
