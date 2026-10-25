@@ -248,6 +248,28 @@
     return Math.max(0, Math.floor((c - Date.now()) / 86400000));
   }
 
+  /* Calendar days to Christmas in local time (24 Dec = 1, 25 Dec = 0, 26 Dec = -1).
+     Used to pick which reminder is due, so the Christmas Eve / Christmas Day reminders land on
+     the right calendar date. The number shown to people still comes from daysUntilChristmas(),
+     which matches the top countdown. */
+  function calendarDaysUntilChristmas() {
+    var t = todayLocal();
+    if (t.getMonth() === 11 && t.getDate() === 26) return -1;
+    if (t.getMonth() === 11 && t.getDate() === 25) return 0;
+    return Math.round((christmasDate().getTime() - t.getTime()) / 86400000);
+  }
+
+  function daysLabel(n) {
+    return n + ' day' + (n === 1 ? '' : 's') + ' to Christmas';
+  }
+
+  function statusLabel(calDays, shownDays) {
+    if (calDays === -1) return 'Boxing Day';
+    if (calDays === 0) return 'It’s Christmas Day!';
+    if (calDays === 1) return 'It’s Christmas Eve!';
+    return daysLabel(shownDays);
+  }
+
   function dateForDaysUntil(days) {
     var c = christmasDate();
     var d = new Date(c.getFullYear(), c.getMonth(), c.getDate() - days);
@@ -391,15 +413,14 @@
     if (el) el.remove();
   }
 
-  function buildCardHtml(picked, daysLeft) {
+  function buildCardHtml(picked, daysLeft, calDays) {
+    if (typeof calDays !== 'number') calDays = calendarDaysUntilChristmas();
     var item = picked.item;
     var when = dateForDaysUntil(item.atDays);
     var kicker = picked.kind === 'upcoming' ? 'Coming up' : 'Gentle nudge';
     var meta = picked.kind === 'upcoming'
-      ? ('Around ' + formatAuDate(when) + ' · ' + daysLeft + ' days to Christmas')
-      : (daysLeft <= 0
-        ? (daysLeft === 0 ? 'It’s Christmas Day!' : 'Boxing Day')
-        : (daysLeft + ' day' + (daysLeft === 1 ? '' : 's') + ' to Christmas'));
+      ? ('Around ' + formatAuDate(when) + ' · ' + daysLabel(daysLeft))
+      : statusLabel(calDays, daysLeft);
 
     return '' +
       '<div class="cr-kicker">' + esc(kicker) + ' · Christmas HQ</div>' +
@@ -428,9 +449,10 @@
     if (!root) return;
 
     var daysLeft = daysUntilChristmas();
+    var calDays = calendarDaysUntilChristmas();
     var store = loadStore();
     var st = appState();
-    var picked = pickCurrent(daysLeft, store, st);
+    var picked = pickCurrent(calDays, store, st);
 
     if (!picked) {
       removeCard();
@@ -438,7 +460,7 @@
     }
 
     var card = document.getElementById(CARD_ID);
-    var html = buildCardHtml(picked, daysLeft);
+    var html = buildCardHtml(picked, daysLeft, calDays);
     var fresh = false;
     if (!card) {
       card = document.createElement('div');
@@ -552,7 +574,7 @@
         '<div class="cr-sheet-head">' +
           '<div>' +
             '<h2 id="crSheetTitle">Christmas reminders</h2>' +
-            '<p>' + esc(daysLeft + ' days to Christmas ' + year + ' · Perth summer vibes') + '</p>' +
+            '<p>' + esc(statusLabel(calendarDaysUntilChristmas(), daysLeft) + (calendarDaysUntilChristmas() > 1 ? ' ' + year : '') + ' · Perth summer vibes') + '</p>' +
           '</div>' +
           '<button type="button" class="cr-close" aria-label="Close">×</button>' +
         '</div>' +
@@ -640,8 +662,9 @@
     openSheet: openSheet,
     timeline: TIMELINE,
     daysUntilChristmas: daysUntilChristmas,
+    calendarDaysUntilChristmas: calendarDaysUntilChristmas,
     pickCurrent: function () {
-      return pickCurrent(daysUntilChristmas(), loadStore(), appState());
+      return pickCurrent(calendarDaysUntilChristmas(), loadStore(), appState());
     },
     _test: {
       markDone: markDone,
