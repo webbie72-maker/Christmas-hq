@@ -1,4 +1,4 @@
-const CACHE = 'christmas-hq-pwa-v102';
+const CACHE = 'christmas-hq-pwa-v103';
 const CACHE_PREFIX = 'christmas-hq-pwa-';
 
 const CORE = [
