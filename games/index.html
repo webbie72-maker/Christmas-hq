@@ -1165,5 +1165,40 @@ setInterval(renderCountdown,15000);
 window.__hq={daysUntilChristmas:daysUntilChristmas,games:games,go:go};
 })();
 </script>
+<script>
+/* Free mode: only Catch the Gifts and Christmas Trivia are open. Off unless the free flag is set. */
+(function(){
+  var FREE=['menu','catch','trivia'];
+  function api(){ try{ return window.parent!==window && window.parent.ChristmasHQFree; }catch(e){ return null; } }
+  function on(){ var a=api(); if(a) return a.active(); try{ return localStorage.getItem('christmas-hq-free-mode-v1')==='1'; }catch(e){ return false; } }
+  if(!on()) return;
+  var st=document.createElement('style');
+  st.textContent='.game-card.fm-lock{opacity:.5;filter:grayscale(.4);position:relative}.game-card.fm-lock::after{content:"🔒 Full version";position:absolute;top:6px;right:8px;padding:2px 7px;border-radius:999px;background:#17614f;color:#fff8df;font:800 10px/1.3 system-ui,sans-serif;border:1px solid #e7c56a}'+
+   '#fmArcadeNote{margin:8px auto 12px;max-width:520px;padding:10px 12px;border-radius:14px;background:#fff8df;border:1px solid #e7c56a;color:#17614f;font:700 13px/1.35 system-ui,sans-serif;text-align:center}'+
+   '#fmArcadeNote button,#fmArcadeNote a{display:inline-block;margin-top:6px;padding:7px 12px;border-radius:999px;border:0;background:#17614f;color:#fff8df;font:800 12px system-ui,sans-serif;text-decoration:none;cursor:pointer}';
+  document.head.appendChild(st);
+  function mark(){
+    var cards=document.querySelectorAll('.game-card[data-go]');
+    for(var i=0;i<cards.length;i++) if(FREE.indexOf(cards[i].getAttribute('data-go'))<0) cards[i].classList.add('fm-lock');
+    var menu=document.querySelector('#screen-menu .menu');
+    if(menu && !document.getElementById('fmArcadeNote')){
+      var d=document.createElement('div'); d.id='fmArcadeNote';
+      d.innerHTML='✨ Free version: Catch the Gifts and Christmas Trivia are open to play.<br>'+(api()?'<button type="button" data-fm-unlock-arcade="1">Unlock all games</button>':'<a href="/" target="_top">Open Christmas HQ to unlock all games</a>');
+      menu.parentNode.insertBefore(d,menu);
+    }
+  }
+  window.addEventListener('click',function(e){
+    if(!on()) return;
+    var u=e.target.closest&&e.target.closest('[data-fm-unlock-arcade]');
+    if(u){ e.preventDefault(); var a=api(); if(a) a.showLock('games'); return; }
+    var t=e.target.closest&&e.target.closest('[data-go]');
+    if(t && FREE.indexOf(t.getAttribute('data-go'))<0){
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      var a2=api(); if(a2) a2.showLock('games'); else alert('This game is in the full version of Christmas HQ.');
+    }
+  },true);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',mark); else mark();
+})();
+</script>
 </body>
 </html>
