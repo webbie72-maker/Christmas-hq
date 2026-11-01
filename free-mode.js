@@ -53,6 +53,7 @@
   FREE_UNLOCK_MODE,
   active: () => active,
   arcadeGames: FREE_ARCADE_GAMES.slice(),
+  maxGiftPeople: MAX_GIFT_PEOPLE,
   showLock: (what) => showLock(what),
   openUnlock: () => showLock('')
  };
@@ -141,7 +142,8 @@
 
  // ----- Gifts: 3 people -----
  let allowedPeople = null;
- function giftPeople() { return new Set((typeof state !== 'undefined' ? state.gifts : []).map(g => norm(g.recipient)).filter(Boolean)); }
+ function listPeople() { return (typeof state !== 'undefined' && Array.isArray(state.giftPeople)) ? state.giftPeople.map(norm).filter(Boolean) : []; }
+ function giftPeople() { return new Set([...(typeof state !== 'undefined' ? state.gifts : []).map(g => norm(g.recipient)).filter(Boolean), ...listPeople()]); }
  function ensureAllowed() { if (!allowedPeople) allowedPeople = giftPeople(); return allowedPeople; }
  function canAddPerson(name) { const a = ensureAllowed(); const n = norm(name); return !n || a.has(n) || a.size < MAX_GIFT_PEOPLE; }
  const giftMsg = 'The free version plans gifts for up to 3 people. Unlock the full version to add everyone on your list.';
@@ -152,6 +154,10 @@
     const a = ensureAllowed(); let blocked = false;
     // process oldest first so earlier people keep their place
     for (const g of [...state.gifts].reverse()) { const n = norm(g.recipient); if (!n || a.has(n)) continue; if (a.size < MAX_GIFT_PEOPLE) a.add(n); else { blocked = true; } }
+    if (Array.isArray(state.giftPeople)) {
+     for (const name of state.giftPeople) { const n = norm(name); if (!n || a.has(n)) continue; if (a.size < MAX_GIFT_PEOPLE) a.add(n); else blocked = true; }
+     state.giftPeople = state.giftPeople.filter(name => { const n = norm(name); return !n || a.has(n); });
+    }
     if (blocked) { state.gifts = state.gifts.filter(g => { const n = norm(g.recipient); return !n || a.has(n); }); setTimeout(() => showLock('giftpeople', giftMsg), 0); msg = ''; }
    }
    return orig.call(this, msg);

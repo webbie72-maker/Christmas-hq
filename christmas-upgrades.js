@@ -1348,6 +1348,145 @@ document.addEventListener('click', event => {
     `;
   }
 
+  /* ===== Quick add people =====
+     state.giftPeople: optional array of names on the gift list that may have no gifts yet.
+     Older data without it works unchanged; gifts still carry their own recipient. */
+  function hqListPeople() {
+    return Array.isArray(state.giftPeople)
+      ? state.giftPeople.filter(n => typeof n === 'string' && n.trim())
+      : [];
+  }
+
+  function hqAllGiftPeople() {
+    const map = new Map();
+    state.gifts.forEach(g => { const n = hqGiftRecipient(g); map.set(n.toLowerCase(), n); });
+    hqListPeople().forEach(n => { if (!map.has(n.toLowerCase())) map.set(n.toLowerCase(), n); });
+    return map;
+  }
+
+  function hqSplitNames(text) {
+    return String(text || '')
+      .split(/[\n\r,;]+/)
+      .map(n => n.replace(/\s+/g, ' ').trim().slice(0, 80))
+      .filter(Boolean);
+  }
+
+  function hqQuickPeoplePanel() {
+    return `
+      <form class="card form hq-qp" data-hq-qp-form>
+        <h3>👥 Quick add people</h3>
+        <p class="muted-note">Type or paste everyone’s names — one per line or separated by commas. Each person gets their own gift list; add presents whenever you’re ready.</p>
+        <label>Names
+          <textarea class="field" name="names" rows="4" maxlength="2000" data-hq-qp-names placeholder="e.g. Mum, Dad, Grandma">${esc(ui.hqQuickPeopleDraft || '')}</textarea>
+        </label>
+        ${ui.hqQuickPeopleMsg ? `<p class="hq-qp-msg" role="status">${esc(ui.hqQuickPeopleMsg)}</p>` : ''}
+        <div class="btnrow">
+          <button type="submit" class="btn">✓ Add everyone</button>
+          <button type="button" class="btn alt" data-hq-qp-toggle>Cancel</button>
+        </div>
+      </form>
+    `;
+  }
+
+  function hqQuickPeopleAdd(text) {
+    const names = hqSplitNames(text);
+    const existing = hqAllGiftPeople();
+    const seen = new Set(existing.keys());
+    const fresh = [];
+    let skipped = 0;
+    names.forEach(n => {
+      const key = n.toLowerCase();
+      if (seen.has(key)) { skipped++; return; }
+      seen.add(key);
+      fresh.push(n);
+    });
+
+    /* Free version: only up to the free people limit. Admin / full version: unlimited. */
+    const free = window.ChristmasHQFree;
+    let limited = 0;
+    if (free && typeof free.active === 'function' && free.active()) {
+      const room = Math.max(0, (free.maxGiftPeople || 3) - existing.size);
+      if (fresh.length > room) { limited = fresh.length - room; fresh.length = room; }
+    }
+
+    if (fresh.length) {
+      const member = n => state.family.find(m => m.name.toLowerCase() === n.toLowerCase());
+      state.giftPeople = [...hqListPeople(), ...fresh.map(n => member(n)?.name || n)];
+    }
+
+    const parts = [];
+    parts.push(fresh.length ? `Added ${fresh.length} ${fresh.length === 1 ? 'person' : 'people'}` : 'No new people added');
+    if (skipped) parts.push(`skipped ${skipped} already there`);
+    if (limited) parts.push(`${limited} more need the full version`);
+    const msg = parts.join(', ');
+
+    if (!names.length) {
+      ui.hqQuickPeopleMsg = 'Type at least one name.';
+      render(false);
+      return;
+    }
+
+    ui.hqQuickPeopleDraft = '';
+    ui.hqQuickPeopleMsg = '';
+    ui.hqQuickPeopleOpen = false;
+    persist(msg);
+    if (limited && free && typeof free.showLock === 'function') {
+      free.showLock('giftpeople', `${msg}. The free version plans gifts for up to ${free.maxGiftPeople || 3} people.`);
+    }
+  }
+
+  document.addEventListener('click', event => {
+    const t = event.target;
+    if (!t || !t.closest) return;
+    if (t.closest('[data-hq-qp-toggle]')) {
+      event.preventDefault();
+      const ta = screen.querySelector('[data-hq-qp-names]');
+      if (ta) ui.hqQuickPeopleDraft = ta.value;
+      ui.hqQuickPeopleOpen = !ui.hqQuickPeopleOpen;
+      ui.hqQuickPeopleMsg = '';
+      render(false);
+      if (ui.hqQuickPeopleOpen) {
+        const box = screen.querySelector('[data-hq-qp-names]');
+        if (box) { box.focus({ preventScroll: true }); box.scrollIntoView({ block: 'center' }); }
+      }
+      return;
+    }
+    const rm = t.closest('[data-hq-qp-remove]');
+    if (rm) {
+      event.preventDefault();
+      const key = String(rm.dataset.hqQpRemove || '').toLowerCase();
+      state.giftPeople = hqListPeople().filter(n => n.toLowerCase() !== key);
+      ui.hqGiftPerson = '';
+      persist('Removed from your gift list');
+    }
+  });
+
+  document.addEventListener('submit', event => {
+    const form = event.target;
+    if (!form || !form.matches || !form.matches('[data-hq-qp-form]')) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    hqQuickPeopleAdd(form.querySelector('[data-hq-qp-names]')?.value || '');
+  }, true);
+
+  document.addEventListener('input', event => {
+    if (event.target && event.target.matches && event.target.matches('[data-hq-qp-names]')) {
+      ui.hqQuickPeopleDraft = event.target.value;
+    }
+  });
+
+  if (!document.getElementById('hqQuickPeopleStyle')) {
+    const css = document.createElement('style');
+    css.id = 'hqQuickPeopleStyle';
+    css.textContent = `
+      .hq-qp{margin:0 0 14px}
+      .hq-qp textarea{min-height:96px;resize:vertical;font-size:16px}
+      .hq-qp-msg{margin:4px 0 8px;font-weight:700;color:#8a2c2c}
+      .hq-qp-toggle{white-space:nowrap;flex:0 0 auto}
+    `;
+    document.head.appendChild(css);
+  }
+
   gifts = function () {
     if (ui.sub.gifts !== 'My gifts') {
       return previousGiftsScreen();
@@ -1438,6 +1577,11 @@ document.addEventListener('click', event => {
                 )
           }
         </div>
+        ${
+          !personGifts.length && hqListPeople().some(n => n.toLowerCase() === person.toLowerCase())
+            ? `<button type="button" class="btn alt small" data-hq-qp-remove="${esc(person)}" style="margin-top:12px">Remove ${esc(person)} from my gift list</button>`
+            : ''
+        }
       `;
 
     /* MAIN GIFTS PAGE */
@@ -1458,10 +1602,18 @@ document.addEventListener('click', event => {
         people.get(key).gifts.push(gift);
       });
 
+      /* People added with "Quick add people" can have no gifts yet. */
+      hqListPeople().forEach(name => {
+        const key = name.toLowerCase();
+        if (!people.has(key)) people.set(key, { name, gifts: [] });
+      });
+
       const addOpen = !!(ui.hqAddOpen || ui.giftRecipientPreset);
 
       content += `
-        ${line('Your gift list')}
+        ${line('Your gift list', `<button type="button" class="btn small alt hq-qp-toggle" data-hq-qp-toggle aria-expanded="${ui.hqQuickPeopleOpen ? 'true' : 'false'}">${ui.hqQuickPeopleOpen ? '− Close' : '👥 Quick add people'}</button>`)}
+
+        ${ui.hqQuickPeopleOpen ? hqQuickPeoplePanel() : ''}
 
         ${
           people.size

@@ -1,9 +1,9 @@
-const CACHE = 'christmas-hq-pwa-v107';
+const CACHE = 'christmas-hq-pwa-v108';
 const CACHE_PREFIX = 'christmas-hq-pwa-';
 
 const CORE = [
   './', './index.html', './snowflake-icons.css?v=1', './hq-family-data.js?v=1', './family-cloud.js?v=10',
-  './christmas-upgrades.js?v=14', './pin-lock.js?v=5', './lock-village.jpg',
+  './christmas-upgrades.js?v=15', './pin-lock.js?v=5', './lock-village.jpg',
   './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'
 ];
 
@@ -21,7 +21,7 @@ const FEATURES = [
   './explore-detail-sheet.js?v=2', './metric-links.js?v=1',
   './tap-fixes.js?v=1', './countdown-reminders.js?v=2',
   './kitchen-fixes.js?v=7', './welcome-tour.js?v=5', './phone-back.js?v=3', './family-invitations.js?v=5', './direct-chat.js?v=3',
-  './free-mode.js?v=2', './free/index.html'
+  './free-mode.js?v=3', './free/index.html'
 ];
 
 function usable(response, url) {
