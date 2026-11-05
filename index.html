@@ -471,6 +471,15 @@ form[data-form="gift"] .btn{
 .hq-menu-dish .hq-menu-actions .icon-action{margin:0!important;min-width:40px;min-height:40px}
 @media(max-width:350px){.item.hq-menu-dish{grid-template-columns:70px minmax(0,1fr)!important;padding:14px!important;gap:10px!important}.hq-menu-dish .hq-menu-photo{width:70px;height:70px}}
 </style>
+  <script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('SW registered', reg))
+      .catch(err => console.log('SW registration failed', err));
+  });
+}
+  </script>
 </head>
 <body>
 <div class="app" id="app">
