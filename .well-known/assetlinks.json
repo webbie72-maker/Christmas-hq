@@ -10,5 +10,18 @@
         "FF:FC:77:16:39:61:CF:C5:82:9B:A0:FE:1B:76:D5:27:B3:58:30:74:9A:53:D6:84:70:F6:D5:85:9A:A9:DF:81"
       ]
     }
+  },
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.vercel.christmas_hq_mu.twa",
+      "sha256_cert_fingerprints": [
+        "FE:8A:44:AC:A4:3E:E6:D3:B7:E2:50:C0:A3:D1:CE:51:EF:4E:4F:15:12:6B:37:4D:CC:B9:B4:BB:0F:40:FB:DE",
+        "FF:FC:77:16:39:61:CF:C5:82:9B:A0:FE:1B:76:D5:27:B3:58:30:74:9A:53:D6:84:70:F6:D5:85:9A:A9:DF:81"
+      ]
+    }
   }
 ]
