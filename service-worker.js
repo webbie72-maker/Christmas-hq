@@ -1,4 +1,4 @@
-const CACHE = 'christmas-hq-pwa-v111';
+const CACHE = 'christmas-hq-pwa-v112';
 const CACHE_PREFIX = 'christmas-hq-pwa-';
 
 const CORE = [
@@ -21,7 +21,8 @@ const FEATURES = [
   './explore-detail-sheet.js?v=2', './metric-links.js?v=1',
   './tap-fixes.js?v=1', './countdown-reminders.js?v=2',
   './kitchen-fixes.js?v=7', './welcome-tour.js?v=5', './phone-back.js?v=3', './family-invitations.js?v=5', './direct-chat.js?v=3',
-  './free-mode.js?v=3', './free/index.html'
+  './free-mode.js?v=4', './free/index.html',
+  './wallpapers/thumbs/fireplace.jpg', './wallpapers/thumbs/snowy-village.jpg', './wallpapers/thumbs/beach-christmas.jpg', './wallpapers/thumbs/tree-bokeh.jpg', './wallpapers/thumbs/gingerbread.jpg', './wallpapers/thumbs/reindeer-lights.jpg', './wallpapers/thumbs/ornaments.jpg', './wallpapers/thumbs/wreath.jpg', './wallpapers/thumbs/candy-cane.jpg', './wallpapers/thumbs/christmas-eve.jpg'
 ];
 
 function usable(response, url) {

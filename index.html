@@ -1123,13 +1123,66 @@ ${farmDirectoryHtml()}
 <div class="card"><h3>🎄 Your tree farm trail</h3><p class="muted-note">Save farms you’d like to visit. Add at least two stops to create a Google Maps driving route.</p><form class="form" data-form="farmPlace"><label>Farm or stop name<input name="name" class="field" placeholder="e.g. Favourite tree farm" maxlength="100" required></label><label>Address or suburb<input name="address" class="field" placeholder="Street/suburb, WA" maxlength="170" required></label><button type="submit" class="btn full">📍 Add a stop</button></form></div>
 ${line('Your saved farms')}<div class="list">${saved.length?saved.map((p,i)=>`<div class="item"><span class="item-icon">${i+1}</span><div class="item-info"><b>${esc(p.name)}</b><small>${esc(p.address)}</small><a target="_blank" rel="noopener" class="link-out" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.address)}">View on Maps ↗</a></div><button class="icon-action" data-action="farmPlaceDelete" data-id="${esc(p.id)}" aria-label="Remove stop">×</button></div>`).join(''):empty('🎄','Your tree farm trail is waiting','Add a farm from the list, or save an address yourself.')}</div><div style="margin-top:13px"><button class="btn full" data-action="farmRoute" ${saved.length<2?'disabled':''}>🗺️ Open my driving route ↗</button></div>`;
 }
-function explore(){let subs=['Discover','Light trail','Christmas tree farms','Decor ideas'];let c='';if(ui.sub.explore==='Discover'){
 
- c=`<div class="card" style="background:#f2f6eb"><h3>Find festive adventures</h3><p class="muted-note">Explore local Christmas lights, markets, Santa experiences, carols and more. Christmas lights opens a web search; other categories open Google Maps. An internet connection is required. Check dates and hours before travelling.</p><label style="font-size:11px;font-weight:800">Your city or suburb</label><input class="field" id="cityInput" value="${esc(lightSuburb()||ui.city)}" placeholder="e.g. Joondalup or Perth WA" maxlength="60"><p class="muted-note">Used to search for Christmas lights, markets and more near you. Plan a lights drive on the Light trail tab, or find a real-tree farm on the Christmas tree farms tab.</p></div><div class="quick-grid">${LOCAL.map(([icon,title,desc,term])=>`<button class="tap-card" data-action="${term==='Christmas lights'?'lightSearch':'mapSearch'}" data-term="${esc(term)}"><span class="big">${icon}</span><strong>${esc(title)}</strong><small>${esc(desc)} ↗</small></button>`).join('')}</div><div class="callout" style="margin-top:15px">These are search categories, not verified current events or business listings.</div>`;
+const WALLPAPERS=[
+  {id:'fireplace',name:'Cosy fireplace',file:'./wallpapers/fireplace.jpg',thumb:'./wallpapers/thumbs/fireplace.jpg'},
+  {id:'snowy-village',name:'Snowy village',file:'./wallpapers/snowy-village.jpg',thumb:'./wallpapers/thumbs/snowy-village.jpg'},
+  {id:'beach-christmas',name:'Aussie beach Christmas',file:'./wallpapers/beach-christmas.jpg',thumb:'./wallpapers/thumbs/beach-christmas.jpg'},
+  {id:'tree-bokeh',name:'Glowing tree lights',file:'./wallpapers/tree-bokeh.jpg',thumb:'./wallpapers/thumbs/tree-bokeh.jpg'},
+  {id:'gingerbread',name:'Gingerbread and cookies',file:'./wallpapers/gingerbread.jpg',thumb:'./wallpapers/thumbs/gingerbread.jpg'},
+  {id:'reindeer-lights',name:'Reindeer and northern lights',file:'./wallpapers/reindeer-lights.jpg',thumb:'./wallpapers/thumbs/reindeer-lights.jpg'},
+  {id:'ornaments',name:'Red and green ornaments',file:'./wallpapers/ornaments.jpg',thumb:'./wallpapers/thumbs/ornaments.jpg'},
+  {id:'wreath',name:'Wreath on the door',file:'./wallpapers/wreath.jpg',thumb:'./wallpapers/thumbs/wreath.jpg'},
+  {id:'candy-cane',name:'Candy cane stripes',file:'./wallpapers/candy-cane.jpg',thumb:'./wallpapers/thumbs/candy-cane.jpg'},
+  {id:'christmas-eve',name:'Christmas Eve sky',file:'./wallpapers/christmas-eve.jpg',thumb:'./wallpapers/thumbs/christmas-eve.jpg'}
+];
+const FREE_WALLPAPERS=['fireplace','beach-christmas'];
+function wallpaperIsFree(id){
+  const api=window.ChristmasHQFree;
+  const freeOn=api && typeof api.active==='function' && api.active();
+  if(!freeOn) return true;
+  const list=Array.isArray(api.freeWallpapers)?api.freeWallpapers:FREE_WALLPAPERS;
+  return list.includes(id);
+}
+function wallpaperTabHtml(){
+  return `<div class="card"><h3>📱 Christmas wallpapers</h3><p class="muted-note">Ten phone wallpapers for your lock screen or home screen, made for a tall portrait phone. Tap a picture to open it full size, then download it to use as a screen saver.</p><p class="muted-note">iPhone: tap and hold the picture, then Save to Photos.</p></div>
+  <div class="hq-wp-grid">${WALLPAPERS.map(w=>{
+    const open=wallpaperIsFree(w.id);
+    const file=open?w.file:'#';
+    const dl=open?`href="${esc(w.file)}" download="${esc(w.id)}.jpg"`:`href="#" data-action="wallpaperLocked" data-id="${esc(w.id)}"`;
+    return `<article class="hq-wp-card" data-hq-wallpaper="${esc(w.id)}"><button type="button" class="hq-wp-preview" data-action="wallpaperOpen" data-id="${esc(w.id)}" aria-label="${esc(w.name)}"><img src="${esc(w.thumb)}" alt="${esc(w.name)}" width="360" height="780" loading="lazy"></button><b>${esc(w.name)}</b><a class="btn small" ${dl}>⬇ Download</a></article>`;
+  }).join('')}</div>`;
+}
+function closeWallpaper(){document.getElementById('hqWpLightbox')?.remove()}
+function openWallpaper(id){
+  const w=WALLPAPERS.find(x=>x.id===id);
+  if(!w) return;
+  if(!wallpaperIsFree(id)){
+    if(window.ChristmasHQFree && typeof ChristmasHQFree.showLock==='function') ChristmasHQFree.showLock('wallpaper');
+    return;
+  }
+  closeWallpaper();
+  const box=document.createElement('div');
+  box.id='hqWpLightbox';
+  box.className='hq-wp-lightbox';
+  box.setAttribute('role','dialog');
+  box.setAttribute('aria-modal','true');
+  box.setAttribute('aria-label',w.name);
+  box.innerHTML=`<img src="${esc(w.file)}" alt="${esc(w.name)}"><p>iPhone: tap and hold the picture, then Save to Photos.</p><div class="btnrow"><a class="btn" href="${esc(w.file)}" download="${esc(w.id)}.jpg">⬇ Download</a><button type="button" class="btn alt" data-action="wallpaperClose">Close</button></div>`;
+  box.addEventListener('click',ev=>{if(ev.target===box) closeWallpaper()});
+  document.body.appendChild(box);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeWallpaper()});
+function explore(){let subs=['Discover','Light trail','Christmas tree farms','Wallpapers','Decor ideas'];let c='';if(ui.sub.explore==='Discover'){
+
+
+ c=`<div class="card" style="background:#f2f6eb"><h3>Find festive adventures</h3><p class="muted-note">Explore local Christmas lights, markets, Santa experiences, carols and more. Christmas lights opens a web search; other categories open Google Maps. An internet connection is required. Check dates and hours before travelling.</p><label style="font-size:11px;font-weight:800">Your city or suburb</label><input class="field" id="cityInput" value="${esc(lightSuburb()||ui.city)}" placeholder="e.g. Joondalup or Perth WA" maxlength="60"><p class="muted-note">Used to search for Christmas lights, markets and more near you. Plan a lights drive on the Light trail tab, find a real-tree farm on the Christmas tree farms tab, or download lock-screen wallpapers on the Wallpapers tab.</p></div><div class="quick-grid">${LOCAL.map(([icon,title,desc,term])=>`<button class="tap-card" data-action="${term==='Christmas lights'?'lightSearch':'mapSearch'}" data-term="${esc(term)}"><span class="big">${icon}</span><strong>${esc(title)}</strong><small>${esc(desc)} ↗</small></button>`).join('')}</div><div class="callout" style="margin-top:15px">These are search categories, not verified current events or business listings.</div>`;
  }else if(ui.sub.explore==='Light trail'){
  c=`<div class="card"><h3>🔎 Find Christmas lights</h3><label style="font-size:11px;font-weight:800;display:block">Your suburb (optional)<input class="field" id="lightSuburbInput" value="${esc(lightSuburb())}" placeholder="e.g. Joondalup" maxlength="60"></label><p class="muted-note">Search for Christmas light displays around your suburb. Save a display address below to view it on Maps or add it to your driving trail.</p><button type="button" class="btn full" data-action="lightSearch">🔎 Search Christmas lights ↗</button></div><div class="card"><h3>✨ Your Christmas lights trail</h3><p class="muted-note">Save addresses of displays you'd like to visit. Add at least two stops to create a Google Maps driving route.</p><form class="form" data-form="place"><label>Stop name<input name="name" class="field" placeholder="e.g. Favourite display" maxlength="100" required></label><label>Address or suburb<input name="address" class="field" placeholder="Street/suburb, WA" maxlength="170" required></label><button type="submit" class="btn full">📍 Add a stop</button></form></div>${line('Your saved stops')}<div class="list">${state.places.length?state.places.map((p,i)=>`<div class="item"><span class="item-icon">${i+1}</span><div class="item-info"><b>${esc(p.name)}</b><small>${esc(p.address)}</small><a target="_blank" rel="noopener" class="link-out" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.address)}">View on Maps ↗</a></div><button class="icon-action" data-action="placeDelete" data-id="${esc(p.id)}" aria-label="Remove place">×</button></div>`).join(''):empty('📍','Your light trail is waiting','Add your first Christmas light display.')}</div><div style="margin-top:13px"><button class="btn full" data-action="route" ${state.places.length<2?'disabled':''}>🗺️ Open my driving route ↗</button></div>`;
  }else if(ui.sub.explore==='Christmas tree farms'){
  c=farmTabHtml();
+ }else if(ui.sub.explore==='Wallpapers'){
+ c=wallpaperTabHtml();
  }else{
  c=`<div class="catalog"><div class="catalog-card"><span class="em">🎄</span><div class="body"><b>The classic tree</b><small>Start with lights, add large ornaments, then smaller decorations. Finish with a meaningful family ornament.</small></div></div><div class="catalog-card"><span class="em">🕯️</span><div class="body"><b>Christmas table</b><small>Pick two colours, add a simple runner, greenery, napkins and battery-operated candles.</small></div></div><div class="catalog-card"><span class="em">🚪</span><div class="body"><b>Festive front door</b><small>A wreath, outdoor-safe fairy lights and one cheerful welcome decoration.</small></div></div><div class="catalog-card"><span class="em">🎁</span><div class="body"><b>Wrapping station</b><small>Paper, tape, reusable bags, ribbons, scissors and individual named gift boxes.</small></div></div><div class="catalog-card"><span class="em">💡</span><div class="body"><b>Outdoor light setup</b><small>Use appropriately rated outdoor lights, safe power connections and secure cables away from walkways.</small></div></div><div class="catalog-card"><span class="em">🥂</span><div class="body"><b>Australian summer Christmas</b><small>Set up shaded outdoor seating, a drink station and plenty of water and ice.</small></div></div></div>`;
  }
@@ -1279,6 +1332,9 @@ case 'fixedEventEdit':{
  case 'lightSearch':{let el=document.getElementById('lightSuburbInput')||document.getElementById('cityInput');let suburb=el?el.value.trim():lightSuburb();if(el)saveLightSuburb(suburb);window.location.assign(lightSearchUrl(suburb));break}
  case 'mapSearch':{let el=document.getElementById('cityInput');if(el){ui.city=el.value.trim()||'Perth WA';saveLightSuburb(el.value.trim())}window.location.assign(mapQuery(btn.dataset.term));break}
  case 'placeDelete':state.places=state.places.filter(x=>x.id!==id);persist();break;
+ case 'wallpaperOpen':openWallpaper(id||btn.dataset.id);break;
+ case 'wallpaperClose':closeWallpaper();break;
+ case 'wallpaperLocked':if(window.ChristmasHQFree&&typeof ChristmasHQFree.showLock==='function')ChristmasHQFree.showLock('wallpaper');break;
  case 'farmSearch':{let el=document.getElementById('farmSuburbInput')||document.getElementById('cityInput');let suburb=el?el.value.trim():lightSuburb();if(el)saveLightSuburb(suburb);window.location.assign(farmSearchUrl(suburb));break}
  case 'farmState':ui.farmState=btn.dataset.value||'All';render(false);break;
  case 'farmAdd':{const name=(btn.dataset.name||'').trim(),address=(btn.dataset.address||'').trim();if(!name||!address)break;const list=farmPlaceList();if(list.some(p=>(p.address||'').toLowerCase()===address.toLowerCase()||(p.name||'').toLowerCase()===name.toLowerCase())){notice(name+' is already on your trail');break}list.push({id:uid(),name,address});persist('Added to your tree farm trail');break}
@@ -1399,6 +1455,20 @@ setTimeout(refreshInstallUI,0);
 <script src="./countdown-reminders.js?v=2"></script>
 <script src="./kitchen-fixes.js?v=7"></script>
 <script src="./welcome-tour.js?v=5"></script>
+
+<style id="hq-wallpapers">
+.hq-wp-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:4px 0 8px}
+.hq-wp-card{background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:10px 10px 12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.hq-wp-card b{font-size:14px;color:var(--forest);line-height:1.25;margin:0}
+.hq-wp-preview{display:block;width:100%;padding:0;margin:0;border:0;background:none;border-radius:12px;overflow:hidden;cursor:pointer;line-height:0}
+.hq-wp-preview img{width:100%;height:auto;display:block;border-radius:12px;aspect-ratio:1080/2340;object-fit:cover;background:#15241f}
+.hq-wp-card .btn{width:100%;text-align:center;text-decoration:none;box-sizing:border-box}
+.hq-wp-lightbox{position:fixed;inset:0;z-index:90000;background:rgba(6,30,24,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 16px calc(16px + env(safe-area-inset-bottom));box-sizing:border-box}
+.hq-wp-lightbox img{max-width:100%;max-height:72vh;width:auto;height:auto;object-fit:contain;border-radius:14px;box-shadow:0 12px 40px #0008;background:#111}
+.hq-wp-lightbox p{color:#fff8df;font-size:13px;text-align:center;margin:12px 0 0;max-width:26em;font-weight:650}
+.hq-wp-lightbox .btnrow{margin-top:12px;justify-content:center}
+@media(max-width:360px){.hq-wp-grid{gap:8px}.hq-wp-card{padding:8px}}
+</style>
 <style>.mast[data-hq-page="magic"]{background:url('./christmas-hq-magic.png?v=2') center/cover no-repeat!important}
 .mast[data-hq-page="games"]{background:url('./christmas-hq-games.png?v=2') center/cover no-repeat!important}
 .mast[data-hq-page="chat"]{background:url('./christmas-hq-chat.png?v=2') center/cover no-repeat!important}
@@ -1882,7 +1952,7 @@ document.addEventListener('click',function(event){
 <script src="./hq-offline-music.js?v=2"></script>
 <script src="./gift-extras.js?v=2"></script>
 <script src="./hq-polish.js?v=1"></script>
-<script src="./free-mode.js?v=3"></script>
+<script src="./free-mode.js?v=4"></script>
 <style id="hq-audit-fixes">
 /* Overdue marker in Home "Up next" */
 .hq-overdue-tag{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:999px;background:#c62832;color:#fff;font-size:10px;font-weight:900;letter-spacing:.4px;text-transform:uppercase;line-height:1.5}

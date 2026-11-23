@@ -21,12 +21,13 @@
   plan: ['Checklist', 'Budget'],
   kitchen: ['Recipes', 'My menu'],
   magic: ['Advent', 'Activities', 'Music'],
-  explore: ['Discover']
+  explore: ['Discover', 'Wallpapers']
  };
  const FREE_RECIPES = new Set(['ham', 'prawns', 'turkey', 'potatoes', 'dish-gravy', 'pavlova', 'trifle', 'pudding', 'dish-mince-pies', 'ginger']);
  const FREE_IDEAS = new Set(['Photo book', 'Leather wallet', 'Coffee mug', 'Phone case', 'Travel tag', 'Jewellery box']);
  const FREE_ACTIVITIES = new Set(['1', '3']);
  const FREE_DISCOVER = new Set(['christmas-lights-drive', 'christmas-markets', 'santa-experiences']);
+ const FREE_WALLPAPERS = new Set(['fireplace', 'beach-christmas']);
  const FREE_HUB_GAMES = new Set(['arcade', 'trivia']);
  const FREE_ARCADE_GAMES = ['catch', 'trivia'];
 
@@ -53,6 +54,7 @@
   FREE_UNLOCK_MODE,
   active: () => active,
   arcadeGames: FREE_ARCADE_GAMES.slice(),
+  freeWallpapers: [...FREE_WALLPAPERS],
   maxGiftPeople: MAX_GIFT_PEOPLE,
   showLock: (what) => showLock(what),
   openUnlock: () => showLock('')
@@ -96,7 +98,7 @@
  const LABEL = {
   gifts: 'Secret Santa', plan: 'This planner tool', kitchen: 'This kitchen tool', magic: 'This bit of Christmas magic',
   explore: 'This explorer', chat: 'Family chat', games: 'This game', recipe: 'This recipe', idea: 'More gift ideas',
-  activity: 'This activity', discover: 'This adventure', giftpeople: 'More than 3 people'
+  activity: 'This activity', discover: 'This adventure', wallpaper: 'More wallpapers', giftpeople: 'More than 3 people'
  };
  function lockCardHtml(title, msg) {
   return `<div class="card fm-inline" data-fm-lockcard="1"><div class="fm-big">🔒</div><div class="eyebrow">FREE VERSION</div><h3>${esc(title)}</h3><p class="muted-note">${esc(msg || 'Unlock the full version to open everything in Christmas HQ.')}</p><button class="btn" type="button" data-fm-unlock="1" style="background:#e7c56a;color:#0b463a">✨ Unlock the full version</button></div>`;
@@ -249,6 +251,7 @@
    s.querySelectorAll('[data-action="idea"][data-name]').forEach(b => { if (!FREE_IDEAS.has(b.dataset.name)) lockEl(b.closest('.catalog-card') || b, 'idea'); });
    if (tab === 'magic') s.querySelectorAll('[data-action="activity"][data-index]').forEach(b => { if (!FREE_ACTIVITIES.has(b.dataset.index)) lockEl(b.closest('.catalog-card') || b, 'activity'); });
    if (tab === 'explore') s.querySelectorAll('.tap-card[data-ed-id]').forEach(c => { if (!FREE_DISCOVER.has(c.dataset.edId)) lockEl(c, 'discover'); });
+   if (tab === 'explore') s.querySelectorAll('[data-hq-wallpaper]').forEach(c => { if (!FREE_WALLPAPERS.has(c.dataset.hqWallpaper)) lockEl(c, 'wallpaper'); });
    if (tab === 'games') s.querySelectorAll('[data-hq-game]').forEach(c => { if (!FREE_HUB_GAMES.has(c.dataset.hqGame)) lockEl(c, 'games'); });
    document.querySelectorAll('#bottomNav [data-nav="chat"]').forEach(b => { if (!b.querySelector('.fm-tab-lock')) b.querySelector('span')?.insertAdjacentHTML('beforeend', '<span class="fm-tab-lock" aria-hidden="true">🔒</span>'); });
   } finally { observe(); }
